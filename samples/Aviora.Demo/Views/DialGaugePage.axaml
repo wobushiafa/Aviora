@@ -190,7 +190,10 @@
                             <controls:AvioraCard HorizontalAlignment="Stretch">
                                 <StackPanel Spacing="12">
                                     <TextBlock FontSize="16" FontWeight="SemiBold" Text="Brushes" />
-                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10" RowSpacing="10">
+                                    <Grid ColumnDefinitions="*,*"
+                                          RowDefinitions="Auto,Auto,Auto,Auto"
+                                          ColumnSpacing="10"
+                                          RowSpacing="10">
                                         <StackPanel Spacing="5">
                                             <TextBlock FontSize="12" Opacity="0.65" Text="Ticks" />
                                             <ComboBox ItemTemplate="{StaticResource BrushOptionTemplate}"
