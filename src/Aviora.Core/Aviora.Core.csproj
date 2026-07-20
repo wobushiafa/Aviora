@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>Aviora.Core</PackageId>
     <Title>Aviora Core</Title>
     <Description>Framework-independent data contracts and algorithms for Aviora controls.</Description>

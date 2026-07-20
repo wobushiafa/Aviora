@@ -5,5 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <PackageProjectUrl>https://github.com/wobushiafa/Aviora</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/wobushiafa/Aviora</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 </Project>

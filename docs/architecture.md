@@ -34,7 +34,7 @@ src/
 
 ## Aviora.Core boundary
 
-`Aviora.Core` targets `net8.0` and has no Avalonia package reference. It owns
+`Aviora.Core` targets `netstandard2.0` and has no Avalonia package reference. It owns
 public data contracts and deterministic algorithms that can be used by multiple
 controls or by non-Avalonia applications.
 
@@ -59,7 +59,7 @@ The initial chart domain contains:
 
 ## Aviora.Presentation.Abstractions boundary
 
-`Aviora.Presentation.Abstractions` targets `net8.0` and references neither
+`Aviora.Presentation.Abstractions` targets `netstandard2.0` and references neither
 Avalonia nor `Aviora.Controls`. It contains contracts that application and
 ViewModel projects can consume without depending on a concrete UI framework.
 

@@ -14,8 +14,12 @@ public static class ChartAxisCalculator
         int desiredTickCount,
         double paddingRatio = 0.08)
     {
-        ArgumentNullException.ThrowIfNull(values);
-        desiredTickCount = Math.Clamp(desiredTickCount, 2, 20);
+        if (values is null)
+        {
+            throw new ArgumentNullException(nameof(values));
+        }
+
+        desiredTickCount = Clamp(desiredTickCount, 2, 20);
 
         if (!autoRange)
         {
@@ -26,7 +30,7 @@ public static class ChartAxisCalculator
                 BuildUniformTicks(minimum, maximum, desiredTickCount));
         }
 
-        var finiteValues = values.Where(double.IsFinite).ToList();
+        var finiteValues = values.Where(IsFinite).ToList();
         if (finiteValues.Count == 0)
         {
             return new ChartAxisScale(0, 1, BuildUniformTicks(0, 1, desiredTickCount));
@@ -39,7 +43,7 @@ public static class ChartAxisCalculator
             dataMaximum += Math.Max(Math.Abs(dataMaximum) * 0.1, 1);
         }
 
-        double padding = (dataMaximum - dataMinimum) * Math.Clamp(paddingRatio, 0, 1);
+        double padding = (dataMaximum - dataMinimum) * Clamp(paddingRatio, 0, 1);
         if (dataMinimum < 0)
         {
             dataMinimum -= padding;
@@ -55,7 +59,7 @@ public static class ChartAxisCalculator
         double niceMaximum = Math.Ceiling(dataMaximum / step) * step;
         (niceMinimum, niceMaximum) = NormalizeRange(niceMinimum, niceMaximum);
 
-        int actualTickCount = Math.Clamp(
+        int actualTickCount = Clamp(
             (int)Math.Round((niceMaximum - niceMinimum) / step) + 1,
             2,
             20);
@@ -68,12 +72,12 @@ public static class ChartAxisCalculator
 
     private static (double Minimum, double Maximum) NormalizeRange(double minimum, double maximum)
     {
-        if (!double.IsFinite(minimum))
+        if (!IsFinite(minimum))
         {
             minimum = 0;
         }
 
-        if (!double.IsFinite(maximum) || maximum <= minimum)
+        if (!IsFinite(maximum) || maximum <= minimum)
         {
             maximum = minimum + 1;
         }
@@ -94,7 +98,7 @@ public static class ChartAxisCalculator
 
     private static double NiceCeiling(double value)
     {
-        if (!double.IsFinite(value) || value <= 0)
+        if (!IsFinite(value) || value <= 0)
         {
             return 1;
         }
@@ -104,4 +108,12 @@ public static class ChartAxisCalculator
         double niceFraction = fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 5 ? 5 : 10;
         return niceFraction * Math.Pow(10, exponent);
     }
+
+    private static bool IsFinite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
+
+    private static int Clamp(int value, int minimum, int maximum) =>
+        Math.Min(Math.Max(value, minimum), maximum);
+
+    private static double Clamp(double value, double minimum, double maximum) =>
+        Math.Min(Math.Max(value, minimum), maximum);
 }

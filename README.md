@@ -7,6 +7,12 @@
 Aviora is an open-source control library for building modern, cross-platform
 applications with [Avalonia](https://avaloniaui.net/).
 
+| Package | Target framework | Intended use |
+|---|---|---|
+| `Aviora.Core` | `netstandard2.0` | Framework-independent data contracts and algorithms |
+| `Aviora.Presentation.Abstractions` | `netstandard2.0` | ViewModel-facing presentation contracts |
+| `Aviora.Controls` | `net8.0` | Avalonia 12 controls, themes, and service implementations |
+
 > The project is in its initial development stage. APIs may change before the
 > first stable release.
 
@@ -29,8 +35,9 @@ aviora/
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or newer
 
-The library targets `net8.0`, while the .NET 10 SDK is used to run Avalonia
-12.1 source generators during development.
+`Aviora.Controls` targets `net8.0`, while the framework-independent packages
+target `netstandard2.0`. The .NET 10 SDK runs Avalonia 12.1 source generators
+during development.
 
 ## Build
 

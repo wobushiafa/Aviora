@@ -14,14 +14,30 @@ public static class ThresholdResolver
         IEnumerable<ThresholdRule>? thresholds,
         ThresholdDirection direction)
     {
-        if (!double.IsFinite(value) || thresholds == null)
+        if (!IsFinite(value) || thresholds == null)
         {
             return null;
         }
 
-        IEnumerable<ThresholdRule> candidates = thresholds.Where(item => double.IsFinite(item.Value));
-        return direction == ThresholdDirection.HigherIsMoreSevere
-            ? candidates.Where(item => value >= item.Value).MaxBy(item => item.Value)
-            : candidates.Where(item => value <= item.Value).MinBy(item => item.Value);
+        ThresholdRule? match = null;
+        foreach (ThresholdRule candidate in thresholds)
+        {
+            if (!IsFinite(candidate.Value))
+            {
+                continue;
+            }
+
+            bool isBetterMatch = direction == ThresholdDirection.HigherIsMoreSevere
+                ? value >= candidate.Value && (match is null || candidate.Value > match.Value)
+                : value <= candidate.Value && (match is null || candidate.Value < match.Value);
+            if (isBetterMatch)
+            {
+                match = candidate;
+            }
+        }
+
+        return match;
     }
+
+    private static bool IsFinite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
 }
