@@ -55,12 +55,11 @@ Reference `src/Aviora.Controls/Aviora.Controls.csproj`. It brings in
 </Application.Resources>
 ```
 
-### ColumnChart
+### Charts
 
 Bind a simple numeric sequence with `Values`, or use `ItemsSource` when each
-column needs its own key, label, brush, or Tooltip. Business models can
-implement `IChartDataPoint` directly; `ChartDataPoint` is provided for common
-cases.
+point needs its own key, label, brush, or Tooltip. Business models can implement
+`IChartDataPoint` directly; `ChartDataPoint` is provided for common cases.
 
 ```xml
 <controls:ColumnChart ItemsSource="{Binding Sales}"
@@ -70,7 +69,7 @@ cases.
 ```
 
 See the [control documentation](docs/column-chart.md) and the demo application
-for complete examples.
+and [LineChart documentation](docs/line-chart.md) for complete examples.
 
 ## Contributing
 

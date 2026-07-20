@@ -55,6 +55,11 @@ The initial chart domain contains:
 rendering, interaction, themes, and lifecycle behavior. Existing chart types
 remain source-compatible:
 
+`CartesianChart` is the shared Avalonia base for single-series Cartesian charts.
+It owns the common StyledProperties, data observation, update throttling,
+animation, selection, keyboard interaction, and tooltip lifecycle. Concrete
+charts only add series-specific properties and rendering.
+
 - `IChartDataPoint` extends Core's `IChartPoint` with per-column brushes.
 - `ChartDataPoint` extends Core's `ChartPoint` and keeps its original public
   properties and namespace.

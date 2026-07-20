@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using Avalonia;
+using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Media;
 using Aviora.Controls;
@@ -92,6 +93,15 @@ public class ColumnChartTests
     }
 
     [Fact]
+    public void Shared_styled_properties_remain_accessible_through_column_chart()
+    {
+        Assert.Same(CartesianChart.ValuesProperty, ColumnChart.ValuesProperty);
+        Assert.Same(CartesianChart.ItemsSourceProperty, ColumnChart.ItemsSourceProperty);
+        Assert.Same(CartesianChart.YAxisWidthProperty, ColumnChart.YAxisWidthProperty);
+        Assert.Same(CartesianChart.IsAnimationEnabledProperty, ColumnChart.IsAnimationEnabledProperty);
+    }
+
+    [Fact]
     public void ColumnChart_exposes_column_background_and_selection_styling()
     {
         var chart = new ColumnChart
@@ -110,7 +120,7 @@ public class ColumnChartTests
         Assert.Equal(3, chart.SelectionStrokeThickness);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void SelectedIndex_and_SelectedItem_stay_synchronized()
     {
         IChartDataPoint[] points =
@@ -120,9 +130,9 @@ public class ColumnChartTests
         ];
         var chart = new ColumnChart
         {
-            ItemsSource = points,
             UpdateThrottleInterval = TimeSpan.Zero,
             IsAnimationEnabled = false,
+            ItemsSource = points,
         };
 
         chart.SelectedIndex = 1;

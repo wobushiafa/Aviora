@@ -26,6 +26,16 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public IReadOnlyList<string> WeeklyLabels { get; } = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+    public IReadOnlyList<IChartDataPoint> RevenueTrend { get; } =
+    [
+        new ChartDataPoint { Key = "Q1", Label = "Q1", Value = 32 },
+        new ChartDataPoint { Key = "Q2", Label = "Q2", Value = 48 },
+        new ChartDataPoint { Key = "Q3", Label = "Q3", Value = 41 },
+        new ChartDataPoint { Key = "Q4", Label = "Q4", Value = 68 },
+        new ChartDataPoint { Key = "Q5", Label = "Q5", Value = 59 },
+        new ChartDataPoint { Key = "Q6", Label = "Q6", Value = 82 },
+    ];
+
     public IReadOnlyList<ChartThreshold> WeeklyScoreThresholds { get; } =
     [
         new ChartThreshold { Label = "Danger", Value = 30, Brush = Brushes.Red },

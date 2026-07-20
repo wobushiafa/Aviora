@@ -11,6 +11,6 @@ public enum ChartLabelMode
     /// <summary>Renders every label.</summary>
     All,
 
-    /// <summary>Renders labels at <see cref="ColumnChart.XAxisLabelInterval"/> intervals.</summary>
+    /// <summary>Renders labels at <see cref="CartesianChart.XAxisLabelInterval"/> intervals.</summary>
     Interval,
 }

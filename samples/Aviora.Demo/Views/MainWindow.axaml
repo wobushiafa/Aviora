@@ -23,10 +23,11 @@
     <Grid Margin="32" RowDefinitions="Auto,*" RowSpacing="24">
         <StackPanel Spacing="6">
             <TextBlock FontSize="28" FontWeight="SemiBold" Text="Aviora Controls" />
-            <TextBlock Opacity="0.65" Text="ColumnChart data and styling examples" />
+            <TextBlock Opacity="0.65" Text="Cartesian chart data and styling examples" />
         </StackPanel>
 
-        <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="18">
+        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" ColumnSpacing="18" RowSpacing="18">
             <controls:AvioraCard HorizontalAlignment="Stretch" VerticalAlignment="Top">
                 <StackPanel Spacing="12">
                     <TextBlock FontSize="18" FontWeight="SemiBold" Text="ItemsSource" />
@@ -73,7 +74,29 @@
                                            DefaultBrush="#15803D" />
                 </StackPanel>
             </controls:AvioraCard>
+
+            <controls:AvioraCard Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                <StackPanel Spacing="12">
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="LineChart" />
+                    <TextBlock Opacity="0.65" Text="Smooth trend with points, thresholds, and area fill" />
+                    <controls:LineChart Height="280"
+                                        ItemsSource="{Binding RevenueTrend}"
+                                        Thresholds="{Binding MonthlySalesThresholds}"
+                                        AutoRange="True"
+                                        GridLineCount="5"
+                                        ShowThresholds="True"
+                                        LineBrush="#2563EB"
+                                        AreaFillBrush="#202563EB"
+                                        PointBrush="#1D4ED8"
+                                        PointRadius="4"
+                                        XAxisTextBrush="#64748B"
+                                        YAxisTextBrush="#475569"
+                                        GridLineBrush="#CBD5E1"
+                                        UpdateThrottleInterval="0" />
+                </StackPanel>
+            </controls:AvioraCard>
         </Grid>
+        </ScrollViewer>
     </Grid>
 
 </Window>

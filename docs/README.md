@@ -8,4 +8,5 @@ accessibility behavior, and a minimal XAML example.
 ## Contents
 
 - [ColumnChart](column-chart.md)
+- [LineChart](line-chart.md)
 - [Project architecture](architecture.md)

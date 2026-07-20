@@ -1,0 +1,115 @@
+using System.Runtime.InteropServices;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Headless.XUnit;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using Aviora.Controls;
+
+namespace Aviora.Controls.Tests;
+
+public class ChartRenderingTests
+{
+    private const int Width = 320;
+    private const int Height = 200;
+
+    [AvaloniaFact]
+    public void ColumnChart_renders_non_transparent_pixels()
+    {
+        var chart = new ColumnChart
+        {
+            IsAnimationEnabled = false,
+            UpdateThrottleInterval = TimeSpan.Zero,
+            ShowXAxis = false,
+            ShowYAxis = false,
+            ShowGridLines = false,
+            DefaultBrush = Brushes.Red,
+            Values = [20, 55, 80],
+        };
+
+        byte[] pixels = Render(chart);
+
+        int visiblePixels = CountVisiblePixels(pixels);
+        Assert.True(visiblePixels > 1_000, $"Expected a rendered area, but found {visiblePixels} visible pixels.");
+    }
+
+    [AvaloniaFact]
+    public void Smooth_line_and_area_are_clipped_to_the_plot()
+    {
+        var chart = new LineChart
+        {
+            MinValue = 0,
+            MaxValue = 100,
+            IsAnimationEnabled = false,
+            UpdateThrottleInterval = TimeSpan.Zero,
+            ShowXAxis = false,
+            ShowYAxis = false,
+            ShowGridLines = false,
+            ShowPoints = false,
+            InterpolationMode = LineInterpolationMode.Smooth,
+            LineBrush = Brushes.Red,
+            LineThickness = 4,
+            AreaFillBrush = Brushes.Blue,
+            Values = [0, 100, 0, 100],
+        };
+
+        byte[] pixels = Render(chart);
+
+        int visiblePixels = CountVisiblePixels(pixels);
+        Assert.True(visiblePixels > 1_000, $"Expected a rendered area, but found {visiblePixels} visible pixels.");
+        Assert.True(IsTransparentRow(pixels, 0), "The first row should remain outside the plot clip.");
+        Assert.True(IsTransparentRow(pixels, 1), "The second row should remain outside the plot clip.");
+        Assert.True(IsTransparentRow(pixels, Height - 2), "The penultimate row should remain outside the plot clip.");
+        Assert.True(IsTransparentRow(pixels, Height - 1), "The last row should remain outside the plot clip.");
+    }
+
+    private static byte[] Render(Control control)
+    {
+        control.Measure(new Size(Width, Height));
+        control.Arrange(new Rect(0, 0, Width, Height));
+
+        using var target = new RenderTargetBitmap(new PixelSize(Width, Height));
+        target.Render(control);
+        using var pixels = new WriteableBitmap(
+            new PixelSize(Width, Height),
+            new Vector(96, 96),
+            PixelFormat.Bgra8888,
+            AlphaFormat.Unpremul);
+        using ILockedFramebuffer framebuffer = pixels.Lock();
+        target.CopyPixels(framebuffer);
+
+        var result = new byte[framebuffer.RowBytes * framebuffer.Size.Height];
+        Marshal.Copy(framebuffer.Address, result, 0, result.Length);
+        return result;
+    }
+
+    private static int CountVisiblePixels(byte[] pixels)
+    {
+        int count = 0;
+        for (int index = 3; index < pixels.Length; index += 4)
+        {
+            if (pixels[index] != 0)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private static bool IsTransparentRow(byte[] pixels, int row)
+    {
+        int start = row * Width * 4;
+        int end = start + (Width * 4);
+        for (int index = start + 3; index < end; index += 4)
+        {
+            if (pixels[index] != 0)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
