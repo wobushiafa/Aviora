@@ -90,6 +90,12 @@ public class ColumnChartTests
         Assert.Same(Brushes.DodgerBlue, chart.SelectionStrokeBrush);
         Assert.Null(chart.SelectedBarBrush);
         Assert.Equal(0, chart.SelectionStrokeThickness);
+        Assert.Equal(new Thickness(7), chart.ToolTipPadding);
+        Assert.Equal(new CornerRadius(4), chart.ToolTipCornerRadius);
+        Assert.Null(chart.ToolTipBorderBrush);
+        Assert.Equal(default, chart.ToolTipBorderThickness);
+        Assert.Equal(10, chart.ToolTipHorizontalOffset);
+        Assert.Equal(10, chart.ToolTipVerticalOffset);
     }
 
     [Fact]
@@ -283,6 +289,27 @@ public class ColumnChartTests
         Assert.True(state.Update(2, new Point(180, 70)));
         Assert.Equal(2, state.HoveredIndex);
         Assert.Equal(new Point(180, 70), state.AnchorPosition);
+    }
+
+    [Fact]
+    public void Tooltip_style_properties_update_the_single_presenter()
+    {
+        var chart = new ColumnChart
+        {
+            ToolTipBackground = Brushes.Navy,
+            ToolTipTextBrush = Brushes.Yellow,
+            ToolTipFontSize = 14,
+            ToolTipPadding = new Thickness(12, 8),
+            ToolTipCornerRadius = new CornerRadius(6),
+            ToolTipBorderBrush = Brushes.White,
+            ToolTipBorderThickness = new Thickness(2),
+        };
+
+        Assert.Same(Brushes.Navy, chart.ToolTipPresenter.Background);
+        Assert.Equal(new Thickness(12, 8), chart.ToolTipPresenter.Padding);
+        Assert.Equal(new CornerRadius(6), chart.ToolTipPresenter.CornerRadius);
+        Assert.Same(Brushes.White, chart.ToolTipPresenter.BorderBrush);
+        Assert.Equal(new Thickness(2), chart.ToolTipPresenter.BorderThickness);
     }
 
     private sealed class MutableChartDataPoint : IChartDataPoint, INotifyPropertyChanged

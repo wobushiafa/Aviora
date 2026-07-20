@@ -54,9 +54,7 @@ public class ColumnChart : CartesianChart
             context,
             this,
             ChartItems,
-            AnimatedValues,
-            HoveredIndex,
-            ToolTipPosition);
+            AnimatedValues);
     }
 
     protected override int HitTestDataPoint(Point point) =>

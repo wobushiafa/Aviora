@@ -114,7 +114,8 @@ are drawn before grid lines, so grid lines remain visible.
 Set `SelectedIndex` or `SelectedItem` with two-way binding to observe selection.
 `ItemClickCommand` receives the selected `IChartDataPoint` as its parameter.
 Tooltips use the data point's `ToolTip` first and otherwise display its label and
-formatted value.
+formatted value. See [Chart tooltips](chart-tooltips.md) for shared styling and
+`DataTemplate` customization.
 
 When an item implements `INotifyPropertyChanged`, changes to its value, label,
 brush, or tooltip are observed automatically. The same configured

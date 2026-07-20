@@ -20,6 +20,15 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
+    <Window.Resources>
+        <DataTemplate x:Key="TrendToolTipTemplate" x:DataType="controls:IChartDataPoint">
+            <StackPanel Spacing="2">
+                <TextBlock FontWeight="SemiBold" Text="{Binding Label}" />
+                <TextBlock Opacity="0.72" Text="{Binding Value}" />
+            </StackPanel>
+        </DataTemplate>
+    </Window.Resources>
+
     <Grid Margin="32" RowDefinitions="Auto,*" RowSpacing="24">
         <StackPanel Spacing="6">
             <TextBlock FontSize="28" FontWeight="SemiBold" Text="Aviora Controls" />
@@ -89,6 +98,14 @@
                                         AreaFillBrush="#202563EB"
                                         PointBrush="#1D4ED8"
                                         PointRadius="4"
+                                        ToolTipTemplate="{StaticResource TrendToolTipTemplate}"
+                                        ToolTipBackground="#F9FAFB"
+                                        ToolTipTextBrush="#111827"
+                                        ToolTipPadding="10,8"
+                                        ToolTipCornerRadius="6"
+                                        ToolTipBorderBrush="#CBD5E1"
+                                        ToolTipBorderThickness="1"
+                                        ToolTipBoxShadow="0 4 12 0 #33000000"
                                         XAxisTextBrush="#64748B"
                                         YAxisTextBrush="#475569"
                                         GridLineBrush="#CBD5E1"

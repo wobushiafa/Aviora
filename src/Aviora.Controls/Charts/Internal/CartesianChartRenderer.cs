@@ -21,9 +21,7 @@ internal abstract class CartesianChartRenderer<TChart>
         DrawingContext context,
         TChart chart,
         IReadOnlyList<IChartDataPoint> items,
-        IReadOnlyList<double> animatedValues,
-        int hoveredIndex,
-        Point toolTipPosition)
+        IReadOnlyList<double> animatedValues)
     {
         ChartRenderState state = EnsureState(chart, items);
         if (state.Layout.Plot.Width <= 0 || state.Layout.Plot.Height <= 0)
@@ -44,7 +42,6 @@ internal abstract class CartesianChartRenderer<TChart>
         DrawSeries(context, chart, state, animatedValues);
         DrawThresholdLines(context, chart, state);
         DrawXAxisLabels(context, chart, state);
-        DrawToolTip(context, chart, state, hoveredIndex, toolTipPosition);
     }
 
     public virtual int HitTest(TChart chart, IReadOnlyList<IChartDataPoint> items, Point point)
@@ -361,48 +358,6 @@ internal abstract class CartesianChartRenderer<TChart>
             new Point(
                 state.Layout.Plot.Center.X - (text.Width / 2),
                 state.Layout.Plot.Center.Y - (text.Height / 2)));
-    }
-
-    private void DrawToolTip(
-        DrawingContext context,
-        TChart chart,
-        ChartRenderState state,
-        int hoveredIndex,
-        Point toolTipPosition)
-    {
-        if (!chart.IsToolTipEnabled || hoveredIndex < 0 || hoveredIndex >= state.Items.Count)
-        {
-            return;
-        }
-
-        IChartDataPoint item = state.Items[hoveredIndex];
-        string content = chart.ToolTipFormatter?.Invoke(item) ?? item.ToolTip ?? BuildDefaultToolTip(item);
-        if (string.IsNullOrWhiteSpace(content))
-        {
-            return;
-        }
-
-        FormattedText text = _textLayout.Format(content, chart.ToolTipFontSize, chart.ToolTipTextBrush);
-        const double padding = 7;
-        double width = text.Width + (padding * 2);
-        double height = text.Height + (padding * 2);
-        double x = Math.Clamp(
-            toolTipPosition.X + 10,
-            state.Layout.Plot.Left,
-            Math.Max(state.Layout.Plot.Left, chart.Bounds.Width - width));
-        double y = Math.Clamp(
-            toolTipPosition.Y - height - 10,
-            state.Layout.Plot.Top,
-            Math.Max(state.Layout.Plot.Top, state.Layout.Plot.Bottom - height));
-        var rect = new Rect(x, y, width, height);
-        context.DrawRectangle(chart.ToolTipBackground, null, rect);
-        context.DrawText(text, new Point(x + padding, y + padding));
-    }
-
-    private static string BuildDefaultToolTip(IChartDataPoint item)
-    {
-        string value = FormatAxisValue(item.Value);
-        return string.IsNullOrWhiteSpace(item.Label) ? value : $"{item.Label}: {value}";
     }
 
     internal static string FormatAxisValue(double value)

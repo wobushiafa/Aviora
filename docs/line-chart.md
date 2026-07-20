@@ -26,3 +26,6 @@ is visually unchanged by default, matching `ColumnChart`.
 Set `AreaFillBrush` to fill the region between the line and the zero baseline.
 Leave it unset to draw only the line and points. All shared axis and update
 properties are inherited from `CartesianChart`.
+
+See [Chart tooltips](chart-tooltips.md) for styling properties and custom
+`DataTemplate` content.

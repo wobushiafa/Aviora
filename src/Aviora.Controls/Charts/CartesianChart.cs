@@ -1,9 +1,11 @@
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Avalonia.Threading;
 
 namespace Aviora.Controls;
@@ -100,11 +102,27 @@ public abstract class CartesianChart : Control
     public static readonly StyledProperty<IBrush> ToolTipBackgroundProperty =
         AvaloniaProperty.Register<CartesianChart, IBrush>(
             nameof(ToolTipBackground),
-            new SolidColorBrush(Color.FromArgb(235, 32, 38, 46)));
+            new ImmutableSolidColorBrush(Color.FromArgb(235, 32, 38, 46)));
     public static readonly StyledProperty<IBrush> ToolTipTextBrushProperty =
         AvaloniaProperty.Register<CartesianChart, IBrush>(nameof(ToolTipTextBrush), Brushes.White);
     public static readonly StyledProperty<double> ToolTipFontSizeProperty =
         AvaloniaProperty.Register<CartesianChart, double>(nameof(ToolTipFontSize), 11.0);
+    public static readonly StyledProperty<IDataTemplate?> ToolTipTemplateProperty =
+        AvaloniaProperty.Register<CartesianChart, IDataTemplate?>(nameof(ToolTipTemplate));
+    public static readonly StyledProperty<Thickness> ToolTipPaddingProperty =
+        AvaloniaProperty.Register<CartesianChart, Thickness>(nameof(ToolTipPadding), new Thickness(7));
+    public static readonly StyledProperty<CornerRadius> ToolTipCornerRadiusProperty =
+        AvaloniaProperty.Register<CartesianChart, CornerRadius>(nameof(ToolTipCornerRadius), new CornerRadius(4));
+    public static readonly StyledProperty<IBrush?> ToolTipBorderBrushProperty =
+        AvaloniaProperty.Register<CartesianChart, IBrush?>(nameof(ToolTipBorderBrush));
+    public static readonly StyledProperty<Thickness> ToolTipBorderThicknessProperty =
+        AvaloniaProperty.Register<CartesianChart, Thickness>(nameof(ToolTipBorderThickness));
+    public static readonly StyledProperty<BoxShadows> ToolTipBoxShadowProperty =
+        AvaloniaProperty.Register<CartesianChart, BoxShadows>(nameof(ToolTipBoxShadow));
+    public static readonly StyledProperty<double> ToolTipHorizontalOffsetProperty =
+        AvaloniaProperty.Register<CartesianChart, double>(nameof(ToolTipHorizontalOffset), 10.0);
+    public static readonly StyledProperty<double> ToolTipVerticalOffsetProperty =
+        AvaloniaProperty.Register<CartesianChart, double>(nameof(ToolTipVerticalOffset), 10.0);
     public static readonly StyledProperty<Func<double, string>?> YAxisLabelFormatterProperty =
         AvaloniaProperty.Register<CartesianChart, Func<double, string>?>(nameof(YAxisLabelFormatter));
     public static readonly StyledProperty<Func<IChartDataPoint, string>?> ToolTipFormatterProperty =
@@ -114,6 +132,12 @@ public abstract class CartesianChart : Control
     private readonly ChartDataObserver _dataObserver;
     private readonly ChartToolTipState _toolTipState = new();
     private readonly ChartUpdateScheduler _updateScheduler;
+    private readonly ContentControl _toolTipContent = new();
+    private readonly Border _toolTipPresenter = new()
+    {
+        IsHitTestVisible = false,
+        IsVisible = false,
+    };
     private List<IChartDataPoint> _items = [];
     private TimeSpan? _animationStartTime;
     private bool _animationFrameRequested;
@@ -124,6 +148,10 @@ public abstract class CartesianChart : Control
     {
         _dataObserver = new ChartDataObserver(OnObservedCollectionChanged, OnObservedItemChanged);
         _updateScheduler = new ChartUpdateScheduler(ApplyTargetItems);
+        _toolTipPresenter.Child = _toolTipContent;
+        VisualChildren.Add(_toolTipPresenter);
+        LogicalChildren.Add(_toolTipPresenter);
+        ApplyToolTipStyle();
         Focusable = true;
     }
 
@@ -139,8 +167,7 @@ public abstract class CartesianChart : Control
             ShowYAxisProperty, GridLineCountProperty, YAxisLabelsProperty, YAxisLabelsSourceProperty,
             YAxisWidthProperty, YAxisFontSizeProperty, YAxisTextBrushProperty,
             ShowEmptyTextProperty, EmptyTextProperty, EmptyTextBrushProperty, EmptyTextFontSizeProperty,
-            SelectedIndexProperty, SelectedItemProperty, IsToolTipEnabledProperty, ToolTipBackgroundProperty,
-            ToolTipTextBrushProperty, ToolTipFontSizeProperty, YAxisLabelFormatterProperty, ToolTipFormatterProperty);
+            SelectedIndexProperty, SelectedItemProperty, YAxisLabelFormatterProperty);
     }
 
     #region Properties
@@ -187,6 +214,14 @@ public abstract class CartesianChart : Control
     public IBrush ToolTipBackground { get => GetValue(ToolTipBackgroundProperty); set => SetValue(ToolTipBackgroundProperty, value); }
     public IBrush ToolTipTextBrush { get => GetValue(ToolTipTextBrushProperty); set => SetValue(ToolTipTextBrushProperty, value); }
     public double ToolTipFontSize { get => GetValue(ToolTipFontSizeProperty); set => SetValue(ToolTipFontSizeProperty, value); }
+    public IDataTemplate? ToolTipTemplate { get => GetValue(ToolTipTemplateProperty); set => SetValue(ToolTipTemplateProperty, value); }
+    public Thickness ToolTipPadding { get => GetValue(ToolTipPaddingProperty); set => SetValue(ToolTipPaddingProperty, value); }
+    public CornerRadius ToolTipCornerRadius { get => GetValue(ToolTipCornerRadiusProperty); set => SetValue(ToolTipCornerRadiusProperty, value); }
+    public IBrush? ToolTipBorderBrush { get => GetValue(ToolTipBorderBrushProperty); set => SetValue(ToolTipBorderBrushProperty, value); }
+    public Thickness ToolTipBorderThickness { get => GetValue(ToolTipBorderThicknessProperty); set => SetValue(ToolTipBorderThicknessProperty, value); }
+    public BoxShadows ToolTipBoxShadow { get => GetValue(ToolTipBoxShadowProperty); set => SetValue(ToolTipBoxShadowProperty, value); }
+    public double ToolTipHorizontalOffset { get => GetValue(ToolTipHorizontalOffsetProperty); set => SetValue(ToolTipHorizontalOffsetProperty, value); }
+    public double ToolTipVerticalOffset { get => GetValue(ToolTipVerticalOffsetProperty); set => SetValue(ToolTipVerticalOffsetProperty, value); }
     public Func<double, string>? YAxisLabelFormatter { get => GetValue(YAxisLabelFormatterProperty); set => SetValue(YAxisLabelFormatterProperty, value); }
     public Func<IChartDataPoint, string>? ToolTipFormatter { get => GetValue(ToolTipFormatterProperty); set => SetValue(ToolTipFormatterProperty, value); }
     #endregion
@@ -195,14 +230,18 @@ public abstract class CartesianChart : Control
 
     protected IReadOnlyList<double> AnimatedValues => _animation.Values;
 
-    protected int HoveredIndex => _toolTipState.HoveredIndex;
-
-    protected Point ToolTipPosition => _toolTipState.AnchorPosition;
+    internal Border ToolTipPresenter => _toolTipPresenter;
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
         InvalidateChartState();
+        if (IsToolTipProperty(change.Property))
+        {
+            ApplyToolTipStyle();
+            RefreshToolTipPresenter();
+        }
+
         if (change.Property == ValuesProperty || change.Property == ItemsSourceProperty)
         {
             SubscribeToCollections();
@@ -246,6 +285,7 @@ public abstract class CartesianChart : Control
         _animation.Stop();
         _animationStartTime = null;
         _animationFrameRequested = false;
+        _toolTipPresenter.IsVisible = false;
         _dataObserver.Dispose();
         _updateScheduler.Stop();
     }
@@ -257,7 +297,7 @@ public abstract class CartesianChart : Control
         int index = HitTestDataPoint(_pointerPosition);
         if (_toolTipState.Update(index, _pointerPosition))
         {
-            InvalidateVisual();
+            RefreshToolTipPresenter();
         }
     }
 
@@ -266,7 +306,7 @@ public abstract class CartesianChart : Control
         base.OnPointerExited(e);
         if (_toolTipState.Clear())
         {
-            InvalidateVisual();
+            RefreshToolTipPresenter();
         }
     }
 
@@ -311,7 +351,32 @@ public abstract class CartesianChart : Control
     {
         double width = double.IsInfinity(availableSize.Width) ? 100 : Math.Max(0, availableSize.Width);
         double height = double.IsInfinity(availableSize.Height) ? 150 : Math.Max(0, availableSize.Height);
-        return new Size(width, height);
+        var desired = new Size(width, height);
+        _toolTipPresenter.Measure(desired);
+        return desired;
+    }
+
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        if (!_toolTipPresenter.IsVisible)
+        {
+            _toolTipPresenter.Arrange(default);
+            return finalSize;
+        }
+
+        Size size = _toolTipPresenter.DesiredSize;
+        double horizontalOffset = NormalizeFinite(ToolTipHorizontalOffset);
+        double verticalOffset = NormalizeFinite(ToolTipVerticalOffset);
+        double x = Math.Clamp(
+            _toolTipState.AnchorPosition.X + horizontalOffset,
+            0,
+            Math.Max(0, finalSize.Width - size.Width));
+        double y = Math.Clamp(
+            _toolTipState.AnchorPosition.Y - size.Height - verticalOffset,
+            0,
+            Math.Max(0, finalSize.Height - size.Height));
+        _toolTipPresenter.Arrange(new Rect(new Point(x, y), size));
+        return finalSize;
     }
 
     public sealed override void Render(DrawingContext context)
@@ -447,6 +512,7 @@ public abstract class CartesianChart : Control
 
         SynchronizeSelectionAfterItemsChanged();
         _toolTipState.Normalize(_items.Count);
+        RefreshToolTipPresenter();
         InvalidateVisual();
     }
 
@@ -499,6 +565,81 @@ public abstract class CartesianChart : Control
         InvalidateChartState();
         InvalidateVisual();
     }
+
+    private void ApplyToolTipStyle()
+    {
+        _toolTipPresenter.Background = ToolTipBackground;
+        _toolTipPresenter.BorderBrush = ToolTipBorderBrush;
+        _toolTipPresenter.BorderThickness = ToolTipBorderThickness;
+        _toolTipPresenter.CornerRadius = ToolTipCornerRadius;
+        _toolTipPresenter.Padding = ToolTipPadding;
+        _toolTipPresenter.BoxShadow = ToolTipBoxShadow;
+        _toolTipContent.Foreground = ToolTipTextBrush;
+        _toolTipContent.FontSize = NormalizePositive(ToolTipFontSize, 11);
+    }
+
+    private void RefreshToolTipPresenter()
+    {
+        int index = _toolTipState.HoveredIndex;
+        if (!IsToolTipEnabled || index < 0 || index >= _items.Count)
+        {
+            _toolTipPresenter.IsVisible = false;
+            InvalidateArrange();
+            return;
+        }
+
+        IChartDataPoint item = _items[index];
+        if (ToolTipTemplate != null)
+        {
+            _toolTipContent.Content = item;
+            _toolTipContent.ContentTemplate = ToolTipTemplate;
+        }
+        else
+        {
+            string content = ToolTipFormatter?.Invoke(item) ??
+                             item.ToolTip ??
+                             BuildDefaultToolTip(item);
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                _toolTipPresenter.IsVisible = false;
+                InvalidateArrange();
+                return;
+            }
+
+            _toolTipContent.ContentTemplate = null;
+            _toolTipContent.Content = content;
+        }
+
+        _toolTipPresenter.IsVisible = true;
+        _toolTipPresenter.InvalidateMeasure();
+        InvalidateMeasure();
+    }
+
+    private static string BuildDefaultToolTip(IChartDataPoint item)
+    {
+        string value = CartesianChartRenderer<CartesianChart>.FormatAxisValue(item.Value);
+        return string.IsNullOrWhiteSpace(item.Label) ? value : $"{item.Label}: {value}";
+    }
+
+    private static bool IsToolTipProperty(AvaloniaProperty property) =>
+        property == IsToolTipEnabledProperty ||
+        property == ToolTipBackgroundProperty ||
+        property == ToolTipTextBrushProperty ||
+        property == ToolTipFontSizeProperty ||
+        property == ToolTipTemplateProperty ||
+        property == ToolTipPaddingProperty ||
+        property == ToolTipCornerRadiusProperty ||
+        property == ToolTipBorderBrushProperty ||
+        property == ToolTipBorderThicknessProperty ||
+        property == ToolTipBoxShadowProperty ||
+        property == ToolTipHorizontalOffsetProperty ||
+        property == ToolTipVerticalOffsetProperty ||
+        property == ToolTipFormatterProperty;
+
+    private static double NormalizePositive(double value, double fallback) =>
+        double.IsFinite(value) && value > 0 ? value : fallback;
+
+    private static double NormalizeFinite(double value) => double.IsFinite(value) ? value : 0;
 }
 
 #pragma warning restore CS1591

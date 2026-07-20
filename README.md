@@ -68,8 +68,10 @@ point needs its own key, label, brush, or Tooltip. Business models can implement
                       ShowThresholds="True" />
 ```
 
-See the [control documentation](docs/column-chart.md) and the demo application
-and [LineChart documentation](docs/line-chart.md) for complete examples.
+See the [control documentation](docs/column-chart.md),
+[LineChart documentation](docs/line-chart.md),
+[Tooltip documentation](docs/chart-tooltips.md), and the demo application for
+complete examples.
 
 ## Contributing
 
