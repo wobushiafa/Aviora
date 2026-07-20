@@ -8,177 +8,393 @@
              x:DataType="vm:DialGaugePageViewModel"
              mc:Ignorable="d"
              d:DesignWidth="900"
-             d:DesignHeight="560">
-    <Grid RowDefinitions="Auto,*" RowSpacing="20">
+             d:DesignHeight="620">
+    <UserControl.Resources>
+        <DataTemplate x:Key="BrushOptionTemplate" x:DataType="vm:DialGaugeBrushOption">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Border Width="16"
+                        Height="16"
+                        Background="{Binding Brush}"
+                        BorderBrush="{DynamicResource AvioraBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="2" />
+                <TextBlock VerticalAlignment="Center" Text="{Binding Name}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="LabelOptionTemplate" x:DataType="vm:DialGaugeLabelOption">
+            <TextBlock Text="{Binding Name}" />
+        </DataTemplate>
+
+        <DataTemplate x:Key="FontFamilyOptionTemplate" x:DataType="vm:DialGaugeFontFamilyOption">
+            <TextBlock FontFamily="{Binding Value}" Text="{Binding Name}" />
+        </DataTemplate>
+
+        <DataTemplate x:Key="FontWeightOptionTemplate" x:DataType="vm:DialGaugeFontWeightOption">
+            <TextBlock FontWeight="{Binding Value}" Text="{Binding Name}" />
+        </DataTemplate>
+
+        <LinearGradientBrush x:Key="SpectrumBrush" StartPoint="0%,50%" EndPoint="100%,50%">
+            <GradientStop Offset="0" Color="#06B6D4" />
+            <GradientStop Offset="0.5" Color="#8B5CF6" />
+            <GradientStop Offset="1" Color="#EC4899" />
+        </LinearGradientBrush>
+    </UserControl.Resources>
+
+    <Grid RowDefinitions="Auto,*" RowSpacing="16">
         <StackPanel Spacing="4">
             <TextBlock FontSize="24" FontWeight="SemiBold" Text="Dial gauge" />
-            <TextBlock Opacity="0.65" Text="Radial values, ticks, labels, and range colors" />
+            <TextBlock Opacity="0.65" Text="Range, scale, labels, brushes, sizing, and transitions" />
         </StackPanel>
 
-        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
-            <Grid Margin="0,0,4,24"
-                  RowDefinitions="Auto,Auto"
-                  ColumnDefinitions="*,*"
-                  ColumnSpacing="18"
-                  RowSpacing="18">
-                <controls:AvioraCard HorizontalAlignment="Stretch" VerticalAlignment="Top">
-                    <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="16">
-                        <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="Live value" />
-                            <TextBlock Grid.Column="1"
-                                       FontSize="18"
-                                       FontWeight="SemiBold"
-                                       Text="{Binding Value, StringFormat={}{0:F0}}" />
-                        </Grid>
+        <TabControl Grid.Row="1">
+            <TabItem Header="Playground">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                    <Grid Margin="0,16,4,24"
+                          RowDefinitions="Auto,Auto"
+                          RowSpacing="18">
+                        <controls:AvioraCard HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                            <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="14">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="Preview" />
+                                    <TextBlock Grid.Column="1"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding Value, StringFormat={}{0:F0}}" />
+                                </Grid>
 
-                        <controls:DialGauge Grid.Row="1"
-                                            Width="300"
-                                            Height="210"
-                                            HorizontalAlignment="Center"
-                                            Value="{Binding Value}"
-                                            ShowTicks="{Binding ShowTicks}"
-                                            TickCount="{Binding TickCount}"
-                                            TickColorMode="{Binding TickColorMode}"
-                                            ShowTickLabels="{Binding ShowTickLabels}"
-                                            TickLabelInterval="{Binding TickLabelInterval}"
-                                            LowRangeBrush="#10B981"
-                                            MediumRangeBrush="#F59E0B"
-                                            HighRangeBrush="#EF4444"
-                                            NeedleBrush="#2563EB"
-                                            PivotBrush="#1E40AF" />
+                                <controls:DialGauge Grid.Row="1"
+                                                    Height="260"
+                                                    HorizontalAlignment="Stretch"
+                                                    Minimum="{Binding Minimum}"
+                                                    Maximum="{Binding Maximum}"
+                                                    Value="{Binding Value}"
+                                                    ShowTicks="{Binding ShowTicks}"
+                                                    TickCount="{Binding TickCount}"
+                                                    TickBrush="{Binding SelectedTickBrush.Brush}"
+                                                    TickColorMode="{Binding TickColorMode}"
+                                                    LowRangeBrush="{Binding SelectedLowRangeBrush.Brush}"
+                                                    MediumRangeBrush="{Binding SelectedMediumRangeBrush.Brush}"
+                                                    HighRangeBrush="{Binding SelectedHighRangeBrush.Brush}"
+                                                    ShowTickLabels="{Binding ShowTickLabels}"
+                                                    TickLabelInterval="{Binding TickLabelInterval}"
+                                                    TickLabelFormat="{Binding SelectedLabelOption.Format}"
+                                                    TickLabelFormatter="{Binding SelectedLabelOption.Formatter}"
+                                                    TickLabelBrush="{Binding SelectedTickLabelBrush.Brush}"
+                                                    TickLabelFontSize="{Binding TickLabelFontSize}"
+                                                    TickLabelFontFamily="{Binding SelectedFontFamily.Value}"
+                                                    TickLabelFontWeight="{Binding SelectedFontWeight.Value}"
+                                                    NeedleBrush="{Binding SelectedNeedleBrush.Brush}"
+                                                    PivotBrush="{Binding SelectedPivotBrush.Brush}" />
 
-                        <StackPanel Grid.Row="2" Spacing="12">
-                            <Slider Minimum="0" Maximum="100" Value="{Binding Value}" />
-                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                                <CheckBox Content="Ticks" IsChecked="{Binding ShowTicks}" />
-                                <CheckBox Grid.Column="1"
-                                          Content="Labels"
-                                          IsChecked="{Binding ShowTickLabels}" />
-                            </Grid>
-                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                                <StackPanel Spacing="6">
-                                    <TextBlock FontSize="12" Opacity="0.65" Text="Tick colors" />
-                                    <ComboBox ItemsSource="{Binding TickColorModes}"
-                                              SelectedItem="{Binding TickColorMode}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="1" Spacing="6">
-                                    <TextBlock FontSize="12" Opacity="0.65" Text="Tick count" />
-                                    <NumericUpDown Minimum="1"
-                                                   Maximum="100"
-                                                   Value="{Binding TickCount}" />
+                                <StackPanel Grid.Row="2" Spacing="6">
+                                    <Slider Minimum="{Binding Minimum}"
+                                            Maximum="{Binding Maximum}"
+                                            Value="{Binding Value}" />
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <TextBlock Opacity="0.6" Text="{Binding Minimum, StringFormat={}{0:F0}}" />
+                                        <TextBlock Grid.Column="2"
+                                                   Opacity="0.6"
+                                                   Text="{Binding Maximum, StringFormat={}{0:F0}}" />
+                                    </Grid>
                                 </StackPanel>
                             </Grid>
-                            <StackPanel Spacing="6">
-                                <TextBlock FontSize="12" Opacity="0.65" Text="Label interval" />
-                                <NumericUpDown Minimum="1"
-                                               Maximum="20"
-                                               Value="{Binding TickLabelInterval}" />
+                        </controls:AvioraCard>
+
+                        <StackPanel Grid.Row="1" Spacing="18">
+                            <controls:AvioraCard HorizontalAlignment="Stretch">
+                                <StackPanel Spacing="12">
+                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="Range and ticks" />
+                                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                                        <StackPanel Spacing="5">
+                                            <TextBlock FontSize="12" Opacity="0.65" Text="Minimum" />
+                                            <NumericUpDown Minimum="-1000"
+                                                           Maximum="1000"
+                                                           Value="{Binding Minimum}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Spacing="5">
+                                            <TextBlock FontSize="12" Opacity="0.65" Text="Maximum" />
+                                            <NumericUpDown Minimum="-1000"
+                                                           Maximum="1000"
+                                                           Value="{Binding Maximum}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Spacing="5">
+                                            <TextBlock FontSize="12" Opacity="0.65" Text="Value" />
+                                            <NumericUpDown Minimum="-1000"
+                                                           Maximum="1000"
+                                                           Value="{Binding Value}" />
+                                        </StackPanel>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                        <CheckBox Content="Show ticks" IsChecked="{Binding ShowTicks}" />
+                                        <CheckBox Grid.Column="1"
+                                                  Content="Show labels"
+                                                  IsChecked="{Binding ShowTickLabels}" />
+                                    </Grid>
+                                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                                        <StackPanel Spacing="5">
+                                            <TextBlock FontSize="12" Opacity="0.65" Text="Tick count" />
+                                            <NumericUpDown Minimum="0"
+                                                           Maximum="200"
+                                                           Value="{Binding TickCount}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Spacing="5">
+                                            <TextBlock FontSize="12" Opacity="0.65" Text="Label interval" />
+                                            <NumericUpDown Minimum="1"
+                                                           Maximum="50"
+                                                           Value="{Binding TickLabelInterval}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Spacing="5">
+                                            <TextBlock FontSize="12" Opacity="0.65" Text="Tick colors" />
+                                            <ComboBox ItemsSource="{Binding TickColorModes}"
+                                                      SelectedItem="{Binding TickColorMode}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </controls:AvioraCard>
+
+                            <controls:AvioraCard HorizontalAlignment="Stretch">
+                                <StackPanel Spacing="12">
+                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="Label typography" />
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                        <StackPanel Spacing="5">
+                                            <TextBlock FontSize="12" Opacity="0.65" Text="Formatting" />
+                                            <ComboBox ItemTemplate="{StaticResource LabelOptionTemplate}"
+                                                      ItemsSource="{Binding LabelOptions}"
+                                                      SelectedItem="{Binding SelectedLabelOption}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Spacing="5">
+                                            <TextBlock FontSize="12" Opacity="0.65" Text="Font size" />
+                                            <NumericUpDown Minimum="6"
+                                                           Maximum="24"
+                                                           Value="{Binding TickLabelFontSize}" />
+                                        </StackPanel>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                        <StackPanel Spacing="5">
+                                            <TextBlock FontSize="12" Opacity="0.65" Text="Font family" />
+                                            <ComboBox ItemTemplate="{StaticResource FontFamilyOptionTemplate}"
+                                                      ItemsSource="{Binding FontFamilyOptions}"
+                                                      SelectedItem="{Binding SelectedFontFamily}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Spacing="5">
+                                            <TextBlock FontSize="12" Opacity="0.65" Text="Font weight" />
+                                            <ComboBox ItemTemplate="{StaticResource FontWeightOptionTemplate}"
+                                                      ItemsSource="{Binding FontWeightOptions}"
+                                                      SelectedItem="{Binding SelectedFontWeight}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </controls:AvioraCard>
+
+                            <controls:AvioraCard HorizontalAlignment="Stretch">
+                                <StackPanel Spacing="12">
+                                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="Brushes" />
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10" RowSpacing="10">
+                                        <StackPanel Spacing="5">
+                                            <TextBlock FontSize="12" Opacity="0.65" Text="Ticks" />
+                                            <ComboBox ItemTemplate="{StaticResource BrushOptionTemplate}"
+                                                      ItemsSource="{Binding BrushOptions}"
+                                                      SelectedItem="{Binding SelectedTickBrush}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Spacing="5">
+                                            <TextBlock FontSize="12" Opacity="0.65" Text="Labels" />
+                                            <ComboBox ItemTemplate="{StaticResource BrushOptionTemplate}"
+                                                      ItemsSource="{Binding BrushOptions}"
+                                                      SelectedItem="{Binding SelectedTickLabelBrush}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="1" Spacing="5">
+                                            <TextBlock FontSize="12" Opacity="0.65" Text="Low range" />
+                                            <ComboBox ItemTemplate="{StaticResource BrushOptionTemplate}"
+                                                      ItemsSource="{Binding BrushOptions}"
+                                                      SelectedItem="{Binding SelectedLowRangeBrush}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="5">
+                                            <TextBlock FontSize="12" Opacity="0.65" Text="Medium range" />
+                                            <ComboBox ItemTemplate="{StaticResource BrushOptionTemplate}"
+                                                      ItemsSource="{Binding BrushOptions}"
+                                                      SelectedItem="{Binding SelectedMediumRangeBrush}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="2" Spacing="5">
+                                            <TextBlock FontSize="12" Opacity="0.65" Text="High range" />
+                                            <ComboBox ItemTemplate="{StaticResource BrushOptionTemplate}"
+                                                      ItemsSource="{Binding BrushOptions}"
+                                                      SelectedItem="{Binding SelectedHighRangeBrush}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="2" Grid.Column="1" Spacing="5">
+                                            <TextBlock FontSize="12" Opacity="0.65" Text="Needle" />
+                                            <ComboBox ItemTemplate="{StaticResource BrushOptionTemplate}"
+                                                      ItemsSource="{Binding BrushOptions}"
+                                                      SelectedItem="{Binding SelectedNeedleBrush}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="3" Spacing="5">
+                                            <TextBlock FontSize="12" Opacity="0.65" Text="Pivot" />
+                                            <ComboBox ItemTemplate="{StaticResource BrushOptionTemplate}"
+                                                      ItemsSource="{Binding BrushOptions}"
+                                                      SelectedItem="{Binding SelectedPivotBrush}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </controls:AvioraCard>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Appearance">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                    <Grid Margin="0,16,4,24"
+                          RowDefinitions="Auto,Auto,Auto,Auto"
+                          RowSpacing="18">
+                        <controls:AvioraCard HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                            <StackPanel Spacing="10">
+                                <TextBlock FontSize="16" FontWeight="SemiBold" Text="Uniform + gradient" />
+                                <controls:DialGauge Height="210"
+                                                    Value="72"
+                                                    TickBrush="{StaticResource SpectrumBrush}"
+                                                    TickLabelBrush="#7C3AED"
+                                                    NeedleBrush="#F97316"
+                                                    PivotBrush="#C2410C" />
+                                <TextBlock HorizontalAlignment="Center" Opacity="0.65" Text="Any Avalonia IBrush" />
                             </StackPanel>
-                        </StackPanel>
+                        </controls:AvioraCard>
+
+                        <controls:AvioraCard Grid.Row="1"
+                                             HorizontalAlignment="Stretch"
+                                             VerticalAlignment="Top">
+                            <StackPanel Spacing="10">
+                                <TextBlock FontSize="16" FontWeight="SemiBold" Text="Range colors" />
+                                <controls:DialGauge Height="210"
+                                                    Value="84"
+                                                    TickColorMode="Range"
+                                                    LowRangeBrush="#22C55E"
+                                                    MediumRangeBrush="#FBBF24"
+                                                    HighRangeBrush="#F43F5E"
+                                                    NeedleBrush="#3B82F6"
+                                                    PivotBrush="#4338CA" />
+                                <TextBlock HorizontalAlignment="Center" Opacity="0.65" Text="Low / medium / high brushes" />
+                            </StackPanel>
+                        </controls:AvioraCard>
+
+                        <controls:AvioraCard Grid.Row="2"
+                                             HorizontalAlignment="Stretch"
+                                             VerticalAlignment="Top">
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                    <controls:DialGauge Width="180"
+                                                        Height="145"
+                                                        Value="44"
+                                                        ShowTickLabels="False"
+                                                        TickBrush="#7C3AED"
+                                                        NeedleBrush="#DB2777" />
+                                    <TextBlock HorizontalAlignment="Center" Text="No labels" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" HorizontalAlignment="Center" Spacing="8">
+                                    <controls:DialGauge Width="180"
+                                                        Height="145"
+                                                        Value="66"
+                                                        ShowTicks="False"
+                                                        NeedleBrush="#0891B2"
+                                                        PivotBrush="#164E63" />
+                                    <TextBlock HorizontalAlignment="Center" Text="Needle only" />
+                                </StackPanel>
+                            </Grid>
+                        </controls:AvioraCard>
+
+                        <controls:AvioraCard Grid.Row="3"
+                                             HorizontalAlignment="Stretch"
+                                             VerticalAlignment="Top">
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                    <controls:DialGauge Width="220"
+                                                        Minimum="-50"
+                                                        Maximum="50"
+                                                        Value="-12"
+                                                        TickCount="10"
+                                                        TickLabelInterval="2"
+                                                        TickLabelFormat="0.0"
+                                                        TickLabelFontSize="9"
+                                                        TickLabelFontWeight="Bold"
+                                                        TickBrush="#16A34A"
+                                                        NeedleBrush="#EF4444" />
+                                    <TextBlock HorizontalAlignment="Center" Text="Default size" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" HorizontalAlignment="Center" Spacing="8">
+                                    <controls:DialGauge Width="150"
+                                                        Height="120"
+                                                        Minimum="0"
+                                                        Maximum="1"
+                                                        Value="0.65"
+                                                        TickCount="8"
+                                                        TickLabelInterval="2"
+                                                        TickLabelFormat="0.00"
+                                                        TickBrush="#F97316"
+                                                        NeedleBrush="#2563EB" />
+                                    <TextBlock HorizontalAlignment="Center" Text="Compact range" />
+                                </StackPanel>
+                            </Grid>
+                        </controls:AvioraCard>
                     </Grid>
-                </controls:AvioraCard>
+                </ScrollViewer>
+            </TabItem>
 
-                <controls:AvioraCard Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Top">
-                    <StackPanel Spacing="16">
-                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Appearance" />
+            <TabItem Header="Transitions">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                    <controls:AvioraCard Margin="0,16,4,24"
+                                         HorizontalAlignment="Stretch"
+                                         VerticalAlignment="Top">
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto"
+                              RowSpacing="14">
+                            <TextBlock FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Text="Opt-in transitions" />
 
-                        <StackPanel HorizontalAlignment="Center" Spacing="6">
-                            <controls:DialGauge Width="240"
-                                                Height="170"
-                                                Value="72"
-                                                TickBrush="#0891B2"
-                                                TickLabelBrush="#0E7490"
-                                                NeedleBrush="#F97316"
-                                                PivotBrush="#C2410C" />
-                            <TextBlock HorizontalAlignment="Center" Text="Ocean + orange needle" />
-                        </StackPanel>
+                            <StackPanel Grid.Row="1" HorizontalAlignment="Center" Spacing="8">
+                                <controls:DialGauge Width="300"
+                                                    Height="210"
+                                                    Value="{Binding TransitionValue}"
+                                                    TickBrush="#06B6D4"
+                                                    TickLabelBrush="#0E7490"
+                                                    NeedleBrush="{Binding TransitionNeedleBrush}"
+                                                    PivotBrush="#164E63" />
+                                <TextBlock HorizontalAlignment="Center" Text="Immediate (default)" />
+                            </StackPanel>
 
-                        <StackPanel HorizontalAlignment="Center" Spacing="6">
-                            <controls:DialGauge Width="240"
-                                                Height="170"
-                                                Value="84"
-                                                TickColorMode="Range"
-                                                LowRangeBrush="#22C55E"
-                                                MediumRangeBrush="#FBBF24"
-                                                HighRangeBrush="#F43F5E"
-                                                NeedleBrush="#3B82F6"
-                                                PivotBrush="#4338CA" />
-                            <TextBlock HorizontalAlignment="Center" Text="Range + blue needle" />
-                        </StackPanel>
+                            <StackPanel Grid.Row="2"
+                                        HorizontalAlignment="Center"
+                                        Spacing="8">
+                                <controls:DialGauge Width="300"
+                                                    Height="210"
+                                                    Value="{Binding TransitionValue}"
+                                                    TickColorMode="Range"
+                                                    LowRangeBrush="#14B8A6"
+                                                    MediumRangeBrush="#F59E0B"
+                                                    HighRangeBrush="#E11D48"
+                                                    NeedleBrush="{Binding TransitionNeedleBrush}"
+                                                    PivotBrush="#312E81">
+                                    <controls:DialGauge.Transitions>
+                                        <Transitions>
+                                            <DoubleTransition Property="Value" Duration="0:0:0.65" />
+                                            <BrushTransition Property="NeedleBrush" Duration="0:0:0.45" />
+                                        </Transitions>
+                                    </controls:DialGauge.Transitions>
+                                </controls:DialGauge>
+                                <TextBlock HorizontalAlignment="Center" Text="Value + needle transition" />
+                            </StackPanel>
 
-                        <StackPanel HorizontalAlignment="Center" Spacing="6">
-                            <controls:DialGauge Width="240"
-                                                Height="170"
-                                                Value="52"
-                                                TickBrush="#7C3AED"
-                                                TickLabelBrush="#6D28D9"
-                                                NeedleBrush="#DB2777"
-                                                PivotBrush="#9D174D" />
-                            <TextBlock HorizontalAlignment="Center" Text="Custom palette" />
-                        </StackPanel>
-                    </StackPanel>
-                </controls:AvioraCard>
-
-                <controls:AvioraCard Grid.Row="1"
-                                     Grid.ColumnSpan="2"
-                                     HorizontalAlignment="Stretch"
-                                     VerticalAlignment="Top">
-                    <Grid RowDefinitions="Auto,Auto,Auto"
-                          ColumnDefinitions="*,*"
-                          ColumnSpacing="24"
-                          RowSpacing="12">
-                        <TextBlock Grid.ColumnSpan="2"
-                                   FontSize="18"
-                                   FontWeight="SemiBold"
-                                   Text="Transitions" />
-
-                        <StackPanel Grid.Row="1" HorizontalAlignment="Center" Spacing="6">
-                            <controls:DialGauge Width="280"
-                                                Height="190"
-                                                Value="{Binding TransitionValue}"
-                                                TickBrush="#06B6D4"
-                                                TickLabelBrush="#0E7490"
-                                                NeedleBrush="{Binding TransitionNeedleBrush}"
-                                                PivotBrush="#164E63" />
-                            <TextBlock HorizontalAlignment="Center" Text="Immediate (default)" />
-                        </StackPanel>
-
-                        <StackPanel Grid.Row="1"
-                                    Grid.Column="1"
-                                    HorizontalAlignment="Center"
-                                    Spacing="6">
-                            <controls:DialGauge Width="280"
-                                                Height="190"
-                                                Value="{Binding TransitionValue}"
-                                                TickColorMode="Range"
-                                                LowRangeBrush="#14B8A6"
-                                                MediumRangeBrush="#F59E0B"
-                                                HighRangeBrush="#E11D48"
-                                                NeedleBrush="{Binding TransitionNeedleBrush}"
-                                                PivotBrush="#312E81">
-                                <controls:DialGauge.Transitions>
-                                    <Transitions>
-                                        <DoubleTransition Property="Value" Duration="0:0:0.65" />
-                                        <BrushTransition Property="NeedleBrush" Duration="0:0:0.45" />
-                                    </Transitions>
-                                </controls:DialGauge.Transitions>
-                            </controls:DialGauge>
-                            <TextBlock HorizontalAlignment="Center" Text="Value + needle transition" />
-                        </StackPanel>
-
-                        <StackPanel Grid.Row="2"
-                                    Grid.ColumnSpan="2"
-                                    HorizontalAlignment="Center"
-                                    Orientation="Horizontal"
-                                    Spacing="8">
-                            <Button Command="{Binding ToggleTransitionValueCommand}"
-                                    Content="Change value" />
-                            <Button Command="{Binding ToggleTransitionNeedleCommand}"
-                                    Content="Change needle" />
-                        </StackPanel>
-                    </Grid>
-                </controls:AvioraCard>
-            </Grid>
-        </ScrollViewer>
+                            <StackPanel Grid.Row="3"
+                                        HorizontalAlignment="Center"
+                                        Orientation="Horizontal"
+                                        Spacing="8">
+                                <Button Command="{Binding ToggleTransitionValueCommand}"
+                                        Content="Change value" />
+                                <Button Command="{Binding ToggleTransitionNeedleCommand}"
+                                        Content="Change needle" />
+                            </StackPanel>
+                        </Grid>
+                    </controls:AvioraCard>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
     </Grid>
 </UserControl>
