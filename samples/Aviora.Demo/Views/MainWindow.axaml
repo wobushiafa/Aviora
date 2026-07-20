@@ -1,0 +1,79 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:Aviora.Controls"
+        xmlns:vm="using:Aviora.Demo.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Aviora.Demo.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Width="960"
+        Height="640"
+        MinWidth="640"
+        MinHeight="480"
+        Title="Aviora Controls">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid Margin="32" RowDefinitions="Auto,*" RowSpacing="24">
+        <StackPanel Spacing="6">
+            <TextBlock FontSize="28" FontWeight="SemiBold" Text="Aviora Controls" />
+            <TextBlock Opacity="0.65" Text="ColumnChart data and styling examples" />
+        </StackPanel>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="18">
+            <controls:AvioraCard HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                <StackPanel Spacing="12">
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="ItemsSource" />
+                    <TextBlock Opacity="0.65" Text="Higher values cross more severe thresholds" />
+                    <controls:ColumnChart Height="280"
+                                           ItemsSource="{Binding MonthlySales}"
+                                           Thresholds="{Binding MonthlySalesThresholds}"
+                                           AutoRange="True"
+                                           GridLineCount="5"
+                                           ShowThresholds="True"
+                                           IsAnimationEnabled="True"
+                                           AnimationDuration="0:0:0.45"
+                                           UpdateThrottleInterval="0:0:0.25"
+                                           ColumnBackgroundBrush="#E2E8F0"
+                                           XAxisTextBrush="#64748B"
+                                           YAxisTextBrush="#475569"
+                                           GridLineBrush="#CBD5E1"
+                                           DefaultBrush="#94A3B8"
+                                           SelectedBarBrush="#0F766E"
+                                           SelectionOverlayBrush="#40FFFFFF"
+                                           SelectionStrokeBrush="#0F172A"
+                                           SelectionStrokeThickness="2" />
+                </StackPanel>
+            </controls:AvioraCard>
+
+            <controls:AvioraCard Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                <StackPanel Spacing="12">
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="Values" />
+                    <TextBlock Opacity="0.65" Text="Lower values cross more severe thresholds" />
+                    <controls:ColumnChart Height="280"
+                                           Values="{Binding WeeklyValues}"
+                                           XAxisLabelsSource="{Binding WeeklyLabels}"
+                                           Thresholds="{Binding WeeklyScoreThresholds}"
+                                           ThresholdDirection="LowerIsMoreSevere"
+                                           AutoRange="True"
+                                           GridLineCount="5"
+                                           ShowThresholds="True"
+                                           IsAnimationEnabled="False"
+                                           UpdateThrottleInterval="0"
+                                           ColumnBackgroundBrush="#DCFCE7"
+                                           XAxisTextBrush="#64748B"
+                                           YAxisTextBrush="#475569"
+                                           GridLineBrush="#CBD5E1"
+                                           DefaultBrush="#15803D" />
+                </StackPanel>
+            </controls:AvioraCard>
+        </Grid>
+    </Grid>
+
+</Window>

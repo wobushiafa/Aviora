@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/Aviora.Demo/Aviora.Demo.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Aviora.Core/Aviora.Core.csproj" />
+    <Project Path="src/Aviora.Controls/Aviora.Controls.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Aviora.Core.Tests/Aviora.Core.Tests.csproj" />
+    <Project Path="tests/Aviora.Controls.Tests/Aviora.Controls.Tests.csproj" />
+  </Folder>
+</Solution>

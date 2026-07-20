@@ -1,0 +1,23 @@
+## Build results
+[Bb]in/
+[Oo]bj/
+[Aa]rtifacts/
+[Tt]est[Rr]esults/
+coverage/
+
+## IDE and user settings
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.DotSettings.user
+
+## NuGet packages and generated packages
+*.nupkg
+*.snupkg
+packages/
+
+## OS files
+.DS_Store
+Thumbs.db
