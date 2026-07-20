@@ -1,14 +1,17 @@
 # Project architecture
 
-Aviora separates framework-independent behavior from Avalonia-specific controls.
-The dependency direction is intentionally one-way:
+Aviora separates reusable algorithms, presentation contracts, and
+Avalonia-specific implementations. Dependencies point inward toward the two
+framework-independent projects:
 
 ```text
-Aviora.Core
-    ^
-Aviora.Controls
-    ^
 Aviora.Demo
+    |
+    v
+Aviora.Controls -------------------+
+    |                              |
+    v                              v
+Aviora.Core        Aviora.Presentation.Abstractions
 ```
 
 ## Repository structure
@@ -17,9 +20,14 @@ Aviora.Demo
 src/
 |-- Aviora.Core/
 |   `-- Charts/             Framework-independent data contracts and algorithms
+|-- Aviora.Presentation.Abstractions/
+|   `-- Drawers/            UI-framework-independent presentation contracts
 `-- Aviora.Controls/
     |-- Charts/             Public Avalonia chart API and compatibility models
     |   `-- Internal/      observation, throttling, animation, layout, and rendering
+    |-- Drawers/            Drawer control and Avalonia event contracts
+    |   `-- Services/       Avalonia service implementation and host coordination
+    |-- Thermometers/       Thermometer control and related public types
     |-- Themes/             Shared Avalonia resources and control themes
     `-- AvioraCard.cs      General-purpose Avalonia controls
 ```
@@ -49,11 +57,35 @@ The initial chart domain contains:
 - `ChartAxisScale` and `ChartAxisCalculator` for numeric range and tick
   calculation.
 
+## Aviora.Presentation.Abstractions boundary
+
+`Aviora.Presentation.Abstractions` targets `net8.0` and references neither
+Avalonia nor `Aviora.Controls`. It contains contracts that application and
+ViewModel projects can consume without depending on a concrete UI framework.
+
+The initial drawer presentation contract contains:
+
+- `IDrawerService` for showing and closing drawer presentations.
+- `DrawerRequest` and `DrawerResult` for request/response data.
+- `DrawerPlacement`, `DrawerDisplayMode`, and `DrawerCloseReason` for portable
+  presentation semantics.
+- `DrawerHost` for well-known host identifiers.
+
+Presentation requests may contain behavioral options such as placement,
+dismissal, size, and animation timing. Avalonia-specific templates, brushes,
+corner radii, shadows, controls, and Dispatcher behavior must not enter this
+project. Those remain host or theme configuration in `Aviora.Controls`.
+
 ## Aviora.Controls boundary
 
-`Aviora.Controls` references Core and owns all Avalonia-specific API, styling,
-rendering, interaction, themes, and lifecycle behavior. Existing chart types
-remain source-compatible:
+`Aviora.Controls` references Core and Presentation Abstractions. It owns all
+Avalonia-specific API, service implementations, styling, rendering,
+interaction, themes, and lifecycle behavior. Existing chart types remain
+source-compatible:
+
+Control families live in focused plural folders (`Charts`, `Drawers`, and
+`Thermometers`). Folder placement does not force a public namespace change;
+existing public namespaces remain stable when files are reorganized.
 
 `CartesianChart` is the shared Avalonia base for single-series Cartesian charts.
 It owns the common StyledProperties and coordinates data observation, update
@@ -92,3 +124,8 @@ framework-independent contracts and algorithms. For example, input controls may
 add validation contracts, list controls may add paging state, and navigation
 controls may add hierarchy models. Avalonia adapters and visual styles remain in
 `Aviora.Controls` even when their underlying state lives in Core.
+
+New ViewModel-facing presentation services such as dialogs, notifications,
+flyouts, and navigation put their framework-independent contracts in
+`Aviora.Presentation.Abstractions`. Their Avalonia hosts and implementations
+remain feature-local in `Aviora.Controls`.

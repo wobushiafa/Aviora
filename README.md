@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/aviora.svg" width="168" height="168" alt="Aviora logo" />
+</p>
+
 # Aviora
 
 Aviora is an open-source control library for building modern, cross-platform
@@ -11,6 +15,8 @@ applications with [Avalonia](https://avaloniaui.net/).
 ```text
 aviora/
 |-- src/Aviora.Core/              Framework-independent contracts and algorithms
+|-- src/Aviora.Presentation.Abstractions/
+|                                 Framework-independent presentation contracts
 |-- src/Aviora.Controls/          Avalonia controls, rendering, and themes
 |-- samples/Aviora.Demo/          Interactive control gallery
 |-- tests/Aviora.Core.Tests/      Core unit tests
@@ -43,7 +49,9 @@ dotnet run --project samples/Aviora.Demo
 ## Use the library from source
 
 Reference `src/Aviora.Controls/Aviora.Controls.csproj`. It brings in
-`Aviora.Core` transitively. Then load the control themes in `App.axaml`:
+`Aviora.Core` and `Aviora.Presentation.Abstractions` transitively. ViewModel-only
+projects can reference `Aviora.Presentation.Abstractions` directly. Then load
+the control themes in `App.axaml`:
 
 ```xml
 <Application.Resources>
@@ -72,6 +80,24 @@ See the [control documentation](docs/column-chart.md),
 [LineChart documentation](docs/line-chart.md),
 [Tooltip documentation](docs/chart-tooltips.md), and the demo application for
 complete examples.
+
+### Presentation services
+
+ViewModels consume presentation contracts without referencing Avalonia or the
+Controls namespace:
+
+```csharp
+using Aviora.Presentation.Drawers;
+
+public sealed class SettingsViewModel(IDrawerService drawerService)
+{
+    public Task<DrawerResult> OpenAsync() =>
+        drawerService.ShowAsync(new DrawerRequest(this));
+}
+```
+
+The application composition root creates the Avalonia implementation from
+`Aviora.Controls`, and a `Drawer` host binds to the same service instance.
 
 ## Contributing
 

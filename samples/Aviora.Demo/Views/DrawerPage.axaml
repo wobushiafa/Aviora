@@ -1,0 +1,110 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="using:Aviora.Controls"
+             xmlns:vm="using:Aviora.Demo.ViewModels"
+             x:Class="Aviora.Demo.Views.DrawerPage"
+             x:DataType="vm:DrawerPageViewModel"
+             mc:Ignorable="d"
+             d:DesignWidth="760"
+             d:DesignHeight="640">
+    <Grid RowDefinitions="Auto,*" RowSpacing="20">
+        <StackPanel Spacing="4">
+            <TextBlock FontSize="24" FontWeight="SemiBold" Text="Drawer" />
+            <TextBlock Opacity="0.65" Text="Edge presentation through IDrawerService" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="0,0,4,24" Spacing="18">
+                <controls:AvioraCard>
+                    <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="14">
+                        <StackPanel Spacing="4">
+                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="Open from an edge" />
+                            <TextBlock Opacity="0.65"
+                                       Text="Each command is invoked by the ViewModel and awaits a DrawerResult." />
+                        </StackPanel>
+
+                        <Grid Grid.Row="1"
+                              ColumnDefinitions="*,*"
+                              RowDefinitions="Auto,Auto"
+                              ColumnSpacing="10"
+                              RowSpacing="10">
+                            <Button HorizontalContentAlignment="Center"
+                                    Command="{Binding OpenLeftDrawerCommand}"
+                                    Content="Open left" />
+                            <Button Grid.Column="1"
+                                    HorizontalContentAlignment="Center"
+                                    Command="{Binding OpenTopDrawerCommand}"
+                                    Content="Open top" />
+                            <Button Grid.Row="1"
+                                    HorizontalContentAlignment="Center"
+                                    Command="{Binding OpenRightDrawerCommand}"
+                                    Content="Open right" />
+                            <Button Grid.Row="1"
+                                    Grid.Column="1"
+                                    HorizontalContentAlignment="Center"
+                                    Command="{Binding OpenBottomDrawerCommand}"
+                                    Content="Open bottom" />
+                        </Grid>
+
+                        <Border Grid.Row="2"
+                                Padding="12,9"
+                                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                CornerRadius="4">
+                            <TextBlock FontSize="12" Opacity="0.72" Text="{Binding DrawerStatus}" />
+                        </Border>
+                    </Grid>
+                </controls:AvioraCard>
+
+                <controls:AvioraCard>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="24">
+                        <StackPanel Spacing="14">
+                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="Presentation" />
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Display mode" />
+                                <ComboBox ItemsSource="{Binding DisplayModes}"
+                                          SelectedItem="{Binding DisplayMode}" />
+                            </StackPanel>
+                            <StackPanel Spacing="6">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock VerticalAlignment="Center" Text="Drawer size" />
+                                    <TextBlock Grid.Column="1"
+                                               Opacity="0.65"
+                                               Text="{Binding DrawerSize, StringFormat={}{0:0} px}" />
+                                </Grid>
+                                <Slider Minimum="240"
+                                        Maximum="520"
+                                        TickFrequency="20"
+                                        Value="{Binding DrawerSize}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Spacing="10">
+                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="Behavior" />
+                            <ToggleSwitch Content="Light dismiss"
+                                          IsChecked="{Binding IsLightDismissEnabled}" />
+                            <ToggleSwitch Content="Escape key"
+                                          IsChecked="{Binding IsEscapeKeyEnabled}" />
+                            <ToggleSwitch Content="Background overlay"
+                                          IsChecked="{Binding IsOverlayVisible}" />
+                            <ToggleSwitch Content="Slide and fade animation"
+                                          IsChecked="{Binding IsAnimationEnabled}" />
+                            <ToggleSwitch Content="Content footer actions"
+                                          IsChecked="{Binding ShowFooterActions}" />
+                        </StackPanel>
+                    </Grid>
+                </controls:AvioraCard>
+
+                <controls:AvioraCard>
+                    <StackPanel Spacing="10">
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Customizable surface" />
+                        <TextBlock Opacity="0.65"
+                                   TextWrapping="Wrap"
+                                   Text="The host exposes overlay brush, pane background, border, padding, corner radius, shadow, slide and fade durations, easing, placement, display mode, dismissal behavior, content template, HostId routing, cancellation, focus restoration, and open/close events. Footer actions belong to the supplied content template and can be omitted." />
+                    </StackPanel>
+                </controls:AvioraCard>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

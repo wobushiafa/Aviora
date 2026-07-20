@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 512 512"
+     role="img"
+     aria-labelledby="title description">
+  <title id="title">Aviora</title>
+  <desc id="description">A glowing orange letter A formed from a flowing ribbon.</desc>
+
+  <defs>
+    <linearGradient id="arch" x1="0.27" y1="0.05" x2="0.67" y2="0.95">
+      <stop offset="0" stop-color="#ffd83f" />
+      <stop offset="0.42" stop-color="#ffae24" />
+      <stop offset="0.76" stop-color="#ff7918" />
+      <stop offset="1" stop-color="#ff5317" />
+    </linearGradient>
+
+    <linearGradient id="ribbon" x1="0.05" y1="0.2" x2="0.95" y2="0.82">
+      <stop offset="0" stop-color="#ff3517" />
+      <stop offset="0.5" stop-color="#ff5a16" />
+      <stop offset="0.82" stop-color="#ff921d" />
+      <stop offset="1" stop-color="#ffd83e" />
+    </linearGradient>
+
+    <linearGradient id="fold" x1="0.32" y1="0.05" x2="0.72" y2="0.95">
+      <stop offset="0" stop-color="#ff8b1d" />
+      <stop offset="0.62" stop-color="#ff9f22" />
+      <stop offset="1" stop-color="#ffe35a" />
+    </linearGradient>
+
+    <filter id="glow" x="-35%" y="-35%" width="170%" height="180%"
+            color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="18" />
+    </filter>
+
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="150%"
+            color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="6" />
+    </filter>
+  </defs>
+
+  <!-- The blurred silhouette supplies the warm halo without requiring a backdrop. -->
+  <path d="M105 424C79 413 68 384 79 358L205 79C216 54 239 39 267 39C297 39 320 56 331 84L440 358C450 384 438 413 413 423C389 432 364 420 354 395L268 174L176 397C165 424 133 436 105 424Z"
+        fill="#ff9222" opacity="0.46" filter="url(#glow)" />
+  <path d="M214 302C195 305 184 318 185 334C186 348 195 359 210 365C277 391 334 415 382 439C404 450 430 442 442 420C454 398 447 370 425 358C366 325 300 299 241 298C231 298 222 299 214 302Z"
+        fill="#ff6518" opacity="0.42" filter="url(#glow)" />
+
+  <!-- Main arch. Its open lower edge keeps the mark legible at icon sizes. -->
+  <path d="M105 424C79 413 68 384 79 358L205 79C216 54 239 39 267 39C297 39 320 56 331 84L440 358C450 384 438 413 413 423C389 432 364 420 354 395L268 174L176 397C165 424 133 436 105 424Z"
+        fill="url(#arch)" stroke="#ff6718" stroke-width="1.25" stroke-linejoin="round" />
+
+  <!-- A soft inner highlight gives the broad arch the luminous depth of the reference. -->
+  <path d="M112 403L229 91C237 71 251 62 268 62C286 62 301 73 309 94L421 382"
+        fill="none" stroke="#ffd146" stroke-width="13" stroke-linecap="round"
+        opacity="0.22" filter="url(#softGlow)" />
+
+  <!-- Sweeping crossbar/ribbon. -->
+  <path d="M214 302C195 305 184 318 185 334C186 348 195 359 210 365C277 391 334 415 382 439C404 450 430 442 442 420C454 398 447 370 425 358C366 325 300 299 241 298C231 298 222 299 214 302Z"
+        fill="url(#ribbon)" stroke="#ff3d14" stroke-width="1.25" stroke-linejoin="round" />
+
+  <!-- The rising fold reconnects the ribbon to the right leg and catches the yellow light. -->
+  <path d="M268 174C300 251 322 326 357 391C379 431 398 448 417 441C429 437 437 429 442 420C431 432 419 436 408 434C387 429 371 409 352 374C319 313 298 241 268 174Z"
+        fill="url(#fold)" opacity="0.94" />
+  <path d="M271 184C300 257 322 328 356 391C373 422 390 439 407 441"
+        fill="none" stroke="#ffe65e" stroke-width="5" stroke-linecap="round"
+        opacity="0.35" filter="url(#softGlow)" />
+
+  <!-- Restrained edge light keeps the lower ribbon crisp on both light and dark surfaces. -->
+  <path d="M210 365C277 391 334 415 382 439C404 450 430 442 442 420"
+        fill="none" stroke="#ffcf38" stroke-width="1.4" stroke-linecap="round" opacity="0.7" />
+</svg>

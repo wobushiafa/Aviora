@@ -1,119 +1,98 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="using:Aviora.Controls"
         xmlns:vm="using:Aviora.Demo.ViewModels"
+        xmlns:aviora="using:Aviora.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Aviora.Demo.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Icon="/Assets/avalonia-logo.ico"
-        Width="960"
-        Height="640"
-        MinWidth="640"
-        MinHeight="480"
+        mc:Ignorable="d"
+        d:DesignWidth="960"
+        d:DesignHeight="640"
+        Icon="/Assets/aviora.ico"
+        Width="1040"
+        Height="720"
+        MinWidth="720"
+        MinHeight="520"
         Title="Aviora Controls">
 
-    <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <vm:MainWindowViewModel/>
-    </Design.DataContext>
-
-    <Window.Resources>
-        <DataTemplate x:Key="TrendToolTipTemplate" x:DataType="controls:IChartDataPoint">
-            <StackPanel Spacing="2">
-                <TextBlock FontWeight="SemiBold" Text="{Binding Label}" />
-                <TextBlock Opacity="0.72" Text="{Binding Value}" />
-            </StackPanel>
+    <Window.DataTemplates>
+        <DataTemplate DataType="vm:DrawerDemoViewModel" x:DataType="vm:DrawerDemoViewModel">
+            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="24">
+                <StackPanel Spacing="6">
+                    <TextBlock FontSize="20" FontWeight="SemiBold" Text="Profile settings" />
+                    <TextBlock Opacity="0.65" Text="Presented by IDrawerService" />
+                </StackPanel>
+                <StackPanel Grid.Row="1" Spacing="16">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Display name" />
+                        <TextBox Text="{Binding DisplayName}" />
+                    </StackPanel>
+                    <CheckBox Content="Enable notifications" IsChecked="{Binding NotificationsEnabled}" />
+                </StackPanel>
+                <StackPanel Grid.Row="2"
+                            HorizontalAlignment="Right"
+                            IsVisible="{Binding ShowFooterActions}"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                    <Button Command="{Binding CancelCommand}" Content="Cancel" />
+                    <Button Command="{Binding SaveCommand}" Content="Save" />
+                </StackPanel>
+            </Grid>
         </DataTemplate>
-    </Window.Resources>
+    </Window.DataTemplates>
 
-    <Grid Margin="32" RowDefinitions="Auto,*" RowSpacing="24">
-        <StackPanel Spacing="6">
-            <TextBlock FontSize="28" FontWeight="SemiBold" Text="Aviora Controls" />
-            <TextBlock Opacity="0.65" Text="Cartesian chart data and styling examples" />
-        </StackPanel>
-
-        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
-        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" ColumnSpacing="18" RowSpacing="18">
-            <controls:AvioraCard HorizontalAlignment="Stretch" VerticalAlignment="Top">
-                <StackPanel Spacing="12">
-                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="ItemsSource" />
-                    <TextBlock Opacity="0.65" Text="Higher values cross more severe thresholds" />
-                    <controls:ColumnChart Height="280"
-                                           ItemsSource="{Binding MonthlySales}"
-                                           Thresholds="{Binding MonthlySalesThresholds}"
-                                           AutoRange="True"
-                                           GridLineCount="5"
-                                           ShowThresholds="True"
-                                           IsAnimationEnabled="True"
-                                           AnimationDuration="0:0:0.45"
-                                           UpdateThrottleInterval="0:0:0.25"
-                                           ColumnBackgroundBrush="#E2E8F0"
-                                           XAxisTextBrush="#64748B"
-                                           YAxisTextBrush="#475569"
-                                           GridLineBrush="#CBD5E1"
-                                           DefaultBrush="#94A3B8"
-                                           SelectedBarBrush="#0F766E"
-                                           SelectionOverlayBrush="#40FFFFFF"
-                                           SelectionStrokeBrush="#0F172A"
-                                           SelectionStrokeThickness="2" />
+    <aviora:Drawer Service="{Binding DrawerService}"
+                     Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                     BorderThickness="1,0,0,0"
+                     Padding="24">
+    <Grid ColumnDefinitions="216,*">
+        <Border Padding="20,24"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                BorderThickness="0,0,1,0">
+            <Grid RowDefinitions="Auto,Auto,*,Auto">
+                <StackPanel Spacing="3">
+                    <TextBlock FontSize="22" FontWeight="SemiBold" Text="Aviora" />
+                    <TextBlock FontSize="12" Opacity="0.62" Text="Control Gallery" />
                 </StackPanel>
-            </controls:AvioraCard>
 
-            <controls:AvioraCard Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Top">
-                <StackPanel Spacing="12">
-                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="Values" />
-                    <TextBlock Opacity="0.65" Text="Lower values cross more severe thresholds" />
-                    <controls:ColumnChart Height="280"
-                                           Values="{Binding WeeklyValues}"
-                                           XAxisLabelsSource="{Binding WeeklyLabels}"
-                                           Thresholds="{Binding WeeklyScoreThresholds}"
-                                           ThresholdDirection="LowerIsMoreSevere"
-                                           AutoRange="True"
-                                           GridLineCount="5"
-                                           ShowThresholds="True"
-                                           IsAnimationEnabled="False"
-                                           UpdateThrottleInterval="0"
-                                           ColumnBackgroundBrush="#DCFCE7"
-                                           XAxisTextBrush="#64748B"
-                                           YAxisTextBrush="#475569"
-                                           GridLineBrush="#CBD5E1"
-                                           DefaultBrush="#15803D" />
-                </StackPanel>
-            </controls:AvioraCard>
+                <TextBlock Grid.Row="1"
+                           Margin="4,32,0,8"
+                           FontSize="11"
+                           FontWeight="SemiBold"
+                           Opacity="0.55"
+                           Text="CONTROLS" />
 
-            <controls:AvioraCard Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Top">
-                <StackPanel Spacing="12">
-                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="LineChart" />
-                    <TextBlock Opacity="0.65" Text="Smooth trend with points, thresholds, and area fill" />
-                    <controls:LineChart Height="280"
-                                        ItemsSource="{Binding RevenueTrend}"
-                                        Thresholds="{Binding MonthlySalesThresholds}"
-                                        AutoRange="True"
-                                        GridLineCount="5"
-                                        ShowThresholds="True"
-                                        LineBrush="#2563EB"
-                                        AreaFillBrush="#202563EB"
-                                        PointBrush="#1D4ED8"
-                                        PointRadius="4"
-                                        ToolTipTemplate="{StaticResource TrendToolTipTemplate}"
-                                        ToolTipBackground="#F9FAFB"
-                                        ToolTipTextBrush="#111827"
-                                        ToolTipPadding="10,8"
-                                        ToolTipCornerRadius="6"
-                                        ToolTipBorderBrush="#CBD5E1"
-                                        ToolTipBorderThickness="1"
-                                        ToolTipBoxShadow="0 4 12 0 #33000000"
-                                        XAxisTextBrush="#64748B"
-                                        YAxisTextBrush="#475569"
-                                        GridLineBrush="#CBD5E1"
-                                        UpdateThrottleInterval="0" />
-                </StackPanel>
-            </controls:AvioraCard>
+                <ListBox Grid.Row="2"
+                         ItemsSource="{Binding Pages}"
+                         SelectedItem="{Binding SelectedPage}">
+                    <ListBox.Styles>
+                        <Style Selector="ListBoxItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="Padding" Value="12,10" />
+                            <Setter Property="Margin" Value="0,2" />
+                        </Style>
+                    </ListBox.Styles>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:DemoPageViewModel">
+                            <TextBlock Text="{Binding Title}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <TextBlock Grid.Row="3"
+                           Margin="4,16,0,0"
+                           FontSize="11"
+                           Opacity="0.48"
+                           Text="Aviora.Controls" />
+            </Grid>
+        </Border>
+
+        <Grid Grid.Column="1" Margin="28,24,28,0">
+            <ContentControl Content="{Binding SelectedPage}" />
         </Grid>
-        </ScrollViewer>
     </Grid>
-
+    </aviora:Drawer>
 </Window>

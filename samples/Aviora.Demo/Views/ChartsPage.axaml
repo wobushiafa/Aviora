@@ -1,0 +1,272 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="using:Aviora.Controls"
+             xmlns:vm="using:Aviora.Demo.ViewModels"
+             x:Class="Aviora.Demo.Views.ChartsPage"
+             x:DataType="vm:ChartsPageViewModel"
+             mc:Ignorable="d"
+             d:DesignWidth="760"
+             d:DesignHeight="640">
+    <UserControl.Resources>
+        <DataTemplate x:Key="TrendToolTipTemplate" x:DataType="controls:IChartDataPoint">
+            <StackPanel Spacing="3">
+                <TextBlock FontWeight="SemiBold" Text="{Binding Label}" />
+                <TextBlock Opacity="0.72" Text="{Binding Value, StringFormat='Value: {0:F1}'}" />
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
+        <StackPanel Spacing="4">
+            <TextBlock FontSize="24" FontWeight="SemiBold" Text="Charts" />
+            <TextBlock Opacity="0.65"
+                       Text="Data, axes, thresholds, interaction, animation, and tooltips"
+                       TextWrapping="Wrap" />
+        </StackPanel>
+
+        <WrapPanel Grid.Row="1" Orientation="Horizontal">
+            <CheckBox Margin="0,0,16,0" Content="Grid" IsChecked="{Binding ShowGridLines}" />
+            <CheckBox Margin="0,0,16,0" Content="Threshold labels" IsChecked="{Binding ShowThresholdLabels}" />
+            <CheckBox Margin="0,0,16,0" Content="Tooltips" IsChecked="{Binding IsToolTipEnabled}" />
+            <CheckBox Content="Animation" IsChecked="{Binding IsAnimationEnabled}" />
+        </WrapPanel>
+
+        <TabControl Grid.Row="2">
+            <TabItem Header="Columns">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="4,18,4,24" Spacing="18">
+                        <controls:AvioraCard HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="10">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Spacing="3">
+                                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Rich data, thresholds, and selection" />
+                                        <TextBlock Opacity="0.65" Text="ItemsSource, per-item brushes, full-height tracks, commands, and two-way selection" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1"
+                                               VerticalAlignment="Center"
+                                               FontSize="12"
+                                               Opacity="0.65"
+                                               Text="{Binding InteractionStatus}"
+                                               TextWrapping="Wrap" />
+                                </Grid>
+                                <controls:ColumnChart Height="300"
+                                                      ItemsSource="{Binding MonthlySales}"
+                                                      Thresholds="{Binding MonthlySalesThresholds}"
+                                                      AutoRange="True"
+                                                      AutoRangePaddingRatio="0.12"
+                                                      GridLineCount="5"
+                                                      ShowGridLines="{Binding ShowGridLines}"
+                                                      ShowThresholds="True"
+                                                      ShowThresholdLabels="{Binding ShowThresholdLabels}"
+                                                      ThresholdLabelFontSize="10"
+                                                      IsAnimationEnabled="{Binding IsAnimationEnabled}"
+                                                      AnimationDuration="0:0:0.45"
+                                                      AnimationItemLimit="200"
+                                                      UpdateThrottleInterval="0:0:0.25"
+                                                      IsToolTipEnabled="{Binding IsToolTipEnabled}"
+                                                      ColumnBackgroundBrush="#E2E8F0"
+                                                      BarWidthRatio="0.55"
+                                                      XAxisTextBrush="#64748B"
+                                                      YAxisTextBrush="#475569"
+                                                      XAxisFontSize="10"
+                                                      YAxisFontSize="10"
+                                                      GridLineBrush="#CBD5E1"
+                                                      DefaultBrush="#0F766E"
+                                                      SelectedIndex="{Binding SelectedColumnIndex}"
+                                                      SelectedItem="{Binding SelectedColumnItem}"
+                                                      ItemClickCommand="{Binding ChartItemClickedCommand}"
+                                                      SelectedBarBrush="#0D9488"
+                                                      SelectionOverlayBrush="#35FFFFFF"
+                                                      SelectionStrokeBrush="#0F172A"
+                                                      SelectionStrokeThickness="2" />
+                            </StackPanel>
+                        </controls:AvioraCard>
+
+                        <controls:AvioraCard HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="10">
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="Simple values and reversed severity" />
+                                <TextBlock Opacity="0.65" Text="Values with external labels; lower values cross progressively more severe thresholds" />
+                                <controls:ColumnChart Height="280"
+                                                      Values="{Binding WeeklyValues}"
+                                                      XAxisLabelsSource="{Binding WeeklyLabels}"
+                                                      XAxisLabelMode="All"
+                                                      Thresholds="{Binding WeeklyScoreThresholds}"
+                                                      ThresholdDirection="LowerIsMoreSevere"
+                                                      AutoRange="True"
+                                                      GridLineCount="5"
+                                                      ShowGridLines="{Binding ShowGridLines}"
+                                                      ShowThresholds="True"
+                                                      ShowThresholdLabels="{Binding ShowThresholdLabels}"
+                                                      IsAnimationEnabled="False"
+                                                      IsToolTipEnabled="{Binding IsToolTipEnabled}"
+                                                      UpdateThrottleInterval="0"
+                                                      ColumnBackgroundBrush="#DCFCE7"
+                                                      XAxisTextBrush="#64748B"
+                                                      YAxisTextBrush="#475569"
+                                                      GridLineBrush="#CBD5E1"
+                                                      DefaultBrush="#15803D" />
+                            </StackPanel>
+                        </controls:AvioraCard>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Lines">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="4,18,4,24" Spacing="18">
+                        <controls:AvioraCard HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="10">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Spacing="3">
+                                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Animated smooth trend" />
+                                        <TextBlock Opacity="0.65"
+                                                   Text="Smooth interpolation, area fill, point styling, selected point, and custom Tooltip template"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <Button Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Command="{Binding UpdateTrendCommand}"
+                                            Content="Update data" />
+                                </Grid>
+                                <controls:LineChart Height="310"
+                                                    ItemsSource="{Binding AnimatedTrend}"
+                                                    Thresholds="{Binding MonthlySalesThresholds}"
+                                                    AutoRange="True"
+                                                    GridLineCount="5"
+                                                    ShowGridLines="{Binding ShowGridLines}"
+                                                    ShowThresholds="True"
+                                                    ShowThresholdLabels="{Binding ShowThresholdLabels}"
+                                                    IsAnimationEnabled="{Binding IsAnimationEnabled}"
+                                                    AnimationDuration="0:0:0.55"
+                                                    UpdateThrottleInterval="0"
+                                                    InterpolationMode="Smooth"
+                                                    LineBrush="#2563EB"
+                                                    LineThickness="3"
+                                                    AreaFillBrush="#202563EB"
+                                                    ShowPoints="True"
+                                                    PointBrush="#1D4ED8"
+                                                    PointRadius="4"
+                                                    PointStrokeBrush="White"
+                                                    PointStrokeThickness="2"
+                                                    SelectedIndex="{Binding SelectedLineIndex}"
+                                                    SelectedPointBrush="#DC2626"
+                                                    SelectedPointRadius="7"
+                                                    ItemClickCommand="{Binding ChartItemClickedCommand}"
+                                                    IsToolTipEnabled="{Binding IsToolTipEnabled}"
+                                                    ToolTipTemplate="{StaticResource TrendToolTipTemplate}"
+                                                    ToolTipBackground="#F9FAFB"
+                                                    ToolTipTextBrush="#111827"
+                                                    ToolTipFontSize="12"
+                                                    ToolTipPadding="10,8"
+                                                    ToolTipCornerRadius="6"
+                                                    ToolTipBorderBrush="#CBD5E1"
+                                                    ToolTipBorderThickness="1"
+                                                    ToolTipBoxShadow="0 4 12 0 #33000000"
+                                                    ToolTipHorizontalOffset="12"
+                                                    ToolTipVerticalOffset="10"
+                                                    XAxisTextBrush="#64748B"
+                                                    YAxisTextBrush="#475569"
+                                                    GridLineBrush="#CBD5E1" />
+                            </StackPanel>
+                        </controls:AvioraCard>
+
+                        <controls:AvioraCard HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="10">
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="Linear comparison" />
+                                <TextBlock Opacity="0.65"
+                                           Text="Straight segments, explicit Y-axis labels, and delegate-based Tooltip formatting"
+                                           TextWrapping="Wrap" />
+                                <controls:LineChart Height="240"
+                                                    ItemsSource="{Binding AnimatedTrend}"
+                                                    AutoRange="False"
+                                                    MinValue="0"
+                                                    MaxValue="100"
+                                                    YAxisLabelsSource="{Binding PerformanceAxisLabels}"
+                                                    InterpolationMode="Linear"
+                                                    LineBrush="#7C3AED"
+                                                    LineThickness="2"
+                                                    ShowPoints="False"
+                                                    ShowGridLines="{Binding ShowGridLines}"
+                                                    IsAnimationEnabled="{Binding IsAnimationEnabled}"
+                                                    AnimationDuration="0:0:0.55"
+                                                    IsToolTipEnabled="{Binding IsToolTipEnabled}"
+                                                    ToolTipFormatter="{Binding TrendToolTipFormatter}"
+                                                    UpdateThrottleInterval="0" />
+                            </StackPanel>
+                        </controls:AvioraCard>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Axes &amp; states">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="4,18,4,24" Spacing="18">
+                        <controls:AvioraCard HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="10">
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="Fixed range, negative values, and label density" />
+                                <TextBlock Opacity="0.65" Text="Manual range, zero baseline, custom Y-axis formatting, and interval category labels" />
+                                <controls:ColumnChart Height="290"
+                                                      Values="{Binding VarianceValues}"
+                                                      XAxisLabelsSource="{Binding VarianceLabels}"
+                                                      AutoRange="False"
+                                                      MinValue="-50"
+                                                      MaxValue="50"
+                                                      GridLineCount="6"
+                                                      XAxisLabelMode="Interval"
+                                                      XAxisLabelInterval="2"
+                                                      YAxisLabelFormatter="{Binding VarianceAxisFormatter}"
+                                                      YAxisWidth="52"
+                                                      XAxisHeight="28"
+                                                      ShowGridLines="{Binding ShowGridLines}"
+                                                      GridLineBrush="#CBD5E1"
+                                                      DefaultBrush="#0891B2"
+                                                      ColumnBackgroundBrush="#ECFEFF"
+                                                      IsAnimationEnabled="{Binding IsAnimationEnabled}"
+                                                      IsToolTipEnabled="{Binding IsToolTipEnabled}"
+                                                      UpdateThrottleInterval="0" />
+                            </StackPanel>
+                        </controls:AvioraCard>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="18">
+                            <controls:AvioraCard HorizontalAlignment="Stretch">
+                                <StackPanel Spacing="10">
+                                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="Empty state" />
+                                    <TextBlock Opacity="0.65" Text="Custom message, text color, and size" />
+                                    <controls:ColumnChart Height="210"
+                                                          Values="{Binding EmptyValues}"
+                                                          AutoRange="True"
+                                                          ShowEmptyText="True"
+                                                          EmptyText="Waiting for telemetry"
+                                                          EmptyTextBrush="#64748B"
+                                                          EmptyTextFontSize="14"
+                                                          ShowGridLines="False" />
+                                </StackPanel>
+                            </controls:AvioraCard>
+
+                            <controls:AvioraCard Grid.Column="1" HorizontalAlignment="Stretch">
+                                <StackPanel Spacing="10">
+                                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="Minimal plot" />
+                                    <TextBlock Opacity="0.65" Text="Axes, labels, grid, points, and Tooltip can all be disabled" />
+                                    <controls:LineChart Height="210"
+                                                        Values="{Binding WeeklyValues}"
+                                                        MinValue="0"
+                                                        MaxValue="60"
+                                                        ShowXAxis="False"
+                                                        ShowYAxis="False"
+                                                        ShowGridLines="False"
+                                                        ShowPoints="False"
+                                                        IsToolTipEnabled="False"
+                                                        IsAnimationEnabled="False"
+                                                        LineBrush="#E11D48"
+                                                        LineThickness="3" />
+                                </StackPanel>
+                            </controls:AvioraCard>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

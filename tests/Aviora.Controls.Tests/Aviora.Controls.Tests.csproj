@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Aviora.Core\Aviora.Core.csproj" />
     <ProjectReference Include="..\..\src\Aviora.Controls\Aviora.Controls.csproj" />
+    <ProjectReference Include="..\..\src\Aviora.Presentation.Abstractions\Aviora.Presentation.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

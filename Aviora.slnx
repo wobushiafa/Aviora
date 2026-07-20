@@ -5,6 +5,7 @@
   <Folder Name="/src/">
     <Project Path="src/Aviora.Core/Aviora.Core.csproj" />
     <Project Path="src/Aviora.Controls/Aviora.Controls.csproj" />
+    <Project Path="src/Aviora.Presentation.Abstractions/Aviora.Presentation.Abstractions.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Aviora.Core.Tests/Aviora.Core.Tests.csproj" />

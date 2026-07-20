@@ -1,12 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <PackageId>Aviora.Controls</PackageId>
-    <Title>Aviora Controls</Title>
-    <Description>A modern, open-source Avalonia control library.</Description>
+    <PackageId>Aviora.Presentation.Abstractions</PackageId>
+    <Title>Aviora Presentation Abstractions</Title>
+    <Description>Framework-independent presentation service contracts for Aviora applications.</Description>
     <Authors>Aviora contributors</Authors>
-    <PackageTags>avalonia;ui;controls;desktop;cross-platform</PackageTags>
+    <PackageTags>ui;presentation;abstractions;cross-platform</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -15,15 +15,6 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Avalonia" Version="12.1.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Aviora.Core\Aviora.Core.csproj" />
-    <ProjectReference Include="..\Aviora.Presentation.Abstractions\Aviora.Presentation.Abstractions.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />

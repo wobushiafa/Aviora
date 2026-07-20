@@ -1,10 +1,14 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="using:Aviora.Controls">
+  <ResourceDictionary.MergedDictionaries>
+    <ResourceInclude Source="avares://Aviora.Controls/Themes/Palette.axaml" />
+  </ResourceDictionary.MergedDictionaries>
+
   <ControlTheme x:Key="{x:Type controls:AvioraCard}"
                 TargetType="controls:AvioraCard">
-    <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+    <Setter Property="Background" Value="{DynamicResource AvioraSurfaceRaisedBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AvioraBorderBrush}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="6" />
     <Setter Property="Padding" Value="20" />
@@ -23,5 +27,182 @@
         </Border>
       </ControlTemplate>
     </Setter>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type controls:Thermometer}"
+                TargetType="controls:Thermometer">
+    <Setter Property="TubeBrush" Value="{DynamicResource AvioraSubtleBrush}" />
+    <Setter Property="TickBrush" Value="{DynamicResource AvioraMutedBrush}" />
+    <Setter Property="TickLabelBrush" Value="{DynamicResource AvioraTextMutedBrush}" />
+    <Setter Property="LiquidBrush" Value="{DynamicResource AvioraAccentBrush}" />
+    <Setter Property="GlareBrush" Value="{DynamicResource AvioraHighlightBrush}" />
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type controls:ColumnChart}"
+                TargetType="controls:ColumnChart">
+    <Setter Property="DefaultBrush" Value="{DynamicResource AvioraAccentBrush}" />
+    <Setter Property="SelectionStrokeBrush" Value="{DynamicResource AvioraAccentStrongBrush}" />
+    <Setter Property="GridLineBrush" Value="{DynamicResource AvioraBorderBrush}" />
+    <Setter Property="XAxisTextBrush" Value="{DynamicResource AvioraTextMutedBrush}" />
+    <Setter Property="YAxisTextBrush" Value="{DynamicResource AvioraTextMutedBrush}" />
+    <Setter Property="EmptyTextBrush" Value="{DynamicResource AvioraTextMutedBrush}" />
+    <Setter Property="ToolTipBackground" Value="{DynamicResource AvioraSurfaceRaisedBrush}" />
+    <Setter Property="ToolTipTextBrush" Value="{DynamicResource AvioraTextBrush}" />
+    <Setter Property="ToolTipBorderBrush" Value="{DynamicResource AvioraBorderBrush}" />
+    <Setter Property="ToolTipBorderThickness" Value="1" />
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type controls:LineChart}"
+                TargetType="controls:LineChart">
+    <Setter Property="LineBrush" Value="{DynamicResource AvioraAccentBrush}" />
+    <Setter Property="PointBrush" Value="{DynamicResource AvioraAccentStrongBrush}" />
+    <Setter Property="SelectedPointBrush" Value="{DynamicResource AvioraAccentStrongBrush}" />
+    <Setter Property="AreaFillBrush" Value="{DynamicResource AvioraSubtleBrush}" />
+    <Setter Property="GridLineBrush" Value="{DynamicResource AvioraBorderBrush}" />
+    <Setter Property="XAxisTextBrush" Value="{DynamicResource AvioraTextMutedBrush}" />
+    <Setter Property="YAxisTextBrush" Value="{DynamicResource AvioraTextMutedBrush}" />
+    <Setter Property="EmptyTextBrush" Value="{DynamicResource AvioraTextMutedBrush}" />
+    <Setter Property="ToolTipBackground" Value="{DynamicResource AvioraSurfaceRaisedBrush}" />
+    <Setter Property="ToolTipTextBrush" Value="{DynamicResource AvioraTextBrush}" />
+    <Setter Property="ToolTipBorderBrush" Value="{DynamicResource AvioraBorderBrush}" />
+    <Setter Property="ToolTipBorderThickness" Value="1" />
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type controls:Drawer}"
+                TargetType="controls:Drawer">
+    <Setter Property="Background" Value="{DynamicResource AvioraSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AvioraBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="OverlayBrush" Value="{DynamicResource AvioraOverlayBrush}" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+    <Setter Property="Focusable" Value="True" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Grid Name="PART_Root"
+              ClipToBounds="True"
+              ColumnDefinitions="Auto,*"
+              RowDefinitions="Auto,*">
+          <ContentPresenter Name="PART_ContentPresenter"
+                            Grid.RowSpan="2"
+                            Grid.ColumnSpan="2"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+
+          <Border Name="PART_Overlay"
+                  Grid.RowSpan="2"
+                  Grid.ColumnSpan="2"
+                  Background="{TemplateBinding OverlayBrush}"
+                  Cursor="Arrow"
+                  HorizontalAlignment="Stretch"
+                  IsVisible="False"
+                  VerticalAlignment="Stretch"
+                  AutomationProperties.Name="Close drawer" />
+
+          <Border Name="PART_PaneSurface"
+                  Grid.Column="1"
+                  Grid.RowSpan="2"
+                  Width="{TemplateBinding DrawerSize}"
+                  MinWidth="{TemplateBinding MinDrawerSize}"
+                  MaxWidth="{TemplateBinding MaxDrawerSize}"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding PaneCornerRadius}"
+                  BoxShadow="{TemplateBinding PaneBoxShadow}"
+                  IsHitTestVisible="False"
+                  IsVisible="False">
+            <ContentControl Name="PART_Pane"
+                            Padding="{TemplateBinding Padding}"
+                            Content="{TemplateBinding DrawerContent}"
+                            ContentTemplate="{TemplateBinding DrawerContentTemplate}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+          </Border>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:overlay /template/ #PART_ContentPresenter" x:SetterTargetType="ContentPresenter">
+      <Setter Property="Grid.Row" Value="0" />
+      <Setter Property="Grid.Column" Value="0" />
+      <Setter Property="Grid.RowSpan" Value="2" />
+      <Setter Property="Grid.ColumnSpan" Value="2" />
+    </Style>
+    <Style Selector="^:presented:push:right /template/ #PART_ContentPresenter" x:SetterTargetType="ContentPresenter">
+      <Setter Property="Grid.Row" Value="0" />
+      <Setter Property="Grid.Column" Value="0" />
+      <Setter Property="Grid.RowSpan" Value="2" />
+      <Setter Property="Grid.ColumnSpan" Value="1" />
+    </Style>
+    <Style Selector="^:presented:push:left /template/ #PART_ContentPresenter" x:SetterTargetType="ContentPresenter">
+      <Setter Property="Grid.Row" Value="0" />
+      <Setter Property="Grid.Column" Value="1" />
+      <Setter Property="Grid.RowSpan" Value="2" />
+      <Setter Property="Grid.ColumnSpan" Value="1" />
+    </Style>
+    <Style Selector="^:presented:push:top /template/ #PART_ContentPresenter" x:SetterTargetType="ContentPresenter">
+      <Setter Property="Grid.Row" Value="1" />
+      <Setter Property="Grid.Column" Value="0" />
+      <Setter Property="Grid.RowSpan" Value="1" />
+      <Setter Property="Grid.ColumnSpan" Value="2" />
+    </Style>
+    <Style Selector="^:presented:push:bottom /template/ #PART_ContentPresenter" x:SetterTargetType="ContentPresenter">
+      <Setter Property="Grid.Row" Value="0" />
+      <Setter Property="Grid.Column" Value="0" />
+      <Setter Property="Grid.RowSpan" Value="1" />
+      <Setter Property="Grid.ColumnSpan" Value="2" />
+    </Style>
+
+    <Style Selector="^:left /template/ #PART_PaneSurface" x:SetterTargetType="Border">
+      <Setter Property="Grid.Row" Value="0" />
+      <Setter Property="Grid.Column" Value="0" />
+      <Setter Property="Grid.RowSpan" Value="2" />
+      <Setter Property="Grid.ColumnSpan" Value="1" />
+      <Setter Property="Width" Value="{Binding DrawerSize, RelativeSource={RelativeSource TemplatedParent}}" />
+      <Setter Property="Height" Value="NaN" />
+      <Setter Property="MinWidth" Value="{Binding MinDrawerSize, RelativeSource={RelativeSource TemplatedParent}}" />
+      <Setter Property="MaxWidth" Value="{Binding MaxDrawerSize, RelativeSource={RelativeSource TemplatedParent}}" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="^:right /template/ #PART_PaneSurface" x:SetterTargetType="Border">
+      <Setter Property="Grid.Row" Value="0" />
+      <Setter Property="Grid.Column" Value="1" />
+      <Setter Property="Grid.RowSpan" Value="2" />
+      <Setter Property="Grid.ColumnSpan" Value="1" />
+      <Setter Property="Width" Value="{Binding DrawerSize, RelativeSource={RelativeSource TemplatedParent}}" />
+      <Setter Property="Height" Value="NaN" />
+      <Setter Property="MinWidth" Value="{Binding MinDrawerSize, RelativeSource={RelativeSource TemplatedParent}}" />
+      <Setter Property="MaxWidth" Value="{Binding MaxDrawerSize, RelativeSource={RelativeSource TemplatedParent}}" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="VerticalAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="^:top /template/ #PART_PaneSurface" x:SetterTargetType="Border">
+      <Setter Property="Grid.Row" Value="0" />
+      <Setter Property="Grid.Column" Value="0" />
+      <Setter Property="Grid.RowSpan" Value="1" />
+      <Setter Property="Grid.ColumnSpan" Value="2" />
+      <Setter Property="Width" Value="NaN" />
+      <Setter Property="Height" Value="{Binding DrawerSize, RelativeSource={RelativeSource TemplatedParent}}" />
+      <Setter Property="MinHeight" Value="{Binding MinDrawerSize, RelativeSource={RelativeSource TemplatedParent}}" />
+      <Setter Property="MaxHeight" Value="{Binding MaxDrawerSize, RelativeSource={RelativeSource TemplatedParent}}" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+    </Style>
+    <Style Selector="^:bottom /template/ #PART_PaneSurface" x:SetterTargetType="Border">
+      <Setter Property="Grid.Row" Value="1" />
+      <Setter Property="Grid.Column" Value="0" />
+      <Setter Property="Grid.RowSpan" Value="1" />
+      <Setter Property="Grid.ColumnSpan" Value="2" />
+      <Setter Property="Width" Value="NaN" />
+      <Setter Property="Height" Value="{Binding DrawerSize, RelativeSource={RelativeSource TemplatedParent}}" />
+      <Setter Property="MinHeight" Value="{Binding MinDrawerSize, RelativeSource={RelativeSource TemplatedParent}}" />
+      <Setter Property="MaxHeight" Value="{Binding MaxDrawerSize, RelativeSource={RelativeSource TemplatedParent}}" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="VerticalAlignment" Value="Bottom" />
+    </Style>
   </ControlTheme>
 </ResourceDictionary>

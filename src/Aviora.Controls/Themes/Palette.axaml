@@ -1,0 +1,45 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Fallback values also make the palette usable when no theme variant is resolved. -->
+  <SolidColorBrush x:Key="AvioraAccentBrush" Color="#0F766E" />
+  <SolidColorBrush x:Key="AvioraAccentStrongBrush" Color="#115E59" />
+  <SolidColorBrush x:Key="AvioraSurfaceBrush" Color="#FFFFFF" />
+  <SolidColorBrush x:Key="AvioraSurfaceRaisedBrush" Color="#F8FAFC" />
+  <SolidColorBrush x:Key="AvioraBorderBrush" Color="#CBD5E1" />
+  <SolidColorBrush x:Key="AvioraSubtleBrush" Color="#E2E8F0" />
+  <SolidColorBrush x:Key="AvioraMutedBrush" Color="#94A3B8" />
+  <SolidColorBrush x:Key="AvioraTextBrush" Color="#0F172A" />
+  <SolidColorBrush x:Key="AvioraTextMutedBrush" Color="#64748B" />
+  <SolidColorBrush x:Key="AvioraOverlayBrush" Color="#700F172A" />
+  <SolidColorBrush x:Key="AvioraHighlightBrush" Color="#CCFFFFFF" />
+
+  <ResourceDictionary.ThemeDictionaries>
+    <ResourceDictionary x:Key="Light">
+      <SolidColorBrush x:Key="AvioraAccentBrush" Color="#0F766E" />
+      <SolidColorBrush x:Key="AvioraAccentStrongBrush" Color="#115E59" />
+      <SolidColorBrush x:Key="AvioraSurfaceBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="AvioraSurfaceRaisedBrush" Color="#F8FAFC" />
+      <SolidColorBrush x:Key="AvioraBorderBrush" Color="#CBD5E1" />
+      <SolidColorBrush x:Key="AvioraSubtleBrush" Color="#E2E8F0" />
+      <SolidColorBrush x:Key="AvioraMutedBrush" Color="#94A3B8" />
+      <SolidColorBrush x:Key="AvioraTextBrush" Color="#0F172A" />
+      <SolidColorBrush x:Key="AvioraTextMutedBrush" Color="#64748B" />
+      <SolidColorBrush x:Key="AvioraOverlayBrush" Color="#700F172A" />
+      <SolidColorBrush x:Key="AvioraHighlightBrush" Color="#CCFFFFFF" />
+    </ResourceDictionary>
+
+    <ResourceDictionary x:Key="Dark">
+      <SolidColorBrush x:Key="AvioraAccentBrush" Color="#2DD4BF" />
+      <SolidColorBrush x:Key="AvioraAccentStrongBrush" Color="#5EEAD4" />
+      <SolidColorBrush x:Key="AvioraSurfaceBrush" Color="#111827" />
+      <SolidColorBrush x:Key="AvioraSurfaceRaisedBrush" Color="#1F2937" />
+      <SolidColorBrush x:Key="AvioraBorderBrush" Color="#475569" />
+      <SolidColorBrush x:Key="AvioraSubtleBrush" Color="#334155" />
+      <SolidColorBrush x:Key="AvioraMutedBrush" Color="#94A3B8" />
+      <SolidColorBrush x:Key="AvioraTextBrush" Color="#F8FAFC" />
+      <SolidColorBrush x:Key="AvioraTextMutedBrush" Color="#CBD5E1" />
+      <SolidColorBrush x:Key="AvioraOverlayBrush" Color="#99000000" />
+      <SolidColorBrush x:Key="AvioraHighlightBrush" Color="#99FFFFFF" />
+    </ResourceDictionary>
+  </ResourceDictionary.ThemeDictionaries>
+</ResourceDictionary>
