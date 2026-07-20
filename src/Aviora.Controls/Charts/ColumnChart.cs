@@ -16,13 +16,13 @@ public class ColumnChart : CartesianChart
     public static readonly StyledProperty<IBrush?> ColumnBackgroundBrushProperty =
         AvaloniaProperty.Register<ColumnChart, IBrush?>(nameof(ColumnBackgroundBrush));
     public static readonly StyledProperty<IBrush> DefaultBrushProperty =
-        AvaloniaProperty.Register<ColumnChart, IBrush>(nameof(DefaultBrush), Brushes.Green);
+        AvaloniaProperty.Register<ColumnChart, IBrush>(nameof(DefaultBrush), AvioraControlPalette.Accent);
     public static readonly StyledProperty<IBrush?> SelectedBarBrushProperty =
         AvaloniaProperty.Register<ColumnChart, IBrush?>(nameof(SelectedBarBrush));
     public static readonly StyledProperty<IBrush?> SelectionOverlayBrushProperty =
         AvaloniaProperty.Register<ColumnChart, IBrush?>(nameof(SelectionOverlayBrush));
     public static readonly StyledProperty<IBrush> SelectionStrokeBrushProperty =
-        AvaloniaProperty.Register<ColumnChart, IBrush>(nameof(SelectionStrokeBrush), Brushes.DodgerBlue);
+        AvaloniaProperty.Register<ColumnChart, IBrush>(nameof(SelectionStrokeBrush), AvioraControlPalette.AccentStrong);
     public static readonly StyledProperty<double> SelectionStrokeThicknessProperty =
         AvaloniaProperty.Register<ColumnChart, double>(nameof(SelectionStrokeThickness));
 

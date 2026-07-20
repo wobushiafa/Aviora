@@ -63,6 +63,12 @@ the control themes in `App.axaml`:
 </Application.Resources>
 ```
 
+Declare the Aviora XML namespace on each view that uses the controls:
+
+```xml
+xmlns:aviora="https://github.com/wobushiafa/Aviora"
+```
+
 ### Charts
 
 Bind a simple numeric sequence with `Values`, or use `ItemsSource` when each
@@ -70,10 +76,10 @@ point needs its own key, label, brush, or Tooltip. Business models can implement
 `IChartDataPoint` directly; `ChartDataPoint` is provided for common cases.
 
 ```xml
-<controls:ColumnChart ItemsSource="{Binding Sales}"
-                      AutoRange="True"
-                      Thresholds="{Binding SalesThresholds}"
-                      ShowThresholds="True" />
+<aviora:ColumnChart ItemsSource="{Binding Sales}"
+                    AutoRange="True"
+                    Thresholds="{Binding SalesThresholds}"
+                    ShowThresholds="True" />
 ```
 
 See the [control documentation](docs/column-chart.md),

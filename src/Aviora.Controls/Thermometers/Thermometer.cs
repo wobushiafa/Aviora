@@ -2,7 +2,6 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Avalonia.Media.Immutable;
 
 namespace Aviora.Controls;
 
@@ -38,7 +37,7 @@ public class Thermometer : Control
     public static readonly StyledProperty<IBrush> TickLabelBrushProperty =
         AvaloniaProperty.Register<Thermometer, IBrush>(
             nameof(TickLabelBrush),
-            new ImmutableSolidColorBrush(Color.Parse("#64748B")));
+            AvioraControlPalette.TextMuted);
     public static readonly StyledProperty<double> TickLabelFontSizeProperty =
         AvaloniaProperty.Register<Thermometer, double>(nameof(TickLabelFontSize), 10.0);
     public static readonly StyledProperty<double> TickLabelSpacingProperty =
@@ -50,15 +49,15 @@ public class Thermometer : Control
     public static readonly StyledProperty<IBrush> TubeBrushProperty =
         AvaloniaProperty.Register<Thermometer, IBrush>(
             nameof(TubeBrush),
-            new ImmutableSolidColorBrush(Color.Parse("#E2E8F0")));
+            AvioraControlPalette.Subtle);
     public static readonly StyledProperty<IBrush> TickBrushProperty =
         AvaloniaProperty.Register<Thermometer, IBrush>(
             nameof(TickBrush),
-            new ImmutableSolidColorBrush(Color.Parse("#94A3B8")));
+            AvioraControlPalette.Muted);
     public static readonly StyledProperty<IBrush> LiquidBrushProperty =
         AvaloniaProperty.Register<Thermometer, IBrush>(
             nameof(LiquidBrush),
-            new ImmutableSolidColorBrush(Color.Parse("#0EA5E9")));
+            AvioraControlPalette.Accent);
     public static readonly StyledProperty<LiquidBrushMappingMode> LiquidBrushMappingModeProperty =
         AvaloniaProperty.Register<Thermometer, LiquidBrushMappingMode>(
             nameof(LiquidBrushMappingMode),
@@ -66,7 +65,7 @@ public class Thermometer : Control
     public static readonly StyledProperty<IBrush> GlareBrushProperty =
         AvaloniaProperty.Register<Thermometer, IBrush>(
             nameof(GlareBrush),
-            new ImmutableSolidColorBrush(Color.Parse("#B3FFFFFF")));
+            AvioraControlPalette.Highlight);
 
     static Thermometer()
     {

@@ -11,7 +11,7 @@ namespace Aviora.Controls;
 public class LineChart : CartesianChart
 {
     public static readonly StyledProperty<IBrush> LineBrushProperty =
-        AvaloniaProperty.Register<LineChart, IBrush>(nameof(LineBrush), Brushes.DodgerBlue);
+        AvaloniaProperty.Register<LineChart, IBrush>(nameof(LineBrush), AvioraControlPalette.Accent);
     public static readonly StyledProperty<double> LineThicknessProperty =
         AvaloniaProperty.Register<LineChart, double>(nameof(LineThickness), 2.0);
     public static readonly StyledProperty<LineInterpolationMode> InterpolationModeProperty =

@@ -5,7 +5,6 @@ using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
-using Avalonia.Media.Immutable;
 using Avalonia.Threading;
 
 namespace Aviora.Controls;
@@ -31,7 +30,7 @@ public abstract class CartesianChart : Control
     public static readonly StyledProperty<double> AutoRangePaddingRatioProperty =
         AvaloniaProperty.Register<CartesianChart, double>(nameof(AutoRangePaddingRatio), 0.08);
     public static readonly StyledProperty<IBrush> GridLineBrushProperty =
-        AvaloniaProperty.Register<CartesianChart, IBrush>(nameof(GridLineBrush), Brushes.LightGray);
+        AvaloniaProperty.Register<CartesianChart, IBrush>(nameof(GridLineBrush), AvioraControlPalette.Border);
     public static readonly StyledProperty<bool> ShowGridLinesProperty =
         AvaloniaProperty.Register<CartesianChart, bool>(nameof(ShowGridLines), true);
     public static readonly StyledProperty<bool> ShowThresholdsProperty =
@@ -56,7 +55,7 @@ public abstract class CartesianChart : Control
     public static readonly StyledProperty<int> XAxisLabelIntervalProperty =
         AvaloniaProperty.Register<CartesianChart, int>(nameof(XAxisLabelInterval), 1);
     public static readonly StyledProperty<IBrush> XAxisTextBrushProperty =
-        AvaloniaProperty.Register<CartesianChart, IBrush>(nameof(XAxisTextBrush), Brushes.Gray);
+        AvaloniaProperty.Register<CartesianChart, IBrush>(nameof(XAxisTextBrush), AvioraControlPalette.TextMuted);
     public static readonly StyledProperty<double> XAxisFontSizeProperty =
         AvaloniaProperty.Register<CartesianChart, double>(nameof(XAxisFontSize), 10.0);
     public static readonly StyledProperty<double> XAxisHeightProperty =
@@ -74,7 +73,7 @@ public abstract class CartesianChart : Control
     public static readonly StyledProperty<double> YAxisFontSizeProperty =
         AvaloniaProperty.Register<CartesianChart, double>(nameof(YAxisFontSize), 10.0);
     public static readonly StyledProperty<IBrush> YAxisTextBrushProperty =
-        AvaloniaProperty.Register<CartesianChart, IBrush>(nameof(YAxisTextBrush), Brushes.Gray);
+        AvaloniaProperty.Register<CartesianChart, IBrush>(nameof(YAxisTextBrush), AvioraControlPalette.TextMuted);
     public static readonly StyledProperty<bool> IsAnimationEnabledProperty =
         AvaloniaProperty.Register<CartesianChart, bool>(nameof(IsAnimationEnabled), true);
     public static readonly StyledProperty<TimeSpan> AnimationDurationProperty =
@@ -88,7 +87,7 @@ public abstract class CartesianChart : Control
     public static readonly StyledProperty<string> EmptyTextProperty =
         AvaloniaProperty.Register<CartesianChart, string>(nameof(EmptyText), "No data");
     public static readonly StyledProperty<IBrush> EmptyTextBrushProperty =
-        AvaloniaProperty.Register<CartesianChart, IBrush>(nameof(EmptyTextBrush), Brushes.Gray);
+        AvaloniaProperty.Register<CartesianChart, IBrush>(nameof(EmptyTextBrush), AvioraControlPalette.TextMuted);
     public static readonly StyledProperty<double> EmptyTextFontSizeProperty =
         AvaloniaProperty.Register<CartesianChart, double>(nameof(EmptyTextFontSize), 12.0);
     public static readonly StyledProperty<int> SelectedIndexProperty =
@@ -102,9 +101,9 @@ public abstract class CartesianChart : Control
     public static readonly StyledProperty<IBrush> ToolTipBackgroundProperty =
         AvaloniaProperty.Register<CartesianChart, IBrush>(
             nameof(ToolTipBackground),
-            new ImmutableSolidColorBrush(Color.FromArgb(235, 32, 38, 46)));
+            AvioraControlPalette.SurfaceRaised);
     public static readonly StyledProperty<IBrush> ToolTipTextBrushProperty =
-        AvaloniaProperty.Register<CartesianChart, IBrush>(nameof(ToolTipTextBrush), Brushes.White);
+        AvaloniaProperty.Register<CartesianChart, IBrush>(nameof(ToolTipTextBrush), AvioraControlPalette.Text);
     public static readonly StyledProperty<double> ToolTipFontSizeProperty =
         AvaloniaProperty.Register<CartesianChart, double>(nameof(ToolTipFontSize), 11.0);
     public static readonly StyledProperty<IDataTemplate?> ToolTipTemplateProperty =

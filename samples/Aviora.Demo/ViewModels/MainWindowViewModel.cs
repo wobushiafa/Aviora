@@ -14,6 +14,7 @@ public partial class MainWindowViewModel : ViewModelBase
         Pages =
         [
             new ChartsPageViewModel(),
+            new DialGaugePageViewModel(),
             new ThermometerPageViewModel(),
             new DrawerPageViewModel(drawerService),
         ];

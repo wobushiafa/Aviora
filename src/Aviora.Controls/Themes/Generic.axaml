@@ -1,6 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:controls="using:Aviora.Controls">
+                    xmlns:controls="https://github.com/wobushiafa/Aviora">
   <ResourceDictionary.MergedDictionaries>
     <ResourceInclude Source="avares://Aviora.Controls/Themes/Palette.axaml" />
   </ResourceDictionary.MergedDictionaries>
@@ -36,6 +36,17 @@
     <Setter Property="TickLabelBrush" Value="{DynamicResource AvioraTextMutedBrush}" />
     <Setter Property="LiquidBrush" Value="{DynamicResource AvioraAccentBrush}" />
     <Setter Property="GlareBrush" Value="{DynamicResource AvioraHighlightBrush}" />
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type controls:DialGauge}"
+                TargetType="controls:DialGauge">
+    <Setter Property="TickBrush" Value="{DynamicResource AvioraAccentBrush}" />
+    <Setter Property="LowRangeBrush" Value="{DynamicResource AvioraAccentBrush}" />
+    <Setter Property="MediumRangeBrush" Value="{DynamicResource AvioraWarningBrush}" />
+    <Setter Property="HighRangeBrush" Value="{DynamicResource AvioraDangerBrush}" />
+    <Setter Property="TickLabelBrush" Value="{DynamicResource AvioraTextMutedBrush}" />
+    <Setter Property="NeedleBrush" Value="{DynamicResource AvioraAccentStrongBrush}" />
+    <Setter Property="PivotBrush" Value="{DynamicResource AvioraAccentStrongBrush}" />
   </ControlTheme>
 
   <ControlTheme x:Key="{x:Type controls:ColumnChart}"

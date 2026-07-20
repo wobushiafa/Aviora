@@ -2,13 +2,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:controls="using:Aviora.Controls"
+             xmlns:controls="https://github.com/wobushiafa/Aviora"
              xmlns:vm="using:Aviora.Demo.ViewModels"
              x:Class="Aviora.Demo.Views.ThermometerPage"
              x:DataType="vm:ThermometerPageViewModel"
              mc:Ignorable="d"
              d:DesignWidth="900"
-             d:DesignHeight="520">
+             d:DesignHeight="620">
     <UserControl.Resources>
         <LinearGradientBrush x:Key="TemperatureGradientBrush"
                              StartPoint="50%,100%"
@@ -17,103 +17,324 @@
             <GradientStop Offset="0.55" Color="#22C55E" />
             <GradientStop Offset="1" Color="#EF4444" />
         </LinearGradientBrush>
+        <RadialGradientBrush x:Key="RadialLiquidBrush"
+                             Center="50%,75%"
+                             GradientOrigin="50%,75%"
+                             RadiusX="75%"
+                             RadiusY="75%">
+            <GradientStop Offset="0" Color="#22D3EE" />
+            <GradientStop Offset="0.55" Color="#2563EB" />
+            <GradientStop Offset="1" Color="#7C3AED" />
+        </RadialGradientBrush>
     </UserControl.Resources>
 
     <Grid RowDefinitions="Auto,*" RowSpacing="20">
         <StackPanel Spacing="4">
             <TextBlock FontSize="24" FontWeight="SemiBold" Text="Thermometer" />
-            <TextBlock Opacity="0.65" Text="Temperature values and appearance options" />
+            <TextBlock Opacity="0.65" Text="Range, ticks, labels, brushes, mapping, and transitions" />
         </StackPanel>
 
-        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
-        <Grid Margin="0,0,4,24"
-              RowDefinitions="Auto,Auto"
-              ColumnDefinitions="*,*"
-              ColumnSpacing="18"
-              RowSpacing="18">
-            <controls:AvioraCard HorizontalAlignment="Stretch" VerticalAlignment="Top">
-                <Grid RowDefinitions="Auto,Auto,*" ColumnDefinitions="*,Auto" RowSpacing="8">
-                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="Live value" />
-                    <TextBlock Grid.Column="1"
-                               FontSize="18"
-                               FontWeight="SemiBold"
-                               Foreground="#0284C7"
-                               Text="{Binding #TemperatureSlider.Value, StringFormat={}{0:F0} °C}" />
-                    <TextBlock Grid.Row="1"
-                               Grid.ColumnSpan="2"
-                               Opacity="0.65"
-                               Text="Bind Value to any numeric source" />
-                    <Grid Grid.Row="2"
-                          Grid.ColumnSpan="2"
-                          Margin="0,16,0,0"
-                          ColumnDefinitions="150,*"
-                          ColumnSpacing="24">
-                        <controls:Thermometer x:Name="LiveThermometer"
-                                              Width="120"
-                                              Height="280"
-                                              HorizontalAlignment="Center"
-                                              Minimum="-20"
-                                              Maximum="120"
-                                              Value="{Binding #TemperatureSlider.Value}"
-                                              TickCount="7"
-                                              ShowTickLabels="True"
-                                              TickLabelFormat="0"
-                                              TickLabelFontWeight="SemiBold"
-                                              LiquidBrush="{StaticResource TemperatureGradientBrush}"
-                                              LiquidBrushMappingMode="{Binding MappingMode}" />
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="10">
-                            <TextBlock FontWeight="SemiBold" Text="Temperature" />
-                            <Slider x:Name="TemperatureSlider"
-                                    Minimum="-20"
-                                    Maximum="120"
-                                    Value="42"
-                                    TickFrequency="10"
-                                    IsSnapToTickEnabled="False" />
-                            <Grid ColumnDefinitions="Auto,*,Auto">
-                                <TextBlock Opacity="0.58" Text="-20 °C" />
-                                <TextBlock Grid.Column="2" Opacity="0.58" Text="120 °C" />
-                            </Grid>
-                            <ComboBox Margin="0,12,0,0"
-                                      ItemsSource="{Binding MappingModes}"
-                                      SelectedItem="{Binding MappingMode}" />
-                        </StackPanel>
-                    </Grid>
-                </Grid>
-            </controls:AvioraCard>
+        <TabControl Grid.Row="1">
+            <TabItem Header="Live">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="4,18,4,24" Spacing="18">
+                        <controls:AvioraCard HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="16">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Spacing="3">
+                                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Live configuration" />
+                                        <TextBlock Opacity="0.65" Text="Value, range, ticks, labels, and mapping" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1"
+                                               VerticalAlignment="Center"
+                                               FontSize="20"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource AvioraAccentBrush}"
+                                               Text="{Binding Value, StringFormat={}{0:F0}}" />
+                                </Grid>
 
-            <controls:AvioraCard Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Top">
-                <StackPanel Spacing="8">
-                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="Appearance" />
-                    <TextBlock Opacity="0.65" Text="Gradient, solid color, and tick options" />
-                    <Grid Margin="0,16,0,0" ColumnDefinitions="*,*,*" ColumnSpacing="12">
-                        <StackPanel HorizontalAlignment="Center" Spacing="8">
-                            <controls:Thermometer Width="64"
-                                                  Height="220"
-                                                  Value="74"
-                                                  LiquidBrush="{StaticResource TemperatureGradientBrush}"
-                                                  LiquidBrushMappingMode="FullRange" />
-                            <TextBlock HorizontalAlignment="Center" Text="Gradient" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" HorizontalAlignment="Center" Spacing="8">
-                            <controls:Thermometer Width="64"
-                                                  Height="220"
-                                                  Value="58"
-                                                  LiquidBrush="#16A34A"
-                                                  TickBrush="#86EFAC" />
-                            <TextBlock HorizontalAlignment="Center" Text="Solid" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="2" HorizontalAlignment="Center" Spacing="8">
-                            <controls:Thermometer Width="64"
-                                                  Height="220"
-                                                  Value="36"
-                                                  ShowTicks="False"
-                                                  LiquidBrush="#7C3AED" />
-                            <TextBlock HorizontalAlignment="Center" Text="No ticks" />
-                        </StackPanel>
-                    </Grid>
-                </StackPanel>
-            </controls:AvioraCard>
-        </Grid>
-        </ScrollViewer>
+                                <Grid ColumnDefinitions="180,*" ColumnSpacing="24">
+                                    <controls:Thermometer Width="150"
+                                                          Height="310"
+                                                          HorizontalAlignment="Center"
+                                                          Minimum="{Binding SelectedRange.Minimum}"
+                                                          Maximum="{Binding SelectedRange.Maximum}"
+                                                          Value="{Binding Value}"
+                                                          ShowTicks="{Binding ShowTicks}"
+                                                          TickCount="{Binding TickCount}"
+                                                          ShowTickLabels="{Binding ShowTickLabels}"
+                                                          TickLabelInterval="{Binding TickLabelInterval}"
+                                                          TickLabelFormat="0"
+                                                          TickLabelFontSize="{Binding TickLabelFontSize}"
+                                                          TickLabelSpacing="{Binding TickLabelSpacing}"
+                                                          TickLabelFontWeight="SemiBold"
+                                                          LiquidBrush="{StaticResource TemperatureGradientBrush}"
+                                                          LiquidBrushMappingMode="{Binding MappingMode}" />
+
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="12">
+                                        <Slider Minimum="{Binding SelectedRange.Minimum}"
+                                                Maximum="{Binding SelectedRange.Maximum}"
+                                                Value="{Binding Value}" />
+
+                                        <Grid ColumnDefinitions="*,*"
+                                              RowDefinitions="Auto,Auto,Auto"
+                                              ColumnSpacing="12"
+                                              RowSpacing="10">
+                                            <StackPanel Spacing="5">
+                                                <TextBlock FontWeight="SemiBold" Text="Range" />
+                                                <ComboBox ItemsSource="{Binding RangeOptions}"
+                                                          SelectedItem="{Binding SelectedRange}">
+                                                    <ComboBox.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:ThermometerRangeOption">
+                                                            <TextBlock Text="{Binding Name}" />
+                                                        </DataTemplate>
+                                                    </ComboBox.ItemTemplate>
+                                                </ComboBox>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="5">
+                                                <TextBlock FontWeight="SemiBold" Text="Brush mapping" />
+                                                <ComboBox ItemsSource="{Binding MappingModes}"
+                                                          SelectedItem="{Binding MappingMode}" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Row="1" Spacing="5">
+                                                <TextBlock FontWeight="SemiBold" Text="Tick count" />
+                                                <ComboBox ItemsSource="{Binding TickCountOptions}"
+                                                          SelectedItem="{Binding TickCount}" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="5">
+                                                <TextBlock FontWeight="SemiBold" Text="Label interval" />
+                                                <ComboBox ItemsSource="{Binding TickLabelIntervalOptions}"
+                                                          SelectedItem="{Binding TickLabelInterval}" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Row="2" Spacing="5">
+                                                <TextBlock FontWeight="SemiBold" Text="Label size" />
+                                                <ComboBox ItemsSource="{Binding TickLabelFontSizeOptions}"
+                                                          SelectedItem="{Binding TickLabelFontSize}" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Row="2" Grid.Column="1" Spacing="5">
+                                                <TextBlock FontWeight="SemiBold" Text="Label spacing" />
+                                                <ComboBox ItemsSource="{Binding TickLabelSpacingOptions}"
+                                                          SelectedItem="{Binding TickLabelSpacing}" />
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <StackPanel Orientation="Horizontal" Spacing="20">
+                                            <ToggleSwitch Content="Ticks" IsChecked="{Binding ShowTicks}" />
+                                            <ToggleSwitch Content="Labels" IsChecked="{Binding ShowTickLabels}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </controls:AvioraCard>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Mapping">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="4,18,4,24" Spacing="18">
+                        <controls:AvioraCard HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="16">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Spacing="3">
+                                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Gradient mapping" />
+                                        <TextBlock Opacity="0.65" Text="The same value and gradient in both mapping modes" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1"
+                                               VerticalAlignment="Center"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding MappingValue, StringFormat={}{0:F0}%}" />
+                                </Grid>
+                                <Slider Minimum="0" Maximum="100" Value="{Binding MappingValue}" />
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="40">
+                                    <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                        <controls:Thermometer Width="110"
+                                                              Height="300"
+                                                              Value="{Binding MappingValue}"
+                                                              ShowTickLabels="True"
+                                                              TickCount="5"
+                                                              LiquidBrush="{StaticResource TemperatureGradientBrush}"
+                                                              LiquidBrushMappingMode="FilledArea" />
+                                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="FilledArea" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" HorizontalAlignment="Center" Spacing="8">
+                                        <controls:Thermometer Width="110"
+                                                              Height="300"
+                                                              Value="{Binding MappingValue}"
+                                                              ShowTickLabels="True"
+                                                              TickCount="5"
+                                                              LiquidBrush="{StaticResource TemperatureGradientBrush}"
+                                                              LiquidBrushMappingMode="FullRange" />
+                                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="FullRange" />
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </controls:AvioraCard>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Appearance">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="4,18,4,24" Spacing="18">
+                        <controls:AvioraCard HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="16">
+                                <StackPanel Spacing="3">
+                                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="Brushes" />
+                                    <TextBlock Opacity="0.65" Text="Theme defaults and arbitrary IBrush values" />
+                                </StackPanel>
+                                <WrapPanel HorizontalAlignment="Center" ItemWidth="150" ItemHeight="250">
+                                    <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                        <controls:Thermometer Width="76" Height="190" Value="68" />
+                                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Theme" />
+                                    </StackPanel>
+                                    <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                        <controls:Thermometer Width="76"
+                                                              Height="190"
+                                                              Value="68"
+                                                              LiquidBrush="#16A34A"
+                                                              TubeBrush="#DCFCE7"
+                                                              TickBrush="#15803D"
+                                                              GlareBrush="#CCFFFFFF" />
+                                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Solid" />
+                                    </StackPanel>
+                                    <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                        <controls:Thermometer Width="76"
+                                                              Height="190"
+                                                              Value="68"
+                                                              LiquidBrush="{StaticResource TemperatureGradientBrush}"
+                                                              LiquidBrushMappingMode="FullRange" />
+                                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Linear" />
+                                    </StackPanel>
+                                    <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                        <controls:Thermometer Width="76"
+                                                              Height="190"
+                                                              Value="68"
+                                                              LiquidBrush="{StaticResource RadialLiquidBrush}" />
+                                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Radial" />
+                                    </StackPanel>
+                                </WrapPanel>
+                            </StackPanel>
+                        </controls:AvioraCard>
+
+                        <controls:AvioraCard HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="16">
+                                <StackPanel Spacing="3">
+                                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="Tick labels" />
+                                    <TextBlock Opacity="0.65" Text="Format strings, formatter delegates, typography, and visibility" />
+                                </StackPanel>
+                                <WrapPanel HorizontalAlignment="Center" ItemWidth="180" ItemHeight="270">
+                                    <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                        <controls:Thermometer Width="120"
+                                                              Height="210"
+                                                              Minimum="-20"
+                                                              Maximum="120"
+                                                              Value="54"
+                                                              TickCount="7"
+                                                              ShowTickLabels="True"
+                                                              TickLabelInterval="2"
+                                                              TickLabelFormatter="{Binding TemperatureTickLabelFormatter}"
+                                                              TickLabelBrush="#C026D3"
+                                                              TickLabelFontFamily="Consolas"
+                                                              TickLabelFontSize="11"
+                                                              TickLabelFontWeight="Bold"
+                                                              TickLabelSpacing="8"
+                                                              TickBrush="#E879F9" />
+                                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Formatter" />
+                                    </StackPanel>
+                                    <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                        <controls:Thermometer Width="100"
+                                                              Height="210"
+                                                              Minimum="0"
+                                                              Maximum="1"
+                                                              Value="0.72"
+                                                              TickCount="4"
+                                                              ShowTickLabels="True"
+                                                              TickLabelFormat="0.00" />
+                                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Format string" />
+                                    </StackPanel>
+                                    <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                        <controls:Thermometer Width="76"
+                                                              Height="210"
+                                                              Value="72"
+                                                              ShowTicks="False"
+                                                              ShowTickLabels="False"
+                                                              LiquidBrush="#EA580C" />
+                                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="No ticks" />
+                                    </StackPanel>
+                                </WrapPanel>
+                            </StackPanel>
+                        </controls:AvioraCard>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Transitions">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="4,18,4,24" Spacing="18">
+                        <controls:AvioraCard HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="16">
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                                    <StackPanel Spacing="3">
+                                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Transitions" />
+                                        <TextBlock Opacity="0.65" Text="Opt-in value durations and brush animation" />
+                                    </StackPanel>
+                                    <Button Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Command="{Binding ToggleTransitionValueCommand}"
+                                            Content="Change value" />
+                                    <Button Grid.Column="2"
+                                            VerticalAlignment="Center"
+                                            Command="{Binding ToggleAnimatedBrushCommand}"
+                                            Content="Change brush" />
+                                </Grid>
+                                <WrapPanel HorizontalAlignment="Center" ItemWidth="150" ItemHeight="250">
+                                    <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                        <controls:Thermometer Width="76"
+                                                              Height="190"
+                                                              Value="{Binding TransitionValue}" />
+                                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Default (off)" />
+                                    </StackPanel>
+                                    <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                        <controls:Thermometer Width="76" Height="190" Value="{Binding TransitionValue}">
+                                            <controls:Thermometer.Transitions>
+                                                <Transitions>
+                                                    <DoubleTransition Property="Value" Duration="0:0:0.25" />
+                                                </Transitions>
+                                            </controls:Thermometer.Transitions>
+                                        </controls:Thermometer>
+                                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Value 250ms" />
+                                    </StackPanel>
+                                    <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                        <controls:Thermometer Width="76" Height="190" Value="{Binding TransitionValue}">
+                                            <controls:Thermometer.Transitions>
+                                                <Transitions>
+                                                    <DoubleTransition Property="Value" Duration="0:0:1" />
+                                                </Transitions>
+                                            </controls:Thermometer.Transitions>
+                                        </controls:Thermometer>
+                                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Value 1s" />
+                                    </StackPanel>
+                                    <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                        <controls:Thermometer Width="76"
+                                                              Height="190"
+                                                              Value="72"
+                                                              LiquidBrush="{Binding AnimatedBrush}">
+                                            <controls:Thermometer.Transitions>
+                                                <Transitions>
+                                                    <BrushTransition Property="LiquidBrush" Duration="0:0:0.4" />
+                                                </Transitions>
+                                            </controls:Thermometer.Transitions>
+                                        </controls:Thermometer>
+                                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Brush 400ms" />
+                                    </StackPanel>
+                                </WrapPanel>
+                            </StackPanel>
+                        </controls:AvioraCard>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
     </Grid>
 </UserControl>

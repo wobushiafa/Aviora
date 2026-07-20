@@ -87,7 +87,7 @@ public class ColumnChartTests
         Assert.Equal(TimeSpan.FromMilliseconds(400), chart.UpdateThrottleInterval);
         Assert.True(chart.ShowThresholdLabels);
         Assert.Null(chart.SelectionOverlayBrush);
-        Assert.Same(Brushes.DodgerBlue, chart.SelectionStrokeBrush);
+        Assert.Same(AvioraControlPalette.AccentStrong, chart.SelectionStrokeBrush);
         Assert.Null(chart.SelectedBarBrush);
         Assert.Equal(0, chart.SelectionStrokeThickness);
         Assert.Equal(new Thickness(7), chart.ToolTipPadding);
