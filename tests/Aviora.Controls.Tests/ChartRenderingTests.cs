@@ -123,6 +123,48 @@ public class ChartRenderingTests
         }
     }
 
+    [AvaloniaFact]
+    public void Tooltip_template_is_constrained_to_chart_bounds()
+    {
+        IDataTemplate template = new FuncDataTemplate<IChartDataPoint>(
+            (_, _) => new Border
+            {
+                Width = Width * 2,
+                Height = Height * 2,
+            });
+        var chart = new LineChart
+        {
+            IsAnimationEnabled = false,
+            UpdateThrottleInterval = TimeSpan.Zero,
+            ShowXAxis = false,
+            ShowYAxis = false,
+            ToolTipTemplate = template,
+            ItemsSource = [new ChartDataPoint { Label = "Oversized", Value = 20 }],
+        };
+        var window = new Window
+        {
+            Width = Width,
+            Height = Height,
+            Content = chart,
+        };
+
+        try
+        {
+            window.Show();
+            window.MouseMove(new Point(Width / 2, Height / 2));
+
+            Assert.True(chart.ToolTipPresenter.IsVisible);
+            Assert.True(chart.ToolTipPresenter.Bounds.Width <= chart.Bounds.Width);
+            Assert.True(chart.ToolTipPresenter.Bounds.Height <= chart.Bounds.Height);
+            Assert.True(chart.ToolTipPresenter.Bounds.Right <= chart.Bounds.Width);
+            Assert.True(chart.ToolTipPresenter.Bounds.Bottom <= chart.Bounds.Height);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
     private static byte[] Render(Control control)
     {
         control.Measure(new Size(Width, Height));

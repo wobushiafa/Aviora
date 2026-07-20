@@ -1,4 +1,3 @@
-using System.Globalization;
 using Avalonia;
 using Avalonia.Media;
 using Aviora.Core.Charts;
@@ -91,7 +90,7 @@ internal abstract class CartesianChartRenderer<TChart>
         List<string> yLabels = ChartDataPipeline.ResolveLabels(chart.YAxisLabelsSource, chart.YAxisLabels);
         if (yLabels.Count == 0)
         {
-            Func<double, string> formatter = chart.YAxisLabelFormatter ?? FormatAxisValue;
+            Func<double, string> formatter = chart.YAxisLabelFormatter ?? ChartValueFormatter.Format;
             yLabels = scale.Ticks.Select(formatter).ToList();
         }
 
@@ -358,19 +357,6 @@ internal abstract class CartesianChartRenderer<TChart>
             new Point(
                 state.Layout.Plot.Center.X - (text.Width / 2),
                 state.Layout.Plot.Center.Y - (text.Height / 2)));
-    }
-
-    internal static string FormatAxisValue(double value)
-    {
-        if (!double.IsFinite(value))
-        {
-            return "-";
-        }
-
-        double rounded = Math.Round(value, 2);
-        return Math.Abs(rounded) >= 1_000_000
-            ? rounded.ToString("0.##E+0", CultureInfo.InvariantCulture)
-            : rounded.ToString("0.##", CultureInfo.InvariantCulture);
     }
 
     private readonly record struct XAxisLabelPlacement(FormattedText Text, double Left)

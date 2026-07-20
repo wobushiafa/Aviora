@@ -130,14 +130,8 @@ public abstract class CartesianChart : Control
 
     private readonly ChartAnimationController _animation = new();
     private readonly ChartDataObserver _dataObserver;
-    private readonly ChartToolTipState _toolTipState = new();
+    private readonly ChartToolTipPresenter _toolTip;
     private readonly ChartUpdateScheduler _updateScheduler;
-    private readonly ContentControl _toolTipContent = new();
-    private readonly Border _toolTipPresenter = new()
-    {
-        IsHitTestVisible = false,
-        IsVisible = false,
-    };
     private List<IChartDataPoint> _items = [];
     private TimeSpan? _animationStartTime;
     private bool _animationFrameRequested;
@@ -148,10 +142,9 @@ public abstract class CartesianChart : Control
     {
         _dataObserver = new ChartDataObserver(OnObservedCollectionChanged, OnObservedItemChanged);
         _updateScheduler = new ChartUpdateScheduler(ApplyTargetItems);
-        _toolTipPresenter.Child = _toolTipContent;
-        VisualChildren.Add(_toolTipPresenter);
-        LogicalChildren.Add(_toolTipPresenter);
-        ApplyToolTipStyle();
+        _toolTip = new ChartToolTipPresenter(this);
+        VisualChildren.Add(_toolTip.Visual);
+        LogicalChildren.Add(_toolTip.Visual);
         Focusable = true;
     }
 
@@ -230,16 +223,16 @@ public abstract class CartesianChart : Control
 
     protected IReadOnlyList<double> AnimatedValues => _animation.Values;
 
-    internal Border ToolTipPresenter => _toolTipPresenter;
+    internal Border ToolTipPresenter => _toolTip.Visual;
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
         InvalidateChartState();
-        if (IsToolTipProperty(change.Property))
+        if (ChartToolTipPresenter.IsProperty(change.Property))
         {
-            ApplyToolTipStyle();
-            RefreshToolTipPresenter();
+            _toolTip.ApplyStyle();
+            _toolTip.Refresh(_items);
         }
 
         if (change.Property == ValuesProperty || change.Property == ItemsSourceProperty)
@@ -285,7 +278,7 @@ public abstract class CartesianChart : Control
         _animation.Stop();
         _animationStartTime = null;
         _animationFrameRequested = false;
-        _toolTipPresenter.IsVisible = false;
+        _toolTip.Hide();
         _dataObserver.Dispose();
         _updateScheduler.Stop();
     }
@@ -295,18 +288,18 @@ public abstract class CartesianChart : Control
         base.OnPointerMoved(e);
         _pointerPosition = e.GetPosition(this);
         int index = HitTestDataPoint(_pointerPosition);
-        if (_toolTipState.Update(index, _pointerPosition))
+        if (_toolTip.Update(index, _pointerPosition))
         {
-            RefreshToolTipPresenter();
+            _toolTip.Refresh(_items);
         }
     }
 
     protected override void OnPointerExited(PointerEventArgs e)
     {
         base.OnPointerExited(e);
-        if (_toolTipState.Clear())
+        if (_toolTip.Clear())
         {
-            RefreshToolTipPresenter();
+            _toolTip.Refresh(_items);
         }
     }
 
@@ -352,30 +345,13 @@ public abstract class CartesianChart : Control
         double width = double.IsInfinity(availableSize.Width) ? 100 : Math.Max(0, availableSize.Width);
         double height = double.IsInfinity(availableSize.Height) ? 150 : Math.Max(0, availableSize.Height);
         var desired = new Size(width, height);
-        _toolTipPresenter.Measure(desired);
+        _toolTip.Measure(desired);
         return desired;
     }
 
     protected override Size ArrangeOverride(Size finalSize)
     {
-        if (!_toolTipPresenter.IsVisible)
-        {
-            _toolTipPresenter.Arrange(default);
-            return finalSize;
-        }
-
-        Size size = _toolTipPresenter.DesiredSize;
-        double horizontalOffset = NormalizeFinite(ToolTipHorizontalOffset);
-        double verticalOffset = NormalizeFinite(ToolTipVerticalOffset);
-        double x = Math.Clamp(
-            _toolTipState.AnchorPosition.X + horizontalOffset,
-            0,
-            Math.Max(0, finalSize.Width - size.Width));
-        double y = Math.Clamp(
-            _toolTipState.AnchorPosition.Y - size.Height - verticalOffset,
-            0,
-            Math.Max(0, finalSize.Height - size.Height));
-        _toolTipPresenter.Arrange(new Rect(new Point(x, y), size));
+        _toolTip.Arrange(finalSize);
         return finalSize;
     }
 
@@ -511,8 +487,8 @@ public abstract class CartesianChart : Control
         }
 
         SynchronizeSelectionAfterItemsChanged();
-        _toolTipState.Normalize(_items.Count);
-        RefreshToolTipPresenter();
+        _toolTip.Normalize(_items.Count);
+        _toolTip.Refresh(_items);
         InvalidateVisual();
     }
 
@@ -566,80 +542,6 @@ public abstract class CartesianChart : Control
         InvalidateVisual();
     }
 
-    private void ApplyToolTipStyle()
-    {
-        _toolTipPresenter.Background = ToolTipBackground;
-        _toolTipPresenter.BorderBrush = ToolTipBorderBrush;
-        _toolTipPresenter.BorderThickness = ToolTipBorderThickness;
-        _toolTipPresenter.CornerRadius = ToolTipCornerRadius;
-        _toolTipPresenter.Padding = ToolTipPadding;
-        _toolTipPresenter.BoxShadow = ToolTipBoxShadow;
-        _toolTipContent.Foreground = ToolTipTextBrush;
-        _toolTipContent.FontSize = NormalizePositive(ToolTipFontSize, 11);
-    }
-
-    private void RefreshToolTipPresenter()
-    {
-        int index = _toolTipState.HoveredIndex;
-        if (!IsToolTipEnabled || index < 0 || index >= _items.Count)
-        {
-            _toolTipPresenter.IsVisible = false;
-            InvalidateArrange();
-            return;
-        }
-
-        IChartDataPoint item = _items[index];
-        if (ToolTipTemplate != null)
-        {
-            _toolTipContent.Content = item;
-            _toolTipContent.ContentTemplate = ToolTipTemplate;
-        }
-        else
-        {
-            string content = ToolTipFormatter?.Invoke(item) ??
-                             item.ToolTip ??
-                             BuildDefaultToolTip(item);
-            if (string.IsNullOrWhiteSpace(content))
-            {
-                _toolTipPresenter.IsVisible = false;
-                InvalidateArrange();
-                return;
-            }
-
-            _toolTipContent.ContentTemplate = null;
-            _toolTipContent.Content = content;
-        }
-
-        _toolTipPresenter.IsVisible = true;
-        _toolTipPresenter.InvalidateMeasure();
-        InvalidateMeasure();
-    }
-
-    private static string BuildDefaultToolTip(IChartDataPoint item)
-    {
-        string value = CartesianChartRenderer<CartesianChart>.FormatAxisValue(item.Value);
-        return string.IsNullOrWhiteSpace(item.Label) ? value : $"{item.Label}: {value}";
-    }
-
-    private static bool IsToolTipProperty(AvaloniaProperty property) =>
-        property == IsToolTipEnabledProperty ||
-        property == ToolTipBackgroundProperty ||
-        property == ToolTipTextBrushProperty ||
-        property == ToolTipFontSizeProperty ||
-        property == ToolTipTemplateProperty ||
-        property == ToolTipPaddingProperty ||
-        property == ToolTipCornerRadiusProperty ||
-        property == ToolTipBorderBrushProperty ||
-        property == ToolTipBorderThicknessProperty ||
-        property == ToolTipBoxShadowProperty ||
-        property == ToolTipHorizontalOffsetProperty ||
-        property == ToolTipVerticalOffsetProperty ||
-        property == ToolTipFormatterProperty;
-
-    private static double NormalizePositive(double value, double fallback) =>
-        double.IsFinite(value) && value > 0 ? value : fallback;
-
-    private static double NormalizeFinite(double value) => double.IsFinite(value) ? value : 0;
 }
 
 #pragma warning restore CS1591

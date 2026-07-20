@@ -56,9 +56,9 @@ rendering, interaction, themes, and lifecycle behavior. Existing chart types
 remain source-compatible:
 
 `CartesianChart` is the shared Avalonia base for single-series Cartesian charts.
-It owns the common StyledProperties, data observation, update throttling,
-animation, selection, keyboard interaction, and tooltip lifecycle. Concrete
-charts only add series-specific properties and rendering.
+It owns the common StyledProperties and coordinates data observation, update
+throttling, animation, selection, keyboard interaction, and tooltip lifecycle.
+Concrete charts only add series-specific properties and rendering.
 
 - `IChartDataPoint` extends Core's `IChartPoint` with per-column brushes.
 - `ChartDataPoint` extends Core's `ChartPoint` and keeps its original public
@@ -77,8 +77,10 @@ Its runtime responsibilities remain separated into focused internal components:
 - `ChartAnimationController` owns interpolated values.
 - `ChartLayoutCalculator` and `ChartSelectionState` contain UI-oriented layout
   and keyboard behavior.
-- `ColumnChartRenderer` owns drawing, text measurement, hit testing, tooltips,
-  and selection visuals.
+- `ChartToolTipPresenter` owns the chart's single tooltip visual, its content,
+  styling, stable anchor, and bounds-constrained layout.
+- Series renderers own drawing, text measurement, hit testing, and selection
+  visuals.
 
 The renderer snapshot is invalidated when chart properties or source data
 change. Animation frames reuse the snapshot and only update animated values.

@@ -276,6 +276,14 @@ public class ColumnChartTests
     }
 
     [Fact]
+    public void Chart_value_formatter_preserves_default_axis_and_tooltip_formatting()
+    {
+        Assert.Equal("-", ChartValueFormatter.Format(double.NaN));
+        Assert.Equal("12.35", ChartValueFormatter.Format(12.346));
+        Assert.Equal("1.5E+6", ChartValueFormatter.Format(1_500_000));
+    }
+
+    [Fact]
     public void Tooltip_state_keeps_one_anchor_while_pointer_stays_on_the_same_item()
     {
         var state = new ChartToolTipState();
