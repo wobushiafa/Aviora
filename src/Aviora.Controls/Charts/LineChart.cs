@@ -72,7 +72,7 @@ public class LineChart : CartesianChart
             ChartItems,
             AnimatedValues,
             HoveredIndex,
-            PointerPosition);
+            ToolTipPosition);
     }
 
     protected override int HitTestDataPoint(Point point) =>

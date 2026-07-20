@@ -23,7 +23,7 @@ internal abstract class CartesianChartRenderer<TChart>
         IReadOnlyList<IChartDataPoint> items,
         IReadOnlyList<double> animatedValues,
         int hoveredIndex,
-        Point pointerPosition)
+        Point toolTipPosition)
     {
         ChartRenderState state = EnsureState(chart, items);
         if (state.Layout.Plot.Width <= 0 || state.Layout.Plot.Height <= 0)
@@ -44,7 +44,7 @@ internal abstract class CartesianChartRenderer<TChart>
         DrawSeries(context, chart, state, animatedValues);
         DrawThresholdLines(context, chart, state);
         DrawXAxisLabels(context, chart, state);
-        DrawToolTip(context, chart, state, hoveredIndex, pointerPosition);
+        DrawToolTip(context, chart, state, hoveredIndex, toolTipPosition);
     }
 
     public virtual int HitTest(TChart chart, IReadOnlyList<IChartDataPoint> items, Point point)
@@ -368,7 +368,7 @@ internal abstract class CartesianChartRenderer<TChart>
         TChart chart,
         ChartRenderState state,
         int hoveredIndex,
-        Point pointerPosition)
+        Point toolTipPosition)
     {
         if (!chart.IsToolTipEnabled || hoveredIndex < 0 || hoveredIndex >= state.Items.Count)
         {
@@ -387,11 +387,11 @@ internal abstract class CartesianChartRenderer<TChart>
         double width = text.Width + (padding * 2);
         double height = text.Height + (padding * 2);
         double x = Math.Clamp(
-            pointerPosition.X + 10,
+            toolTipPosition.X + 10,
             state.Layout.Plot.Left,
             Math.Max(state.Layout.Plot.Left, chart.Bounds.Width - width));
         double y = Math.Clamp(
-            pointerPosition.Y - height - 10,
+            toolTipPosition.Y - height - 10,
             state.Layout.Plot.Top,
             Math.Max(state.Layout.Plot.Top, state.Layout.Plot.Bottom - height));
         var rect = new Rect(x, y, width, height);

@@ -269,6 +269,22 @@ public class ColumnChartTests
         Assert.NotSame(first, layout.Format("42", 10, Brushes.Gray));
     }
 
+    [Fact]
+    public void Tooltip_state_keeps_one_anchor_while_pointer_stays_on_the_same_item()
+    {
+        var state = new ChartToolTipState();
+
+        Assert.True(state.Update(1, new Point(100, 80)));
+        Assert.False(state.Update(1, new Point(120, 95)));
+
+        Assert.Equal(1, state.HoveredIndex);
+        Assert.Equal(new Point(100, 80), state.AnchorPosition);
+
+        Assert.True(state.Update(2, new Point(180, 70)));
+        Assert.Equal(2, state.HoveredIndex);
+        Assert.Equal(new Point(180, 70), state.AnchorPosition);
+    }
+
     private sealed class MutableChartDataPoint : IChartDataPoint, INotifyPropertyChanged
     {
         private double _value;

@@ -56,7 +56,7 @@ public class ColumnChart : CartesianChart
             ChartItems,
             AnimatedValues,
             HoveredIndex,
-            PointerPosition);
+            ToolTipPosition);
     }
 
     protected override int HitTestDataPoint(Point point) =>

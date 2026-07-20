@@ -112,12 +112,12 @@ public abstract class CartesianChart : Control
 
     private readonly ChartAnimationController _animation = new();
     private readonly ChartDataObserver _dataObserver;
+    private readonly ChartToolTipState _toolTipState = new();
     private readonly ChartUpdateScheduler _updateScheduler;
     private List<IChartDataPoint> _items = [];
     private TimeSpan? _animationStartTime;
     private bool _animationFrameRequested;
     private bool _isSynchronizingSelection;
-    private int _hoveredIndex = -1;
     private Point _pointerPosition;
 
     protected CartesianChart()
@@ -195,9 +195,9 @@ public abstract class CartesianChart : Control
 
     protected IReadOnlyList<double> AnimatedValues => _animation.Values;
 
-    protected int HoveredIndex => _hoveredIndex;
+    protected int HoveredIndex => _toolTipState.HoveredIndex;
 
-    protected Point PointerPosition => _pointerPosition;
+    protected Point ToolTipPosition => _toolTipState.AnchorPosition;
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
@@ -255,12 +255,7 @@ public abstract class CartesianChart : Control
         base.OnPointerMoved(e);
         _pointerPosition = e.GetPosition(this);
         int index = HitTestDataPoint(_pointerPosition);
-        if (index != _hoveredIndex)
-        {
-            _hoveredIndex = index;
-            InvalidateVisual();
-        }
-        else if (_hoveredIndex >= 0 && IsToolTipEnabled)
+        if (_toolTipState.Update(index, _pointerPosition))
         {
             InvalidateVisual();
         }
@@ -269,8 +264,10 @@ public abstract class CartesianChart : Control
     protected override void OnPointerExited(PointerEventArgs e)
     {
         base.OnPointerExited(e);
-        _hoveredIndex = -1;
-        InvalidateVisual();
+        if (_toolTipState.Clear())
+        {
+            InvalidateVisual();
+        }
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
@@ -449,7 +446,7 @@ public abstract class CartesianChart : Control
         }
 
         SynchronizeSelectionAfterItemsChanged();
-        _hoveredIndex = _hoveredIndex < _items.Count ? _hoveredIndex : -1;
+        _toolTipState.Normalize(_items.Count);
         InvalidateVisual();
     }
 
