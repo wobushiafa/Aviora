@@ -1,0 +1,129 @@
+name: Publish NuGet packages
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Package version, for example 0.1.0 or 0.1.0-preview.1"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nuget-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build, test, and publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Resolve package version
+        id: version
+        shell: bash
+        env:
+          MANUAL_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            version="${MANUAL_VERSION#v}"
+          else
+            version="${GITHUB_REF_NAME#v}"
+          fi
+
+          if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid package version: ${version}" >&2
+            exit 1
+          fi
+
+          echo "value=${version}" >> "${GITHUB_OUTPUT}"
+
+      - name: Restore
+        run: dotnet restore Aviora.sln
+
+      - name: Build
+        run: dotnet build Aviora.sln --configuration Release --no-restore -p:ContinuousIntegrationBuild=true
+
+      - name: Test
+        run: dotnet test Aviora.sln --configuration Release --no-restore --no-build
+
+      - name: Pack Aviora.Core
+        run: >-
+          dotnet pack src/Aviora.Core/Aviora.Core.csproj
+          --configuration Release
+          --no-restore
+          --no-build
+          --output artifacts
+          -p:PackageVersion=${{ steps.version.outputs.value }}
+
+      - name: Pack Aviora.Presentation.Abstractions
+        run: >-
+          dotnet pack src/Aviora.Presentation.Abstractions/Aviora.Presentation.Abstractions.csproj
+          --configuration Release
+          --no-restore
+          --no-build
+          --output artifacts
+          -p:PackageVersion=${{ steps.version.outputs.value }}
+
+      - name: Pack Aviora.Controls
+        run: >-
+          dotnet pack src/Aviora.Controls/Aviora.Controls.csproj
+          --configuration Release
+          --no-restore
+          --no-build
+          --output artifacts
+          -p:PackageVersion=${{ steps.version.outputs.value }}
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-${{ steps.version.outputs.value }}
+          path: artifacts/*.*nupkg
+          if-no-files-found: error
+
+      - name: Publish packages
+        shell: bash
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          if [[ -z "${NUGET_API_KEY}" ]]; then
+            echo "Repository secret NUGET_API_KEY is not configured." >&2
+            exit 1
+          fi
+
+          source="https://api.nuget.org/v3/index.json"
+          packages=(
+            "Aviora.Core"
+            "Aviora.Presentation.Abstractions"
+            "Aviora.Controls"
+          )
+
+          for package in "${packages[@]}"; do
+            dotnet nuget push "artifacts/${package}.${VERSION}.nupkg" \
+              --api-key "${NUGET_API_KEY}" \
+              --source "${source}" \
+              --skip-duplicate
+          done
+
+          for package in "${packages[@]}"; do
+            dotnet nuget push "artifacts/${package}.${VERSION}.snupkg" \
+              --api-key "${NUGET_API_KEY}" \
+              --source "${source}" \
+              --skip-duplicate
+          done

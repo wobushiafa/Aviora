@@ -4,42 +4,42 @@
 
 # Aviora
 
-简体中文 | [English](https://github.com/wobushiafa/Aviora/blob/main/README.en.md)
+[简体中文](https://github.com/wobushiafa/Aviora/blob/main/README.md) | English
 
-Aviora 是一个面向 [Avalonia](https://avaloniaui.net/) 的现代化、跨平台开源控件库，提供图表、仪表、抽屉和通用容器控件。
+Aviora is a modern, cross-platform open-source control library for [Avalonia](https://avaloniaui.net/), with charts, gauges, drawers, and general-purpose surfaces.
 
-> 项目目前处于早期开发阶段，首个稳定版本发布前公共 API 仍可能调整。
+> The project is in its early development stage. Public APIs may change before the first stable release.
 
-## 控件
+## Controls
 
-- `AvioraCard`：用于组织相关内容的主题化容器。
-- `ColumnChart`：支持阈值、坐标轴、选择、动画和 Tooltip 的柱状图。
-- `LineChart`：支持平滑曲线、区域填充、数据点和交互的折线图。
-- `Thermometer`：支持范围、刻度、标签、渐变映射和过渡动画的温度计。
-- `DialGauge`：支持分段刻度、标签、指针和过渡动画的圆形仪表。
-- `Drawer`：支持多方向、遮罩、Push/Overlay 模式及异步服务调用的抽屉。
+- `AvioraCard`: a themed surface for grouping related content.
+- `ColumnChart`: columns with thresholds, axes, selection, animation, and tooltips.
+- `LineChart`: lines with smooth interpolation, area fills, points, and interaction.
+- `Thermometer`: ranges, ticks, labels, gradient mapping, and transitions.
+- `DialGauge`: range-colored ticks, labels, needles, and transitions.
+- `Drawer`: multiple placements, overlay and push modes, dismissal, and an asynchronous presentation service.
 
-## 安装
+## Installation
 
 ```powershell
 dotnet add package Aviora.Controls
 ```
 
-只需要与 UI 框架无关的图表模型和算法时，可以引用：
+Reference the framework-independent chart contracts and algorithms separately when needed:
 
 ```powershell
 dotnet add package Aviora.Core
 ```
 
-只需要在 ViewModel 中使用抽屉等展示服务契约时，可以引用：
+Reference only the ViewModel-facing presentation contracts when needed:
 
 ```powershell
 dotnet add package Aviora.Presentation.Abstractions
 ```
 
-## 配置
+## Setup
 
-在 `App.axaml` 中加载控件主题：
+Load the control themes in `App.axaml`:
 
 ```xml
 <Application.Resources>
@@ -51,21 +51,21 @@ dotnet add package Aviora.Presentation.Abstractions
 </Application.Resources>
 ```
 
-在使用控件的 AXAML 文件中声明命名空间：
+Declare the Aviora XML namespace in each AXAML view that uses the controls:
 
 ```xml
 xmlns:aviora="https://github.com/wobushiafa/Aviora"
 ```
 
-## 使用示例
+## Usage
 
 ### AvioraCard
 
 ```xml
 <aviora:AvioraCard Padding="20">
   <StackPanel Spacing="8">
-    <TextBlock FontSize="18" FontWeight="SemiBold" Text="系统状态" />
-    <TextBlock Opacity="0.65" Text="所有服务运行正常" />
+    <TextBlock FontSize="18" FontWeight="SemiBold" Text="System status" />
+    <TextBlock Opacity="0.65" Text="All services are operational" />
   </StackPanel>
 </aviora:AvioraCard>
 ```
@@ -84,9 +84,9 @@ xmlns:aviora="https://github.com/wobushiafa/Aviora"
 ```csharp
 public IReadOnlyList<IChartDataPoint> Sales { get; } =
 [
-    new ChartDataPoint { Label = "一月", Value = 42, ToolTip = "一月：42" },
-    new ChartDataPoint { Label = "二月", Value = 56, ToolTip = "二月：56" },
-    new ChartDataPoint { Label = "三月", Value = 71, ToolTip = "三月：71" },
+    new ChartDataPoint { Label = "Jan", Value = 42, ToolTip = "January: 42" },
+    new ChartDataPoint { Label = "Feb", Value = 56, ToolTip = "February: 56" },
+    new ChartDataPoint { Label = "Mar", Value = 71, ToolTip = "March: 71" },
 ];
 ```
 
@@ -131,26 +131,26 @@ public IReadOnlyList<IChartDataPoint> Sales { get; } =
 
 ### Drawer
 
-在视图中放置 Drawer 宿主，并绑定同一个服务实例：
+Place a Drawer host in the view and bind it to the shared service instance:
 
 ```xml
 <aviora:Drawer Service="{Binding DrawerService}"
                Placement="Right"
                DrawerSize="380">
   <Grid>
-    <!-- 页面主要内容 -->
+    <!-- Main page content -->
   </Grid>
 </aviora:Drawer>
 ```
 
-在应用组合根创建 Avalonia 实现，并把接口注入 ViewModel：
+Create the Avalonia implementation at the application composition root and inject the interface into the ViewModel:
 
 ```csharp
 IDrawerService drawerService = new DrawerService();
 DataContext = new MainWindowViewModel(drawerService);
 ```
 
-ViewModel 只依赖 `Aviora.Presentation.Drawers`：
+The ViewModel depends only on `Aviora.Presentation.Drawers`:
 
 ```csharp
 using Aviora.Presentation.Drawers;
@@ -166,7 +166,7 @@ public sealed class SettingsViewModel(IDrawerService drawerService)
 }
 ```
 
-## 从源码构建
+## Build from source
 
 ```powershell
 dotnet restore
@@ -175,12 +175,12 @@ dotnet test --no-build
 dotnet run --project samples/Aviora.Demo
 ```
 
-更多内容参见 [文档目录](https://github.com/wobushiafa/Aviora/tree/main/docs) 和 Demo 应用。
+See the [documentation index](https://github.com/wobushiafa/Aviora/tree/main/docs) and the demo application for more examples.
 
-## 参与贡献
+## Contributing
 
-提交 Issue 或 Pull Request 前，请阅读 [CONTRIBUTING.md](https://github.com/wobushiafa/Aviora/blob/main/CONTRIBUTING.md)。
+Read [CONTRIBUTING.md](https://github.com/wobushiafa/Aviora/blob/main/CONTRIBUTING.md) before opening an issue or pull request.
 
-## 许可证
+## License
 
-Aviora 使用 [MIT License](https://github.com/wobushiafa/Aviora/blob/main/LICENSE)。
+Aviora is licensed under the [MIT License](https://github.com/wobushiafa/Aviora/blob/main/LICENSE).
