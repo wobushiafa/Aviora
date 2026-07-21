@@ -1,51 +1,48 @@
 using Avalonia.Threading;
-using Aviora.Presentation.Drawers;
+using Aviora.Presentation.Dialogs;
 
 namespace Aviora.Controls;
 
-/// <summary>
-/// Default queued implementation of <see cref="IDrawerService"/>.
-/// </summary>
-public sealed class DrawerService : IDrawerHostService
+/// <summary>Default queued implementation of <see cref="IDialogHostService"/>.</summary>
+public sealed class DialogService : IDialogHostService
 {
     private readonly object _syncRoot = new();
     private readonly Dictionary<string, HostState> _hosts = new(StringComparer.Ordinal);
 
     /// <inheritdoc />
-    public Task<DrawerResult> ShowAsync(DrawerRequest request, CancellationToken cancellationToken = default)
+    public Task<DialogResult> ShowAsync(DialogRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 
         if (cancellationToken.IsCancellationRequested)
         {
-            return Task.FromCanceled<DrawerResult>(cancellationToken);
+            return Task.FromCanceled<DialogResult>(cancellationToken);
         }
 
-        var operation = new DrawerOperation(this, request, cancellationToken);
+        var operation = new DialogOperation(this, request, cancellationToken);
         try
         {
             operation.Content = request.ContentFactory?.Invoke(operation) ?? request.Content;
         }
         catch (Exception exception)
         {
-            return Task.FromException<DrawerResult>(exception);
+            return Task.FromException<DialogResult>(exception);
         }
 
         lock (_syncRoot)
         {
-            var state = GetOrCreateState(request.HostId);
-            state.Queue.Enqueue(operation);
+            GetOrCreateState(request.HostId).Queue.Enqueue(operation);
         }
 
-        operation.RegisterCancellation(this);
+        operation.RegisterCancellation();
         ScheduleNext(request.HostId);
         return operation.Completion.Task;
     }
 
     /// <inheritdoc />
-    public bool Close(string hostId = DrawerHost.DefaultId, object? result = null)
+    public bool Close(string hostId = DialogHost.DefaultId, object? result = null)
     {
-        DrawerOperation? operation;
+        DialogOperation? operation;
         lock (_syncRoot)
         {
             if (!_hosts.TryGetValue(hostId, out var state) || state.Active is null || state.Host is null)
@@ -56,20 +53,21 @@ public sealed class DrawerService : IDrawerHostService
             operation = state.Active;
         }
 
-        return Close(operation, DrawerCloseReason.Programmatic, result);
+        return Close(operation, DialogCloseReason.Programmatic, result);
     }
 
     /// <inheritdoc />
-    public void Attach(IDrawerHost host, string hostId)
+    public void Attach(IDialogHost host, string hostId)
     {
         ArgumentNullException.ThrowIfNull(host);
+        ArgumentException.ThrowIfNullOrWhiteSpace(hostId);
 
         lock (_syncRoot)
         {
             var state = GetOrCreateState(hostId);
             if (state.Host is not null && !ReferenceEquals(state.Host, host))
             {
-                throw new InvalidOperationException($"A Drawer with HostId '{hostId}' is already attached.");
+                throw new InvalidOperationException($"A Dialog with HostId '{hostId}' is already attached.");
             }
 
             state.Host = host;
@@ -79,9 +77,9 @@ public sealed class DrawerService : IDrawerHostService
     }
 
     /// <inheritdoc />
-    public void Detach(IDrawerHost host, string hostId)
+    public void Detach(IDialogHost host, string hostId)
     {
-        DrawerOperation? active = null;
+        DialogOperation? active = null;
         lock (_syncRoot)
         {
             if (!_hosts.TryGetValue(hostId, out var state) || !ReferenceEquals(state.Host, host))
@@ -94,13 +92,13 @@ public sealed class DrawerService : IDrawerHostService
             state.Active = null;
         }
 
-        active?.Complete(new DrawerResult(null, DrawerCloseReason.HostDetached));
+        active?.Complete(new DialogResult(null, DialogCloseReason.HostDetached));
     }
 
     /// <inheritdoc />
-    public void Complete(IDrawerHost host, string hostId, object? result, DrawerCloseReason reason)
+    public void Complete(IDialogHost host, string hostId, object? result, DialogCloseReason reason)
     {
-        DrawerOperation? operation;
+        DialogOperation? operation;
         lock (_syncRoot)
         {
             if (!_hosts.TryGetValue(hostId, out var state) || !ReferenceEquals(state.Host, host))
@@ -112,13 +110,13 @@ public sealed class DrawerService : IDrawerHostService
             state.Active = null;
         }
 
-        operation?.Complete(new DrawerResult(result, reason));
+        operation?.Complete(new DialogResult(result, reason));
         ScheduleNext(hostId);
     }
 
-    private void Cancel(DrawerOperation operation)
+    private void Cancel(DialogOperation operation)
     {
-        IDrawerHost? host = null;
+        IDialogHost? host = null;
         var removed = false;
         lock (_syncRoot)
         {
@@ -139,15 +137,15 @@ public sealed class DrawerService : IDrawerHostService
 
         if (removed)
         {
-            operation.Complete(new DrawerResult(null, DrawerCloseReason.Canceled));
+            operation.Complete(new DialogResult(null, DialogCloseReason.Canceled));
         }
         else if (host is not null)
         {
             Dispatcher.UIThread.Post(() =>
             {
-                if (!host.TryClose(DrawerCloseReason.Canceled))
+                if (!host.TryClose(DialogCloseReason.Canceled))
                 {
-                    Complete(host, operation.Request.HostId, null, DrawerCloseReason.Canceled);
+                    Complete(host, operation.Request.HostId, null, DialogCloseReason.Canceled);
                 }
             });
         }
@@ -157,8 +155,8 @@ public sealed class DrawerService : IDrawerHostService
 
     private void PresentNext(string hostId)
     {
-        IDrawerHost? host;
-        DrawerOperation? operation;
+        IDialogHost? host;
+        DialogOperation? operation;
         lock (_syncRoot)
         {
             if (!_hosts.TryGetValue(hostId, out var state) || state.Host is null || state.Active is not null)
@@ -184,9 +182,9 @@ public sealed class DrawerService : IDrawerHostService
         host.Present(operation.Request, operation.Content);
     }
 
-    private bool Close(DrawerOperation operation, DrawerCloseReason reason, object? result)
+    private bool Close(DialogOperation operation, DialogCloseReason reason, object? result)
     {
-        IDrawerHost? host = null;
+        IDialogHost? host = null;
         var removed = false;
         lock (_syncRoot)
         {
@@ -207,7 +205,7 @@ public sealed class DrawerService : IDrawerHostService
 
         if (removed)
         {
-            operation.Complete(new DrawerResult(result, reason));
+            operation.Complete(new DialogResult(result, reason));
             return true;
         }
 
@@ -220,7 +218,11 @@ public sealed class DrawerService : IDrawerHostService
         return true;
     }
 
-    private void CloseActive(DrawerOperation operation, IDrawerHost host, DrawerCloseReason reason, object? result)
+    private void CloseActive(
+        DialogOperation operation,
+        IDialogHost host,
+        DialogCloseReason reason,
+        object? result)
     {
         lock (_syncRoot)
         {
@@ -246,11 +248,11 @@ public sealed class DrawerService : IDrawerHostService
         return state;
     }
 
-    private static bool RemoveFromQueue(Queue<DrawerOperation> queue, DrawerOperation target)
+    private static bool RemoveFromQueue(Queue<DialogOperation> queue, DialogOperation target)
     {
         var removed = false;
         var count = queue.Count;
-        for (var i = 0; i < count; i++)
+        for (var index = 0; index < count; index++)
         {
             var item = queue.Dequeue();
             if (ReferenceEquals(item, target))
@@ -268,33 +270,36 @@ public sealed class DrawerService : IDrawerHostService
 
     private sealed class HostState
     {
-        public IDrawerHost? Host { get; set; }
+        public IDialogHost? Host { get; set; }
 
-        public DrawerOperation? Active { get; set; }
+        public DialogOperation? Active { get; set; }
 
-        public Queue<DrawerOperation> Queue { get; } = new();
+        public Queue<DialogOperation> Queue { get; } = new();
     }
 
-    private sealed class DrawerOperation : IDrawerSession
+    private sealed class DialogOperation : IDialogSession
     {
-        private readonly DrawerService _owner;
+        private readonly DialogService _owner;
         private CancellationTokenRegistration _registration;
         private int _isCompleted;
 
-        public DrawerOperation(DrawerService owner, DrawerRequest request, CancellationToken cancellationToken)
+        public DialogOperation(
+            DialogService owner,
+            DialogRequest request,
+            CancellationToken cancellationToken)
         {
             _owner = owner;
             Request = request;
             CancellationToken = cancellationToken;
         }
 
-        public DrawerRequest Request { get; }
+        public DialogRequest Request { get; }
 
         public CancellationToken CancellationToken { get; }
 
         public object? Content { get; set; }
 
-        public TaskCompletionSource<DrawerResult> Completion { get; } =
+        public TaskCompletionSource<DialogResult> Completion { get; } =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public bool IsCompleted => Volatile.Read(ref _isCompleted) != 0;
@@ -302,20 +307,20 @@ public sealed class DrawerService : IDrawerHostService
         public bool IsClosed => IsCompleted;
 
         public bool Close(object? result = null) =>
-            _owner.Close(this, DrawerCloseReason.Programmatic, result);
+            _owner.Close(this, DialogCloseReason.Programmatic, result);
 
         public bool Cancel() =>
-            _owner.Close(this, DrawerCloseReason.Canceled, null);
+            _owner.Close(this, DialogCloseReason.Canceled, null);
 
-        public void RegisterCancellation(DrawerService owner)
+        public void RegisterCancellation()
         {
             if (CancellationToken.CanBeCanceled)
             {
-                _registration = CancellationToken.Register(() => owner.Cancel(this));
+                _registration = CancellationToken.Register(() => _owner.Cancel(this));
             }
         }
 
-        public void Complete(DrawerResult result)
+        public void Complete(DialogResult result)
         {
             if (Interlocked.Exchange(ref _isCompleted, 1) != 0)
             {

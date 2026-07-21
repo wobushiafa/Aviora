@@ -1,4 +1,5 @@
 using Aviora.Presentation.Drawers;
+using Aviora.Presentation.Dialogs;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Aviora.Demo.ViewModels;
@@ -8,20 +9,18 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private DemoPageViewModel _selectedPage;
 
-    public MainWindowViewModel(IDrawerService drawerService)
+    public MainWindowViewModel(IDrawerService drawerService, IDialogService dialogService)
     {
-        DrawerService = drawerService;
         Pages =
         [
             new ChartsPageViewModel(),
             new DialGaugePageViewModel(),
             new ThermometerPageViewModel(),
             new DrawerPageViewModel(drawerService),
+            new DialogPageViewModel(dialogService),
         ];
         _selectedPage = Pages[0];
     }
-
-    public IDrawerService DrawerService { get; }
 
     public IReadOnlyList<DemoPageViewModel> Pages { get; }
 }

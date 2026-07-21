@@ -6,7 +6,7 @@
 
 简体中文 | [English](https://github.com/wobushiafa/Aviora/blob/main/README.en.md)
 
-Aviora 是一个面向 [Avalonia](https://avaloniaui.net/) 的现代化、跨平台开源控件库，提供图表、仪表、抽屉和通用容器控件。
+Aviora 是一个面向 [Avalonia](https://avaloniaui.net/) 的现代化、跨平台开源控件库，提供图表、仪表、抽屉、对话框和通用容器控件。
 
 > 项目目前处于早期开发阶段，首个稳定版本发布前公共 API 仍可能调整。
 
@@ -18,6 +18,7 @@ Aviora 是一个面向 [Avalonia](https://avaloniaui.net/) 的现代化、跨平
 - `Thermometer`：支持范围、刻度、标签、渐变映射和过渡动画的温度计。
 - `DialGauge`：支持分段刻度、标签、指针和过渡动画的圆形仪表。
 - `Drawer`：支持多方向、遮罩、Push/Overlay 模式及异步服务调用的抽屉。
+- `Dialog`：支持异步结果、会话关闭、请求排队、多宿主路由和自定义内容的模态对话框。
 
 ## 安装
 
@@ -131,10 +132,10 @@ public IReadOnlyList<IChartDataPoint> Sales { get; } =
 
 ### Drawer
 
-在视图中放置 Drawer 宿主，并绑定同一个服务实例：
+在视图中放置 Drawer 宿主：
 
 ```xml
-<aviora:Drawer Service="{Binding DrawerService}"
+<aviora:Drawer x:Name="DrawerHost"
                Placement="Right"
                DrawerSize="380">
   <Grid>
@@ -143,10 +144,13 @@ public IReadOnlyList<IChartDataPoint> Sales { get; } =
 </aviora:Drawer>
 ```
 
-在应用组合根创建 Avalonia 实现，并把接口注入 ViewModel：
+未设置 `DrawerSize` 时，Drawer 会按内容在弹出方向的期望尺寸自动测量；左右方向测量宽度，上下方向测量高度。设置具体数值时保持固定尺寸。
+
+在应用组合根创建 Avalonia 实现，把宿主接口交给 View，并把客户端接口注入 ViewModel：
 
 ```csharp
-IDrawerService drawerService = new DrawerService();
+var drawerService = new DrawerService();
+DrawerHost.Service = drawerService;
 DataContext = new MainWindowViewModel(drawerService);
 ```
 
@@ -164,6 +168,31 @@ public sealed class SettingsViewModel(IDrawerService drawerService)
             Size = 380,
         });
 }
+```
+
+### Dialog
+
+在窗口最外层放置 Dialog 宿主，并在组合根连接服务：
+
+```xml
+<aviora:Dialog x:Name="DialogHost">
+  <!-- 页面主要内容 -->
+</aviora:Dialog>
+```
+
+```csharp
+var dialogService = new DialogService();
+DialogHost.Service = dialogService;
+DataContext = new MainWindowViewModel(dialogService);
+```
+
+ViewModel 可以直接展示内容；需要从内容内部关闭并返回结果时使用会话工厂：
+
+```csharp
+await dialogService.ShowAsync(new MessageViewModel());
+
+DialogResult result = await dialogService.ShowAsync(
+    session => new EditProfileViewModel(session));
 ```
 
 ## 从源码构建

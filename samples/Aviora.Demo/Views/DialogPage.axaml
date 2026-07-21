@@ -1,0 +1,75 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="https://github.com/wobushiafa/Aviora"
+             xmlns:vm="using:Aviora.Demo.ViewModels"
+             x:Class="Aviora.Demo.Views.DialogPage"
+             x:DataType="vm:DialogPageViewModel"
+             mc:Ignorable="d"
+             d:DesignWidth="760"
+             d:DesignHeight="640">
+  <Grid RowDefinitions="Auto,*" RowSpacing="20">
+    <StackPanel Spacing="4">
+      <TextBlock FontSize="24" FontWeight="SemiBold" Text="Dialog" />
+      <TextBlock Opacity="0.65" Text="Modal presentation through IDialogService" />
+    </StackPanel>
+
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="0,0,4,24" Spacing="18">
+        <controls:AvioraCard>
+          <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="14">
+            <TextBlock FontSize="18" FontWeight="SemiBold" Text="Open dialog" />
+            <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="10">
+              <Button HorizontalContentAlignment="Center"
+                      Command="{Binding OpenProfileDialogCommand}"
+                      Content="Edit profile" />
+              <Button Grid.Column="1"
+                      HorizontalContentAlignment="Center"
+                      Command="{Binding OpenConfirmationCommand}"
+                      Content="Confirm action" />
+            </Grid>
+            <Border Grid.Row="2"
+                    Padding="12,9"
+                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                    CornerRadius="4">
+              <TextBlock FontSize="12" Opacity="0.72" Text="{Binding DialogStatus}" />
+            </Border>
+          </Grid>
+        </controls:AvioraCard>
+
+        <controls:AvioraCard>
+          <Grid ColumnDefinitions="*,*" ColumnSpacing="24">
+            <StackPanel Spacing="14">
+              <TextBlock FontSize="18" FontWeight="SemiBold" Text="Surface" />
+              <StackPanel Spacing="6">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock VerticalAlignment="Center" Text="Width" />
+                  <TextBlock Grid.Column="1"
+                             Opacity="0.65"
+                             Text="{Binding DialogWidth, StringFormat={}{0:0} px}" />
+                </Grid>
+                <Slider Minimum="320"
+                        Maximum="640"
+                        TickFrequency="20"
+                        Value="{Binding DialogWidth}" />
+              </StackPanel>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Spacing="10">
+              <TextBlock FontSize="18" FontWeight="SemiBold" Text="Behavior" />
+              <ToggleSwitch Content="Light dismiss"
+                            IsChecked="{Binding IsLightDismissEnabled}" />
+              <ToggleSwitch Content="Escape key"
+                            IsChecked="{Binding IsEscapeKeyEnabled}" />
+              <ToggleSwitch Content="Background overlay"
+                            IsChecked="{Binding IsOverlayVisible}" />
+              <ToggleSwitch Content="Scale and fade animation"
+                            IsChecked="{Binding IsAnimationEnabled}" />
+            </StackPanel>
+          </Grid>
+        </controls:AvioraCard>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

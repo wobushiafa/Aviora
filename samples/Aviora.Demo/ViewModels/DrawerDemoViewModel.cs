@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace Aviora.Demo.ViewModels;
 
-public partial class DrawerDemoViewModel(IDrawerService drawerService) : ViewModelBase
+public partial class DrawerDemoViewModel(IDrawerSession session) : ViewModelBase
 {
     [ObservableProperty]
     private string _displayName = "Aviora user";
@@ -16,8 +16,8 @@ public partial class DrawerDemoViewModel(IDrawerService drawerService) : ViewMod
     private bool _showFooterActions = true;
 
     [RelayCommand]
-    private void Save() => drawerService.Close(result: DisplayName);
+    private void Save() => session.Close(DisplayName);
 
     [RelayCommand]
-    private void Cancel() => drawerService.Close();
+    private void Cancel() => session.Cancel();
 }

@@ -21,12 +21,15 @@ src/
 |-- Aviora.Core/
 |   `-- Charts/             Framework-independent data contracts and algorithms
 |-- Aviora.Presentation.Abstractions/
-|   `-- Drawers/            UI-framework-independent presentation contracts
+|   |-- Drawers/            UI-framework-independent drawer contracts
+|   `-- Dialogs/            UI-framework-independent dialog contracts
 `-- Aviora.Controls/
     |-- Charts/             Public Avalonia chart API and compatibility models
     |   `-- Internal/      observation, throttling, animation, layout, and rendering
     |-- Drawers/            Drawer control and Avalonia event contracts
     |   `-- Services/       Avalonia service implementation and host coordination
+    |-- Dialogs/            Dialog control and Avalonia event contracts
+    |   `-- Services/       queued dialog service and host coordination
     |-- Thermometers/       Thermometer control and related public types
     |-- Themes/             Shared Avalonia resources and control themes
     `-- AvioraCard.cs      General-purpose Avalonia controls
@@ -66,10 +69,18 @@ ViewModel projects can consume without depending on a concrete UI framework.
 The initial drawer presentation contract contains:
 
 - `IDrawerService` for showing and closing drawer presentations.
+- `IDrawerSession` for controlling one presentation without knowing its host.
 - `DrawerRequest` and `DrawerResult` for request/response data.
 - `DrawerPlacement`, `DrawerDisplayMode`, and `DrawerCloseReason` for portable
   presentation semantics.
 - `DrawerHost` for well-known host identifiers.
+
+The dialog presentation contract follows the same dependency direction:
+
+- `IDialogService` for ViewModel-facing presentation requests.
+- `IDialogSession` for closing one presentation without knowing its host.
+- `DialogRequest` and `DialogResult` for request/response data.
+- `DialogCloseReason` and `DialogHost` for portable close and routing semantics.
 
 Presentation requests may contain behavioral options such as placement,
 dismissal, size, and animation timing. Avalonia-specific templates, brushes,
@@ -82,6 +93,11 @@ project. Those remain host or theme configuration in `Aviora.Controls`.
 Avalonia-specific API, service implementations, styling, rendering,
 interaction, themes, and lifecycle behavior. Existing chart types remain
 source-compatible:
+
+Drawer and Dialog hosting use separate host-coordination contracts in this
+layer. Their default services implement both the framework-independent client
+contract and the Avalonia host contract, while ViewModels depend only on
+`IDrawerService` or `IDialogService`.
 
 Control families live in focused plural folders (`Charts`, `Drawers`, and
 `Thermometers`). Folder placement does not force a public namespace change;

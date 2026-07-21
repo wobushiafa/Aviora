@@ -46,9 +46,10 @@ public partial class DrawerPageViewModel(IDrawerService drawerService) : DemoPag
 
     private async Task OpenDrawerAsync(DrawerPlacement placement)
     {
-        DrawerResult result = await drawerService.ShowAsync(new DrawerRequest(
-            new DrawerDemoViewModel(drawerService) { ShowFooterActions = ShowFooterActions })
+        DrawerResult result = await drawerService.ShowAsync(new DrawerRequest(null)
         {
+            ContentFactory = session =>
+                new DrawerDemoViewModel(session) { ShowFooterActions = ShowFooterActions },
             Placement = placement,
             DisplayMode = DisplayMode,
             Size = DrawerSize,

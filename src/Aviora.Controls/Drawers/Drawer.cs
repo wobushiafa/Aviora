@@ -21,7 +21,7 @@ namespace Aviora.Controls;
 /// </summary>
 [TemplatePart(OverlayPartName, typeof(Border))]
 [TemplatePart(PanePartName, typeof(ContentControl))]
-public class Drawer : ContentControl
+public class Drawer : ContentControl, IDrawerHost
 {
     /// <summary>The default identifier used to match service requests to a host.</summary>
     public const string DefaultHostId = DrawerHost.DefaultId;
@@ -50,7 +50,7 @@ public class Drawer : ContentControl
 
     /// <summary>Defines the <see cref="DrawerSize"/> property.</summary>
     public static readonly StyledProperty<double> DrawerSizeProperty =
-        AvaloniaProperty.Register<Drawer, double>(nameof(DrawerSize), 360, validate: value => double.IsNaN(value) || value >= 0);
+        AvaloniaProperty.Register<Drawer, double>(nameof(DrawerSize), double.NaN, validate: value => double.IsNaN(value) || value >= 0);
 
     /// <summary>Defines the <see cref="MinDrawerSize"/> property.</summary>
     public static readonly StyledProperty<double> MinDrawerSizeProperty =
@@ -77,8 +77,8 @@ public class Drawer : ContentControl
         AvaloniaProperty.Register<Drawer, IBrush?>(nameof(OverlayBrush), new ImmutableSolidColorBrush(Color.FromArgb(112, 0, 0, 0)));
 
     /// <summary>Defines the <see cref="Service"/> property.</summary>
-    public static readonly StyledProperty<IDrawerService?> ServiceProperty =
-        AvaloniaProperty.Register<Drawer, IDrawerService?>(nameof(Service));
+    public static readonly StyledProperty<IDrawerHostService?> ServiceProperty =
+        AvaloniaProperty.Register<Drawer, IDrawerHostService?>(nameof(Service));
 
     /// <summary>Defines the <see cref="HostId"/> property.</summary>
     public static readonly StyledProperty<string> HostIdProperty =
@@ -125,7 +125,7 @@ public class Drawer : ContentControl
     private IInputElement? _previousFocus;
     private DrawerRequest? _activeRequest;
     private HostOptions? _hostOptions;
-    private DrawerService? _attachedService;
+    private IDrawerHostService? _attachedService;
     private string? _attachedHostId;
     private Border? _paneSurface;
     private TranslateTransform? _paneTransform;
@@ -172,7 +172,10 @@ public class Drawer : ContentControl
     /// <summary>Gets or sets how the drawer is composed with primary content.</summary>
     public DrawerDisplayMode DisplayMode { get => GetValue(DisplayModeProperty); set => SetValue(DisplayModeProperty, value); }
 
-    /// <summary>Gets or sets the pane width for horizontal placement or height for vertical placement.</summary>
+    /// <summary>
+    /// Gets or sets the pane width for horizontal placement or height for vertical placement.
+    /// Set to NaN to measure the pane from its content.
+    /// </summary>
     public double DrawerSize { get => GetValue(DrawerSizeProperty); set => SetValue(DrawerSizeProperty, value); }
 
     /// <summary>Gets or sets the minimum pane size.</summary>
@@ -194,7 +197,7 @@ public class Drawer : ContentControl
     public IBrush? OverlayBrush { get => GetValue(OverlayBrushProperty); set => SetValue(OverlayBrushProperty, value); }
 
     /// <summary>Gets or sets the service whose requests this drawer hosts.</summary>
-    public IDrawerService? Service { get => GetValue(ServiceProperty); set => SetValue(ServiceProperty, value); }
+    public IDrawerHostService? Service { get => GetValue(ServiceProperty); set => SetValue(ServiceProperty, value); }
 
     /// <summary>Gets or sets the identifier used to route service requests.</summary>
     public string HostId { get => GetValue(HostIdProperty); set => SetValue(HostIdProperty, value); }
@@ -326,7 +329,7 @@ public class Drawer : ContentControl
         }
     }
 
-    internal void Present(DrawerRequest request)
+    internal void Present(DrawerRequest request, object? content)
     {
         _hostOptions = new HostOptions(
             Placement,
@@ -339,7 +342,7 @@ public class Drawer : ContentControl
             PaneAnimationDuration,
             OverlayAnimationDuration);
         _activeRequest = request;
-        DrawerContent = request.Content;
+        DrawerContent = content;
         if (request.Placement is { } placement)
         {
             Placement = placement;
@@ -390,6 +393,8 @@ public class Drawer : ContentControl
             IsOpen = true;
         }
     }
+
+    void IDrawerHost.Present(DrawerRequest request, object? content) => Present(request, content);
 
     private void OnIsOpenChanged(AvaloniaPropertyChangedEventArgs args)
     {
@@ -671,7 +676,7 @@ public class Drawer : ContentControl
             return;
         }
 
-        var next = Service as DrawerService;
+        var next = Service;
         if (ReferenceEquals(next, _attachedService) && string.Equals(HostId, _attachedHostId, StringComparison.Ordinal))
         {
             return;

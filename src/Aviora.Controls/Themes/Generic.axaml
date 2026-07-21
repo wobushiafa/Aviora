@@ -224,4 +224,61 @@
       <Setter Property="VerticalAlignment" Value="Bottom" />
     </Style>
   </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type controls:Dialog}"
+                TargetType="controls:Dialog">
+    <Setter Property="Background" Value="{DynamicResource AvioraSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AvioraBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="OverlayBrush" Value="{DynamicResource AvioraOverlayBrush}" />
+    <Setter Property="Padding" Value="24" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+    <Setter Property="Focusable" Value="True" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Grid ClipToBounds="True">
+          <ContentPresenter Name="PART_ContentPresenter"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+
+          <Border Name="PART_DialogOverlay"
+                  Background="{TemplateBinding OverlayBrush}"
+                  Cursor="Arrow"
+                  IsVisible="False"
+                  Opacity="0"
+                  AutomationProperties.Name="Close dialog" />
+
+          <Border Name="PART_DialogSurface"
+                  Margin="24"
+                  Width="{TemplateBinding DialogWidth}"
+                  Height="{TemplateBinding DialogHeight}"
+                  MinWidth="{TemplateBinding MinDialogWidth}"
+                  MaxWidth="{TemplateBinding MaxDialogWidth}"
+                  MinHeight="{TemplateBinding MinDialogHeight}"
+                  MaxHeight="{TemplateBinding MaxDialogHeight}"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  BoxShadow="{TemplateBinding DialogBoxShadow}"
+                  CornerRadius="{TemplateBinding DialogCornerRadius}"
+                  IsHitTestVisible="False"
+                  IsVisible="False"
+                  KeyboardNavigation.TabNavigation="Cycle"
+                  Opacity="0">
+            <ContentControl Name="PART_DialogPresenter"
+                            Padding="{TemplateBinding Padding}"
+                            Content="{TemplateBinding DialogContent}"
+                            ContentTemplate="{TemplateBinding DialogContentTemplate}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+          </Border>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
 </ResourceDictionary>

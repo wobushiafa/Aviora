@@ -22,10 +22,11 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            IDrawerService drawerService = new DrawerService();
-            desktop.MainWindow = new MainWindow
+            var drawerService = new DrawerService();
+            var dialogService = new DialogService();
+            desktop.MainWindow = new MainWindow(drawerService, dialogService)
             {
-                DataContext = new MainWindowViewModel(drawerService),
+                DataContext = new MainWindowViewModel(drawerService, dialogService),
             };
         }
 

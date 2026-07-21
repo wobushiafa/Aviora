@@ -6,7 +6,7 @@
 
 [简体中文](https://github.com/wobushiafa/Aviora/blob/main/README.md) | English
 
-Aviora is a modern, cross-platform open-source control library for [Avalonia](https://avaloniaui.net/), with charts, gauges, drawers, and general-purpose surfaces.
+Aviora is a modern, cross-platform open-source control library for [Avalonia](https://avaloniaui.net/), with charts, gauges, drawers, dialogs, and general-purpose surfaces.
 
 > The project is in its early development stage. Public APIs may change before the first stable release.
 
@@ -18,6 +18,7 @@ Aviora is a modern, cross-platform open-source control library for [Avalonia](ht
 - `Thermometer`: ranges, ticks, labels, gradient mapping, and transitions.
 - `DialGauge`: range-colored ticks, labels, needles, and transitions.
 - `Drawer`: multiple placements, overlay and push modes, dismissal, and an asynchronous presentation service.
+- `Dialog`: modal custom content with asynchronous results, presentation sessions, request queues, and multi-host routing.
 
 ## Installation
 
@@ -131,10 +132,10 @@ public IReadOnlyList<IChartDataPoint> Sales { get; } =
 
 ### Drawer
 
-Place a Drawer host in the view and bind it to the shared service instance:
+Place a Drawer host in the view:
 
 ```xml
-<aviora:Drawer Service="{Binding DrawerService}"
+<aviora:Drawer x:Name="DrawerHost"
                Placement="Right"
                DrawerSize="380">
   <Grid>
@@ -143,10 +144,13 @@ Place a Drawer host in the view and bind it to the shared service instance:
 </aviora:Drawer>
 ```
 
-Create the Avalonia implementation at the application composition root and inject the interface into the ViewModel:
+When `DrawerSize` is not set, Drawer measures the content's desired size in the presentation direction: width for left/right and height for top/bottom. Set a numeric value to keep a fixed size.
+
+Create the Avalonia implementation at the application composition root, pass the host interface to the View, and inject the client interface into the ViewModel:
 
 ```csharp
-IDrawerService drawerService = new DrawerService();
+var drawerService = new DrawerService();
+DrawerHost.Service = drawerService;
 DataContext = new MainWindowViewModel(drawerService);
 ```
 
@@ -164,6 +168,31 @@ public sealed class SettingsViewModel(IDrawerService drawerService)
             Size = 380,
         });
 }
+```
+
+### Dialog
+
+Place a Dialog host at the outermost window layer and connect its service at the composition root:
+
+```xml
+<aviora:Dialog x:Name="DialogHost">
+  <!-- Main page content -->
+</aviora:Dialog>
+```
+
+```csharp
+var dialogService = new DialogService();
+DialogHost.Service = dialogService;
+DataContext = new MainWindowViewModel(dialogService);
+```
+
+A ViewModel can present content directly. Use a session factory when the content must close itself and return a result:
+
+```csharp
+await dialogService.ShowAsync(new MessageViewModel());
+
+DialogResult result = await dialogService.ShowAsync(
+    session => new EditProfileViewModel(session));
 ```
 
 ## Build from source

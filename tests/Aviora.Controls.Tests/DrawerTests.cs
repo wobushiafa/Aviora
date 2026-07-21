@@ -22,7 +22,7 @@ public class DrawerTests
         Assert.False(drawer.IsOpen);
         Assert.Equal(DrawerPlacement.Right, drawer.Placement);
         Assert.Equal(DrawerDisplayMode.Overlay, drawer.DisplayMode);
-        Assert.Equal(360, drawer.DrawerSize);
+        Assert.True(double.IsNaN(drawer.DrawerSize));
         Assert.True(drawer.IsLightDismissEnabled);
         Assert.True(drawer.IsEscapeKeyEnabled);
         Assert.True(drawer.IsOverlayVisible);
@@ -106,6 +106,69 @@ public class DrawerTests
         {
             window.Close();
         }
+    }
+
+    [AvaloniaFact]
+    public async Task Session_closes_only_its_own_presentation()
+    {
+        var service = new DrawerService();
+        IDrawerSession? firstSession = null;
+        IDrawerSession? secondSession = null;
+        Task<DrawerResult> first = service.ShowAsync(DrawerRequest.Create(session =>
+        {
+            firstSession = session;
+            return "first";
+        }));
+        Task<DrawerResult> second = service.ShowAsync(DrawerRequest.Create(session =>
+        {
+            secondSession = session;
+            return "second";
+        }));
+        var drawer = new Drawer { Service = service, IsAnimationEnabled = false };
+        var window = new Window { Content = drawer };
+
+        try
+        {
+            window.Show();
+            await FlushDispatcherAsync();
+
+            Assert.Equal("first", drawer.DrawerContent);
+            Assert.NotNull(firstSession);
+            Assert.NotNull(secondSession);
+            Assert.True(secondSession.Cancel());
+            Assert.True((await second).IsCanceled);
+            Assert.True(secondSession.IsClosed);
+            Assert.Equal("first", drawer.DrawerContent);
+            Assert.False(first.IsCompleted);
+
+            Assert.True(firstSession.Close("done"));
+            await FlushDispatcherAsync();
+
+            Assert.Equal("done", (await first).GetValue<string>());
+            Assert.True(firstSession.IsClosed);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task Drawer_attaches_through_the_host_service_contract()
+    {
+        var service = new RecordingDrawerHostService();
+        var drawer = new Drawer { Service = service };
+        var window = new Window { Content = drawer };
+
+        window.Show();
+        await FlushDispatcherAsync();
+
+        Assert.Same(drawer, service.AttachedHost);
+        Assert.Equal(DrawerHost.DefaultId, service.AttachedHostId);
+
+        window.Close();
+
+        Assert.True(service.WasDetached);
     }
 
     [AvaloniaFact]
@@ -430,5 +493,89 @@ public class DrawerTests
     private static async Task FlushDispatcherAsync()
     {
         await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
+    }
+
+    [AvaloniaFact]
+    public async Task Auto_size_measures_each_bottom_request_from_its_content()
+    {
+        var service = new DrawerService();
+        var drawer = new Drawer
+        {
+            Service = service,
+            Padding = new Avalonia.Thickness(0),
+            BorderThickness = new Avalonia.Thickness(0),
+            IsAnimationEnabled = false,
+        };
+        var window = new Window
+        {
+            Width = 800,
+            Height = 700,
+            Content = drawer,
+        };
+
+        try
+        {
+            window.Show();
+            Task<DrawerResult> first = service.ShowAsync(new DrawerRequest(new Border { Height = 400 })
+            {
+                Placement = DrawerPlacement.Bottom,
+            });
+            await FlushDispatcherAsync();
+
+            var pane = drawer.GetVisualDescendants()
+                .OfType<Border>()
+                .Single(control => control.Name == "PART_PaneSurface");
+            Assert.Equal(400, pane.Bounds.Height);
+
+            drawer.TryClose();
+            await first;
+
+            Task<DrawerResult> second = service.ShowAsync(new DrawerRequest(new Border { Height = 200 })
+            {
+                Placement = DrawerPlacement.Bottom,
+            });
+            await FlushDispatcherAsync();
+
+            Assert.Equal(200, pane.Bounds.Height);
+            drawer.TryClose();
+            await second;
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    private sealed class RecordingDrawerHostService : IDrawerHostService
+    {
+        public IDrawerHost? AttachedHost { get; private set; }
+
+        public string? AttachedHostId { get; private set; }
+
+        public bool WasDetached { get; private set; }
+
+        public Task<DrawerResult> ShowAsync(
+            DrawerRequest request,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(new DrawerResult(null, DrawerCloseReason.Programmatic));
+
+        public bool Close(string hostId = DrawerHost.DefaultId, object? result = null) => false;
+
+        public void Attach(IDrawerHost host, string hostId)
+        {
+            AttachedHost = host;
+            AttachedHostId = hostId;
+        }
+
+        public void Detach(IDrawerHost host, string hostId)
+        {
+            WasDetached = ReferenceEquals(AttachedHost, host) && AttachedHostId == hostId;
+            AttachedHost = null;
+            AttachedHostId = null;
+        }
+
+        public void Complete(IDrawerHost host, string hostId, object? result, DrawerCloseReason reason)
+        {
+        }
     }
 }

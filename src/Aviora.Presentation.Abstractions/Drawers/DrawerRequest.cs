@@ -14,6 +14,18 @@ public sealed class DrawerRequest
     /// <summary>Gets the content or view model to present.</summary>
     public object? Content { get; }
 
+    /// <summary>Gets the optional factory used to create content bound to this presentation.</summary>
+    public Func<IDrawerSession, object?>? ContentFactory { get; init; }
+
+    /// <summary>Creates a request whose content receives its presentation session.</summary>
+    public static DrawerRequest Create(Func<IDrawerSession, object?> contentFactory)
+    {
+        return new DrawerRequest(null)
+        {
+            ContentFactory = contentFactory ?? throw new ArgumentNullException(nameof(contentFactory)),
+        };
+    }
+
     /// <summary>Gets the identifier of the target drawer host.</summary>
     public string HostId { get; init; } = DrawerHost.DefaultId;
 
