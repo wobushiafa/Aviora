@@ -6,7 +6,7 @@
 
 [简体中文](https://github.com/wobushiafa/Aviora/blob/main/README.md) | English
 
-Aviora is a modern, cross-platform open-source control library for [Avalonia](https://avaloniaui.net/), with charts, gauges, drawers, dialogs, and general-purpose surfaces.
+Aviora is a modern, cross-platform open-source control library for [Avalonia](https://avaloniaui.net/), with charts, gauges, loading indicators, drawers, dialogs, and general-purpose surfaces.
 
 > The project is in its early development stage. Public APIs may change before the first stable release.
 
@@ -17,6 +17,8 @@ Aviora is a modern, cross-platform open-source control library for [Avalonia](ht
 - `LineChart`: lines with smooth interpolation, area fills, points, and interaction.
 - `Thermometer`: ranges, ticks, labels, gradient mapping, and transitions.
 - `DialGauge`: range-colored ticks, labels, needles, and transitions.
+- `Loading`: Ring, Dots, Pulse, and Bars indicators with support for custom content.
+- `LoadingOverlay`: a global loading mask with asynchronous scopes, concurrent requests, host routing, and an MVVM service.
 - `Drawer`: multiple placements, overlay and push modes, dismissal, and an asynchronous presentation service.
 - `Dialog`: modal custom content with asynchronous results, presentation sessions, request queues, and multi-host routing.
 
@@ -129,6 +131,73 @@ public IReadOnlyList<IChartDataPoint> Sales { get; } =
                   ShowTickLabels="True"
                   TickColorMode="Range" />
 ```
+
+### Loading
+
+Select a built-in style and optionally configure its brush, size, thickness, and cycle duration:
+
+```xml
+<aviora:Loading Width="44"
+                Height="44"
+                IndicatorStyle="Dots"
+                IndicatorBrush="#0F766E"
+                StrokeThickness="4"
+                AnimationDuration="0:0:0.7" />
+```
+
+Setting `Content`, optionally with a `ContentTemplate`, replaces the built-in renderer, so any Avalonia control can be used:
+
+```xml
+<aviora:Loading Width="180" Height="6">
+  <ProgressBar IsIndeterminate="True" />
+</aviora:Loading>
+```
+
+Set `IsActive="False"` to stop the animation and hide the indicator.
+
+#### Global loading overlay
+
+Place `LoadingOverlay` at the outermost window layer. It blocks input through the mask and covers nested pages, drawers, and dialogs:
+
+```xml
+<aviora:LoadingOverlay x:Name="LoadingHost"
+                       ShowDelay="0:0:0.1"
+                       CloseDelay="0:0:0.2"
+                       MinimumShowDuration="0:0:0.35">
+  <!-- Main page content -->
+</aviora:LoadingOverlay>
+```
+
+Create the service at the composition root, connect the host, and inject `ILoadingService` into the ViewModel:
+
+```csharp
+var loadingService = new LoadingService();
+LoadingHost.Service = loadingService;
+DataContext = new MainViewModel(loadingService);
+```
+
+The ViewModel only depends on `Aviora.Presentation.Loadings`. `RunAsync` closes its loading session after success, failure, or cancellation:
+
+```csharp
+public sealed class MainViewModel(ILoadingService loadingService)
+{
+    public Task RefreshAsync(CancellationToken cancellationToken) =>
+        loadingService.RunAsync(
+            token => RefreshDataAsync(token),
+            new LoadingRequest("Refreshing data"),
+            cancellationToken);
+}
+```
+
+Use a manual scope when loading spans multiple statements:
+
+```csharp
+using ILoadingSession loading = loadingService.Show(
+    new LoadingRequest("Synchronizing workspace"));
+await SynchronizeAsync();
+```
+
+Sessions may overlap. Closing one session removes only its request, and the overlay remains until the final session closes. Use `HostId` for multi-window routing and `LoadingContentTemplate` for message ViewModels. `ShowDelay` filters short operations, `MinimumShowDuration` guarantees a minimum visible period once opened, and `CloseDelay` keeps the overlay visible briefly after the final operation. A new request automatically invalidates a pending delayed close.
 
 ### Drawer
 

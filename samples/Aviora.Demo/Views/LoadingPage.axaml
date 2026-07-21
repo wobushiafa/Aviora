@@ -1,0 +1,109 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="https://github.com/wobushiafa/Aviora"
+             xmlns:vm="using:Aviora.Demo.ViewModels"
+             x:Class="Aviora.Demo.Views.LoadingPage"
+             x:DataType="vm:LoadingPageViewModel"
+             mc:Ignorable="d"
+             d:DesignWidth="900"
+             d:DesignHeight="620">
+  <Grid RowDefinitions="Auto,*" RowSpacing="20">
+    <StackPanel Spacing="4">
+      <TextBlock FontSize="24" FontWeight="SemiBold" Text="Loading" />
+      <TextBlock Opacity="0.65" Text="Built-in indicators and custom content" />
+    </StackPanel>
+
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="4,4,4,24" Spacing="18">
+        <controls:AvioraCard>
+          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+            <StackPanel Spacing="3">
+              <TextBlock FontSize="18" FontWeight="SemiBold" Text="Global overlay" />
+              <TextBlock Opacity="0.65" Text="{Binding OperationStatus}" />
+            </StackPanel>
+            <Button Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Command="{Binding RunGlobalLoadingCommand}"
+                    Content="Run operation" />
+            <Button Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Command="{Binding RunConcurrentLoadingCommand}"
+                    Content="Run concurrent" />
+          </Grid>
+        </controls:AvioraCard>
+
+        <controls:AvioraCard>
+          <StackPanel Spacing="20">
+            <StackPanel Spacing="3">
+              <TextBlock FontSize="18" FontWeight="SemiBold" Text="Built-in styles" />
+              <TextBlock Opacity="0.65" Text="Four indicators with the same compact API" />
+            </StackPanel>
+            <WrapPanel HorizontalAlignment="Center" ItemWidth="150" ItemHeight="110">
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                <controls:Loading Width="44" Height="44" IndicatorStyle="Ring" />
+                <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Ring" />
+              </StackPanel>
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                <controls:Loading Width="44" Height="44" IndicatorStyle="Dots" />
+                <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Dots" />
+              </StackPanel>
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                <controls:Loading Width="44" Height="44" IndicatorStyle="Pulse" />
+                <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Pulse" />
+              </StackPanel>
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                <controls:Loading Width="44" Height="44" IndicatorStyle="Bars" />
+                <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Bars" />
+              </StackPanel>
+            </WrapPanel>
+          </StackPanel>
+        </controls:AvioraCard>
+
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="18">
+          <controls:AvioraCard>
+            <StackPanel Spacing="18">
+              <StackPanel Spacing="3">
+                <TextBlock FontSize="18" FontWeight="SemiBold" Text="Appearance" />
+                <TextBlock Opacity="0.65" Text="Brush, track, thickness, size, and timing" />
+              </StackPanel>
+              <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="28">
+                <controls:Loading Width="56"
+                                  Height="56"
+                                  IndicatorBrush="#DC2626"
+                                  TrackBrush="#FECACA"
+                                  StrokeThickness="5"
+                                  AnimationDuration="0:0:1.4" />
+                <controls:Loading Width="42"
+                                  Height="42"
+                                  IndicatorStyle="Bars"
+                                  IndicatorBrush="#D97706"
+                                  StrokeThickness="4"
+                                  AnimationDuration="0:0:0.55" />
+              </StackPanel>
+            </StackPanel>
+          </controls:AvioraCard>
+
+          <controls:AvioraCard Grid.Column="1">
+            <StackPanel Spacing="18">
+              <StackPanel Spacing="3">
+                <TextBlock FontSize="18" FontWeight="SemiBold" Text="Custom content" />
+                <TextBlock Opacity="0.65" Text="Content replaces the built-in renderer" />
+              </StackPanel>
+              <controls:Loading Width="180" Height="6" HorizontalAlignment="Center">
+                <ProgressBar IsIndeterminate="True" />
+              </controls:Loading>
+              <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="10">
+                <controls:Loading Width="18" Height="18">
+                  <Border Background="#0F766E" CornerRadius="3" />
+                </controls:Loading>
+                <TextBlock VerticalAlignment="Center" FontWeight="SemiBold" Text="Synchronizing workspace" />
+              </StackPanel>
+            </StackPanel>
+          </controls:AvioraCard>
+        </Grid>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

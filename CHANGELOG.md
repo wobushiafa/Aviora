@@ -6,8 +6,19 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-21
+
 ### Added
 
+- Added a queued, multi-host `Dialog` presentation service with asynchronous
+  results, sessions, cancellation, and customizable content.
+- Added `Loading` with Ring, Dots, Pulse, and Bars indicators, theme-aware
+  appearance properties, and fully custom content support.
+- Added a global `LoadingOverlay`, framework-independent `ILoadingService`,
+  disposable loading sessions, exception-safe `RunAsync` helpers, concurrent
+  operation handling, multi-host routing, and customizable loading content.
+- Added configurable loading show delay, minimum visible duration, and delayed
+  close behavior with automatic cancellation when a new operation begins.
 - Initial solution structure, control library, demo application, and tests.
 - Initial `AvioraCard` control and Fluent theme integration.
 - Added `ColumnChart`, reusable chart data contracts, documentation, tests, and

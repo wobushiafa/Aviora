@@ -57,6 +57,66 @@
     <Setter Property="PivotBrush" Value="{DynamicResource AvioraAccentStrongBrush}" />
   </ControlTheme>
 
+  <ControlTheme x:Key="{x:Type controls:Loading}"
+                TargetType="controls:Loading">
+    <Setter Property="Width" Value="32" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="IndicatorBrush" Value="{DynamicResource AvioraAccentBrush}" />
+    <Setter Property="TrackBrush" Value="{DynamicResource AvioraSubtleBrush}" />
+    <Setter Property="IsHitTestVisible" Value="False" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <ContentPresenter Content="{TemplateBinding Content}"
+                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                          IsVisible="{TemplateBinding IsActive}"
+                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type controls:LoadingOverlay}"
+                TargetType="controls:LoadingOverlay">
+    <Setter Property="OverlayBrush" Value="{DynamicResource AvioraOverlayBrush}" />
+    <Setter Property="IndicatorBrush" Value="White" />
+    <Setter Property="TrackBrush" Value="#66FFFFFF" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Grid>
+          <ContentPresenter Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+
+          <Border Background="{TemplateBinding OverlayBrush}"
+                  IsVisible="{TemplateBinding IsOpen}">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="16"
+                        TextElement.Foreground="White">
+              <controls:Loading Width="{TemplateBinding IndicatorSize}"
+                                Height="{TemplateBinding IndicatorSize}"
+                                HorizontalAlignment="Center"
+                                AnimationDuration="{TemplateBinding AnimationDuration}"
+                                IndicatorBrush="{TemplateBinding IndicatorBrush}"
+                                IndicatorStyle="{TemplateBinding IndicatorStyle}"
+                                StrokeThickness="{TemplateBinding StrokeThickness}"
+                                TrackBrush="{TemplateBinding TrackBrush}" />
+              <ContentControl Content="{TemplateBinding LoadingContent}"
+                              ContentTemplate="{TemplateBinding LoadingContentTemplate}"
+                              HorizontalContentAlignment="Center"
+                              VerticalContentAlignment="Center" />
+            </StackPanel>
+          </Border>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
   <ControlTheme x:Key="{x:Type controls:ColumnChart}"
                 TargetType="controls:ColumnChart">
     <Setter Property="DefaultBrush" Value="{DynamicResource AvioraAccentBrush}" />

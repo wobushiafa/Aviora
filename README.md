@@ -6,7 +6,7 @@
 
 简体中文 | [English](https://github.com/wobushiafa/Aviora/blob/main/README.en.md)
 
-Aviora 是一个面向 [Avalonia](https://avaloniaui.net/) 的现代化、跨平台开源控件库，提供图表、仪表、抽屉、对话框和通用容器控件。
+Aviora 是一个面向 [Avalonia](https://avaloniaui.net/) 的现代化、跨平台开源控件库，提供图表、仪表、加载指示器、抽屉、对话框和通用容器控件。
 
 > 项目目前处于早期开发阶段，首个稳定版本发布前公共 API 仍可能调整。
 
@@ -17,6 +17,8 @@ Aviora 是一个面向 [Avalonia](https://avaloniaui.net/) 的现代化、跨平
 - `LineChart`：支持平滑曲线、区域填充、数据点和交互的折线图。
 - `Thermometer`：支持范围、刻度、标签、渐变映射和过渡动画的温度计。
 - `DialGauge`：支持分段刻度、标签、指针和过渡动画的圆形仪表。
+- `Loading`：内置 Ring、Dots、Pulse 和 Bars 样式，并支持自定义内容。
+- `LoadingOverlay`：支持异步作用域、并发请求、多宿主路由和 MVVM 服务调用的全局加载遮罩。
 - `Drawer`：支持多方向、遮罩、Push/Overlay 模式及异步服务调用的抽屉。
 - `Dialog`：支持异步结果、会话关闭、请求排队、多宿主路由和自定义内容的模态对话框。
 
@@ -129,6 +131,73 @@ public IReadOnlyList<IChartDataPoint> Sales { get; } =
                   ShowTickLabels="True"
                   TickColorMode="Range" />
 ```
+
+### Loading
+
+使用内置样式，并按需设置颜色、尺寸、粗细和动画周期：
+
+```xml
+<aviora:Loading Width="44"
+                Height="44"
+                IndicatorStyle="Dots"
+                IndicatorBrush="#0F766E"
+                StrokeThickness="4"
+                AnimationDuration="0:0:0.7" />
+```
+
+设置 `Content`（可搭配 `ContentTemplate`）时会替换内置绘制，因此可以使用任意 Avalonia 控件：
+
+```xml
+<aviora:Loading Width="180" Height="6">
+  <ProgressBar IsIndeterminate="True" />
+</aviora:Loading>
+```
+
+通过 `IsActive="False"` 可以停止动画并隐藏指示器。
+
+#### 全局加载遮罩
+
+将 `LoadingOverlay` 放在窗口最外层；它会拦截遮罩区域的输入，并覆盖内部的页面、Drawer 和 Dialog：
+
+```xml
+<aviora:LoadingOverlay x:Name="LoadingHost"
+                       ShowDelay="0:0:0.1"
+                       CloseDelay="0:0:0.2"
+                       MinimumShowDuration="0:0:0.35">
+  <!-- 页面主要内容 -->
+</aviora:LoadingOverlay>
+```
+
+在组合根创建服务并连接宿主，然后把 `ILoadingService` 注入 ViewModel：
+
+```csharp
+var loadingService = new LoadingService();
+LoadingHost.Service = loadingService;
+DataContext = new MainViewModel(loadingService);
+```
+
+ViewModel 只依赖 `Aviora.Presentation.Loadings`。`RunAsync` 会在成功、异常或取消时自动关闭本次加载会话：
+
+```csharp
+public sealed class MainViewModel(ILoadingService loadingService)
+{
+    public Task RefreshAsync(CancellationToken cancellationToken) =>
+        loadingService.RunAsync(
+            token => RefreshDataAsync(token),
+            new LoadingRequest("正在刷新数据"),
+            cancellationToken);
+}
+```
+
+需要跨越多段代码时，可以使用手动作用域：
+
+```csharp
+using ILoadingSession loading = loadingService.Show(
+    new LoadingRequest("正在同步工作区"));
+await SynchronizeAsync();
+```
+
+多个会话可以重叠；任一会话结束只关闭自身，最后一个会话结束后遮罩才消失。`HostId` 可用于多窗口路由，`LoadingContentTemplate` 可展示自定义消息 ViewModel。`ShowDelay` 用于过滤短任务，`MinimumShowDuration` 保证遮罩一旦出现后的最短展示时间，`CloseDelay` 则让最后一个任务结束后延迟关闭；等待关闭期间出现新任务时，旧关闭计时会自动取消。
 
 ### Drawer
 

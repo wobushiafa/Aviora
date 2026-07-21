@@ -10,10 +10,14 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
-    public MainWindow(IDrawerHostService drawerService, IDialogHostService dialogService)
+    public MainWindow(
+        IDrawerHostService drawerService,
+        IDialogHostService dialogService,
+        ILoadingHostService loadingService)
         : this()
     {
         DrawerHost.Service = drawerService;
         DialogHost.Service = dialogService;
+        LoadingHost.Service = loadingService;
     }
 }

@@ -22,11 +22,13 @@ src/
 |   `-- Charts/             Framework-independent data contracts and algorithms
 |-- Aviora.Presentation.Abstractions/
 |   |-- Drawers/            UI-framework-independent drawer contracts
+|   |-- Loadings/           UI-framework-independent loading scopes
 |   `-- Dialogs/            UI-framework-independent dialog contracts
 `-- Aviora.Controls/
     |-- Charts/             Public Avalonia chart API and compatibility models
     |   `-- Internal/      observation, throttling, animation, layout, and rendering
     |-- Drawers/            Drawer control and Avalonia event contracts
+    |-- Loadings/           Loading indicators, overlays, and host services
     |   `-- Services/       Avalonia service implementation and host coordination
     |-- Dialogs/            Dialog control and Avalonia event contracts
     |   `-- Services/       queued dialog service and host coordination
@@ -81,6 +83,13 @@ The dialog presentation contract follows the same dependency direction:
 - `IDialogSession` for closing one presentation without knowing its host.
 - `DialogRequest` and `DialogResult` for request/response data.
 - `DialogCloseReason` and `DialogHost` for portable close and routing semantics.
+
+Loading presentation contracts follow the same dependency direction:
+
+- `ILoadingService` creates independently disposable loading scopes.
+- `ILoadingSession` closes one scope without exposing the Avalonia host.
+- `LoadingRequest` carries host-neutral content, routing, and metadata.
+- `LoadingOverlay` and `LoadingService` coordinate concurrent scopes in the Avalonia package.
 
 Presentation requests may contain behavioral options such as placement,
 dismissal, size, and animation timing. Avalonia-specific templates, brushes,
