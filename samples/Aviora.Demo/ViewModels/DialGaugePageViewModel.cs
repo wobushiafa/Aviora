@@ -74,7 +74,7 @@ public partial class DialGaugePageViewModel : DemoPageViewModel
     private IBrush _transitionNeedleBrush = BlueNeedleBrush;
 
     public DialGaugePageViewModel()
-        : base("Dial gauge")
+        : base("Gauges")
     {
         BrushOptions =
         [

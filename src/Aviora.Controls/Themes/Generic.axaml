@@ -49,6 +49,14 @@
     <Setter Property="PivotBrush" Value="{DynamicResource AvioraAccentStrongBrush}" />
   </ControlTheme>
 
+  <ControlTheme x:Key="{x:Type controls:AngleGauge}"
+                TargetType="controls:AngleGauge">
+    <Setter Property="TickBrush" Value="{DynamicResource AvioraAccentBrush}" />
+    <Setter Property="TickLabelBrush" Value="{DynamicResource AvioraTextMutedBrush}" />
+    <Setter Property="NeedleBrush" Value="{DynamicResource AvioraDangerBrush}" />
+    <Setter Property="PivotBrush" Value="{DynamicResource AvioraAccentStrongBrush}" />
+  </ControlTheme>
+
   <ControlTheme x:Key="{x:Type controls:ColumnChart}"
                 TargetType="controls:ColumnChart">
     <Setter Property="DefaultBrush" Value="{DynamicResource AvioraAccentBrush}" />
