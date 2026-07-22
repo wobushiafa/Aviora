@@ -276,6 +276,15 @@ DialogResult result = await dialogService.ShowAsync(
     session => new EditProfileViewModel(session));
 ```
 
+Use `Navigate` to show only the current level, or `Stack` to render a child Dialog visually above its parent. Both restore the parent after the child closes; requests use the existing queue behavior by default:
+
+```csharp
+DialogResult childResult = await dialogService.ShowAsync(new DialogRequest(childViewModel)
+{
+    PresentationMode = DialogPresentationMode.Stack, // or Navigate
+});
+```
+
 ## Build from source
 
 ```powershell

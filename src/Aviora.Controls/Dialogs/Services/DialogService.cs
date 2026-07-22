@@ -29,13 +29,33 @@ public sealed class DialogService : IDialogHostService
             return Task.FromException<DialogResult>(exception);
         }
 
+        IDialogHost? nestedHost = null;
         lock (_syncRoot)
         {
-            GetOrCreateState(request.HostId).Queue.Enqueue(operation);
+            HostState state = GetOrCreateState(request.HostId);
+            if (request.PresentationMode != DialogPresentationMode.Queue &&
+                state.Active is not null &&
+                state.Host is not null)
+            {
+                state.Suspended.Add(state.Active);
+                state.Active = operation;
+                nestedHost = state.Host;
+            }
+            else
+            {
+                state.Queue.Enqueue(operation);
+            }
         }
 
         operation.RegisterCancellation();
-        ScheduleNext(request.HostId);
+        if (nestedHost is not null)
+        {
+            Dispatcher.UIThread.Post(() => nestedHost.Present(request, operation.Content));
+        }
+        else
+        {
+            ScheduleNext(request.HostId);
+        }
         return operation.Completion.Task;
     }
 
@@ -79,7 +99,7 @@ public sealed class DialogService : IDialogHostService
     /// <inheritdoc />
     public void Detach(IDialogHost host, string hostId)
     {
-        DialogOperation? active = null;
+        List<DialogOperation>? active = null;
         lock (_syncRoot)
         {
             if (!_hosts.TryGetValue(hostId, out var state) || !ReferenceEquals(state.Host, host))
@@ -88,17 +108,25 @@ public sealed class DialogService : IDialogHostService
             }
 
             state.Host = null;
-            active = state.Active;
+            active = [];
+            if (state.Active is not null)
+            {
+                active.Add(state.Active);
+            }
+            active.AddRange(state.Suspended);
             state.Active = null;
+            state.Suspended.Clear();
         }
 
-        active?.Complete(new DialogResult(null, DialogCloseReason.HostDetached));
+        active?.ForEach(operation =>
+            operation.Complete(new DialogResult(null, DialogCloseReason.HostDetached)));
     }
 
     /// <inheritdoc />
     public void Complete(IDialogHost host, string hostId, object? result, DialogCloseReason reason)
     {
         DialogOperation? operation;
+        DialogOperation? restored = null;
         lock (_syncRoot)
         {
             if (!_hosts.TryGetValue(hostId, out var state) || !ReferenceEquals(state.Host, host))
@@ -107,11 +135,24 @@ public sealed class DialogService : IDialogHostService
             }
 
             operation = state.Active;
-            state.Active = null;
+            if (state.Suspended.Count > 0)
+            {
+                int index = state.Suspended.Count - 1;
+                restored = state.Suspended[index];
+                state.Suspended.RemoveAt(index);
+            }
+            state.Active = restored;
         }
 
         operation?.Complete(new DialogResult(result, reason));
-        ScheduleNext(hostId);
+        if (restored is not null)
+        {
+            Dispatcher.UIThread.Post(() => host.Present(restored.Request, restored.Content));
+        }
+        else
+        {
+            ScheduleNext(hostId);
+        }
     }
 
     private void Cancel(DialogOperation operation)
@@ -131,7 +172,7 @@ public sealed class DialogService : IDialogHostService
             }
             else
             {
-                removed = RemoveFromQueue(state.Queue, operation);
+                removed = state.Suspended.Remove(operation) || RemoveFromQueue(state.Queue, operation);
             }
         }
 
@@ -199,7 +240,7 @@ public sealed class DialogService : IDialogHostService
             }
             else
             {
-                removed = RemoveFromQueue(state.Queue, operation);
+                removed = state.Suspended.Remove(operation) || RemoveFromQueue(state.Queue, operation);
             }
         }
 
@@ -273,6 +314,8 @@ public sealed class DialogService : IDialogHostService
         public IDialogHost? Host { get; set; }
 
         public DialogOperation? Active { get; set; }
+
+        public List<DialogOperation> Suspended { get; } = [];
 
         public Queue<DialogOperation> Queue { get; } = new();
     }

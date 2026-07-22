@@ -6,9 +6,12 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-07-22
+
 ### Added
 
 - Added per-series `AreaFillBrush` support for multi-series `LineChart` charts.
+- Added opt-in single-layer navigation and visually stacked Dialog presentations that restore the parent after the topmost Dialog closes.
 
 ## [0.3.0] - 2026-07-22
 

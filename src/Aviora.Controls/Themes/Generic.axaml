@@ -346,6 +346,8 @@
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
           </Border>
+
+          <Grid Name="PART_DialogLayerHost" />
         </Grid>
       </ControlTemplate>
     </Setter>

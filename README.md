@@ -276,6 +276,15 @@ DialogResult result = await dialogService.ShowAsync(
     session => new EditProfileViewModel(session));
 ```
 
+Dialog 内需要继续弹出子 Dialog 时，可使用 `Navigate` 只显示当前层，或使用 `Stack` 将子 Dialog 叠加在父层之上。关闭后都会恢复父 Dialog；未设置时仍按原顺序排队：
+
+```csharp
+DialogResult childResult = await dialogService.ShowAsync(new DialogRequest(childViewModel)
+{
+    PresentationMode = DialogPresentationMode.Stack, // or Navigate
+});
+```
+
 ## 从源码构建
 
 ```powershell

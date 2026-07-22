@@ -29,7 +29,7 @@ public partial class DialogPageViewModel(IDialogService dialogService) : DemoPag
     {
         DialogResult result = await dialogService.ShowAsync(new DialogRequest(null)
         {
-            ContentFactory = session => new ProfileDialogViewModel(session),
+            ContentFactory = session => new ProfileDialogViewModel(session, dialogService),
             Width = DialogWidth,
             IsLightDismissEnabled = IsLightDismissEnabled,
             IsEscapeKeyEnabled = IsEscapeKeyEnabled,

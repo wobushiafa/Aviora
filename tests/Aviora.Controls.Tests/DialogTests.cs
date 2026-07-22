@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Aviora.Presentation.Dialogs;
 
 namespace Aviora.Controls.Tests;
@@ -74,6 +75,104 @@ public class DialogTests
 
             dialog.CloseCommand.Execute("done");
             Assert.Equal("done", (await second).GetValue<string>());
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task Navigate_request_shows_one_layer_and_restores_the_parent()
+    {
+        var service = new DialogService();
+        var dialog = new Dialog { Service = service, IsAnimationEnabled = false };
+        var window = new Window { Content = dialog };
+
+        try
+        {
+            window.Show();
+            Task<DialogResult> parent = service.ShowAsync(new DialogRequest("parent"));
+            await FlushDispatcherAsync();
+
+            Task<DialogResult> child = service.ShowAsync(new DialogRequest("child")
+            {
+                PresentationMode = DialogPresentationMode.Navigate,
+            });
+            await FlushDispatcherAsync();
+
+            Assert.Equal("child", dialog.DialogContent);
+            Assert.False(parent.IsCompleted);
+
+            Assert.True(service.Close(result: "child-result"));
+            await FlushDispatcherAsync();
+
+            Assert.Equal("child-result", (await child).GetValue<string>());
+            Assert.True(dialog.IsOpen);
+            Assert.Equal("parent", dialog.DialogContent);
+            Assert.False(parent.IsCompleted);
+
+            Assert.True(service.Close(result: "parent-result"));
+            await FlushDispatcherAsync();
+            Assert.Equal("parent-result", (await parent).GetValue<string>());
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task Stack_request_keeps_the_parent_visible_below_the_child()
+    {
+        var service = new DialogService();
+        var dialog = new Dialog { Service = service, IsAnimationEnabled = false };
+        var window = new Window { Content = dialog };
+
+        try
+        {
+            window.Show();
+            Task<DialogResult> parent = service.ShowAsync(new DialogRequest("parent"));
+            await FlushDispatcherAsync();
+
+            Task<DialogResult> child = service.ShowAsync(new DialogRequest("child")
+            {
+                PresentationMode = DialogPresentationMode.Stack,
+                IsAnimationEnabled = false,
+            });
+            await FlushDispatcherAsync();
+
+            Assert.Equal("parent", dialog.DialogContent);
+            Dialog nested = Assert.Single(dialog.GetVisualDescendants().OfType<Dialog>());
+            Assert.True(nested.IsOpen);
+            Assert.Equal("child", nested.DialogContent);
+            Assert.False(parent.IsCompleted);
+
+            Task<DialogResult> grandchild = service.ShowAsync(new DialogRequest("grandchild")
+            {
+                PresentationMode = DialogPresentationMode.Stack,
+                IsAnimationEnabled = false,
+            });
+            await FlushDispatcherAsync();
+
+            Assert.Equal(2, dialog.GetVisualDescendants().OfType<Dialog>().Count());
+            Assert.True(service.Close(result: "grandchild-result"));
+            await FlushDispatcherAsync();
+            Assert.Equal("grandchild-result", (await grandchild).GetValue<string>());
+            Assert.Single(dialog.GetVisualDescendants().OfType<Dialog>());
+            Assert.Equal("child", nested.DialogContent);
+
+            Assert.True(service.Close(result: "child-result"));
+            await FlushDispatcherAsync();
+
+            Assert.Equal("child-result", (await child).GetValue<string>());
+            Assert.Empty(dialog.GetVisualDescendants().OfType<Dialog>());
+            Assert.Equal("parent", dialog.DialogContent);
+            Assert.False(parent.IsCompleted);
+
+            Assert.True(service.Close(result: "parent-result"));
+            await FlushDispatcherAsync();
+            Assert.Equal("parent-result", (await parent).GetValue<string>());
         }
         finally
         {

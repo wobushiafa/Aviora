@@ -42,7 +42,7 @@
         </DataTemplate>
 
         <DataTemplate DataType="vm:ProfileDialogViewModel" x:DataType="vm:ProfileDialogViewModel">
-            <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="20">
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="20">
                 <StackPanel Spacing="5">
                     <TextBlock FontSize="20" FontWeight="SemiBold" Text="Edit profile" />
                     <TextBlock Opacity="0.65" Text="Update the account details below." />
@@ -57,8 +57,28 @@
                         <TextBox Text="{Binding Email}" />
                     </StackPanel>
                 </StackPanel>
-                <StackPanel Grid.Row="2"
-                            HorizontalAlignment="Right"
+                <Border Grid.Row="2"
+                        Padding="12"
+                        Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                        CornerRadius="4">
+                    <StackPanel Spacing="8">
+                        <TextBlock FontWeight="SemiBold" Text="Nested dialog" />
+                        <TextBlock FontSize="12"
+                                   Opacity="0.7"
+                                   Text="Open a child dialog above this profile dialog, then return here." />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Command="{Binding OpenNavigatedChildDialogCommand}"
+                                    Content="Single-layer child" />
+                            <Button Command="{Binding OpenStackedChildDialogCommand}"
+                                    Content="Stacked child" />
+                        </StackPanel>
+                        <TextBlock FontSize="12"
+                                   Opacity="0.7"
+                                   Text="{Binding NestedDialogStatus}" />
+                    </StackPanel>
+                </Border>
+                <StackPanel Grid.Row="3"
+                             HorizontalAlignment="Right"
                             Orientation="Horizontal"
                             Spacing="8">
                     <Button Command="{Binding CancelCommand}" Content="Cancel" />

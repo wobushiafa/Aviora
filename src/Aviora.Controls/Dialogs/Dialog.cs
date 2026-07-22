@@ -19,6 +19,7 @@ namespace Aviora.Controls;
 [TemplatePart(OverlayPartName, typeof(Border))]
 [TemplatePart(SurfacePartName, typeof(Border))]
 [TemplatePart(PresenterPartName, typeof(ContentControl))]
+[TemplatePart(LayerHostPartName, typeof(Panel))]
 public class Dialog : ContentControl, IDialogHost
 {
     /// <summary>The default identifier used to match service requests to a host.</summary>
@@ -26,6 +27,7 @@ public class Dialog : ContentControl, IDialogHost
     internal const string OverlayPartName = "PART_DialogOverlay";
     internal const string SurfacePartName = "PART_DialogSurface";
     internal const string PresenterPartName = "PART_DialogPresenter";
+    internal const string LayerHostPartName = "PART_DialogLayerHost";
 
     /// <summary>Defines the <see cref="DialogContent"/> property.</summary>
     public static readonly StyledProperty<object?> DialogContentProperty =
@@ -121,9 +123,11 @@ public class Dialog : ContentControl, IDialogHost
         }));
 
     private readonly CloseDialogCommand _closeCommand;
+    private readonly List<Dialog> _nestedDialogs = [];
     private Border? _overlay;
     private Border? _surface;
     private ContentControl? _presenter;
+    private Panel? _layerHost;
     private ScaleTransform? _scaleTransform;
     private IInputElement? _previousFocus;
     private DialogRequest? _activeRequest;
@@ -231,6 +235,11 @@ public class Dialog : ContentControl, IDialogHost
     /// <summary>Attempts to close the dialog with an optional result.</summary>
     public bool TryClose(DialogCloseReason reason = DialogCloseReason.Programmatic, object? result = null)
     {
+        if (_nestedDialogs.Count > 0)
+        {
+            return _nestedDialogs[^1].TryClose(reason, result);
+        }
+
         if (!IsOpen)
         {
             return false;
@@ -262,6 +271,7 @@ public class Dialog : ContentControl, IDialogHost
         _overlay = e.NameScope.Find<Border>(OverlayPartName);
         _surface = e.NameScope.Find<Border>(SurfacePartName);
         _presenter = e.NameScope.Find<ContentControl>(PresenterPartName);
+        _layerHost = e.NameScope.Find<Panel>(LayerHostPartName);
         if (_overlay is not null)
         {
             _overlay.PointerReleased += OnOverlayPointerReleased;
@@ -295,6 +305,7 @@ public class Dialog : ContentControl, IDialogHost
 
         _attachedService = null;
         _attachedHostId = null;
+        ClearNestedDialogs();
         base.OnDetachedFromVisualTree(e);
     }
 
@@ -310,14 +321,29 @@ public class Dialog : ContentControl, IDialogHost
 
     internal void Present(DialogRequest request, object? content)
     {
-        _hostOptions = new HostOptions(
-            DialogWidth,
-            DialogHeight,
-            IsLightDismissEnabled,
-            IsEscapeKeyEnabled,
-            IsOverlayVisible,
-            IsAnimationEnabled,
-            AnimationDuration);
+        if (request.PresentationMode == DialogPresentationMode.Stack && IsOpen && _layerHost is not null)
+        {
+            if (_nestedDialogs.Count > 0 && ReferenceEquals(_nestedDialogs[^1]._activeRequest, request))
+            {
+                _nestedDialogs[^1].FocusDialogContent();
+                return;
+            }
+
+            PresentNested(request, content);
+            return;
+        }
+
+        if (!IsOpen)
+        {
+            _hostOptions = new HostOptions(
+                DialogWidth,
+                DialogHeight,
+                IsLightDismissEnabled,
+                IsEscapeKeyEnabled,
+                IsOverlayVisible,
+                IsAnimationEnabled,
+                AnimationDuration);
+        }
         _activeRequest = request;
         DialogContent = content;
 
@@ -360,6 +386,57 @@ public class Dialog : ContentControl, IDialogHost
         {
             IsOpen = true;
         }
+    }
+
+    private void PresentNested(DialogRequest request, object? content)
+    {
+        var nested = new Dialog
+        {
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
+            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch,
+            Background = Background,
+            BorderBrush = BorderBrush,
+            BorderThickness = BorderThickness,
+            Padding = Padding,
+            OverlayBrush = OverlayBrush,
+            DialogContentTemplate = DialogContentTemplate,
+            DialogCornerRadius = DialogCornerRadius,
+            DialogBoxShadow = DialogBoxShadow,
+            IsAnimationEnabled = IsAnimationEnabled,
+            AnimationDuration = AnimationDuration,
+            DialogEasing = DialogEasing,
+        };
+        nested.Closed += OnNestedDialogClosed;
+        _nestedDialogs.Add(nested);
+        _layerHost!.Children.Add(nested);
+        nested.Present(request, content);
+    }
+
+    private void OnNestedDialogClosed(object? sender, DialogClosedEventArgs e)
+    {
+        if (sender is not Dialog nested)
+        {
+            return;
+        }
+
+        nested.Closed -= OnNestedDialogClosed;
+        _nestedDialogs.Remove(nested);
+        _layerHost?.Children.Remove(nested);
+        if (_attachedService is not null && _attachedHostId is not null)
+        {
+            _attachedService.Complete(this, _attachedHostId, e.Result, e.Reason);
+        }
+    }
+
+    private void ClearNestedDialogs()
+    {
+        foreach (Dialog nested in _nestedDialogs)
+        {
+            nested.Closed -= OnNestedDialogClosed;
+        }
+
+        _nestedDialogs.Clear();
+        _layerHost?.Children.Clear();
     }
 
     void IDialogHost.Present(DialogRequest request, object? content) => Present(request, content);

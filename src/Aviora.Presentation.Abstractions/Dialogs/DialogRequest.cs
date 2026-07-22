@@ -27,6 +27,9 @@ public sealed class DialogRequest
     /// <summary>Gets the identifier of the target dialog host.</summary>
     public string HostId { get; init; } = DialogHost.DefaultId;
 
+    /// <summary>Gets how this request is scheduled when the target host is already active.</summary>
+    public DialogPresentationMode PresentationMode { get; init; }
+
     /// <summary>Gets an optional dialog width override.</summary>
     public double? Width { get; init; }
 
