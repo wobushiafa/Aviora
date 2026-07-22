@@ -1,7 +1,46 @@
 # LineChart
 
-`LineChart` renders a single-series trend with the same data, axis, threshold,
-animation, selection, keyboard, and tooltip infrastructure as `ColumnChart`.
+`LineChart` renders one or more trends with shared axes, animation, selection,
+keyboard, and tooltip infrastructure. Existing `ItemsSource` and `Values`
+bindings remain available for a single series.
+
+## Multiple series
+
+Bind `Series` to a collection of `LineChartSeries` objects. Each series can use
+rich `ItemsSource` data or simple numeric `Values`, and can define its own line
+and point brushes:
+
+```csharp
+public IReadOnlyList<LineChartSeries> Comparison { get; } =
+[
+    new()
+    {
+        Title = "Revenue",
+        ItemsSource = RevenueTrend,
+        LineBrush = Brushes.DodgerBlue,
+        PointBrush = Brushes.RoyalBlue,
+    },
+    new()
+    {
+        Title = "Cost",
+        ItemsSource = CostTrend,
+        LineBrush = Brushes.IndianRed,
+        PointBrush = Brushes.Firebrick,
+    },
+];
+```
+
+```xml
+<controls:LineChart Series="{Binding Comparison}"
+                    AutoRange="True"
+                    InterpolationMode="Smooth"
+                    ShowPoints="True" />
+```
+
+All series share the category positions and Y-axis range. When `Series` is not
+empty it takes precedence over `ItemsSource` and `Values`.
+
+## Single series
 
 ```xml
 <controls:LineChart ItemsSource="{Binding RevenueTrend}"

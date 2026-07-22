@@ -122,6 +122,9 @@ public abstract class CartesianChart : Control
         AvaloniaProperty.Register<CartesianChart, double>(nameof(ToolTipHorizontalOffset), 10.0);
     public static readonly StyledProperty<double> ToolTipVerticalOffsetProperty =
         AvaloniaProperty.Register<CartesianChart, double>(nameof(ToolTipVerticalOffset), 10.0);
+    public static readonly StyledProperty<TimeSpan> ToolTipHideDelayProperty =
+        AvaloniaProperty.Register<CartesianChart, TimeSpan>(
+            nameof(ToolTipHideDelay), TimeSpan.FromMilliseconds(250), validate: value => value >= TimeSpan.Zero);
     public static readonly StyledProperty<Func<double, string>?> YAxisLabelFormatterProperty =
         AvaloniaProperty.Register<CartesianChart, Func<double, string>?>(nameof(YAxisLabelFormatter));
     public static readonly StyledProperty<Func<IChartDataPoint, string>?> ToolTipFormatterProperty =
@@ -214,13 +217,21 @@ public abstract class CartesianChart : Control
     public BoxShadows ToolTipBoxShadow { get => GetValue(ToolTipBoxShadowProperty); set => SetValue(ToolTipBoxShadowProperty, value); }
     public double ToolTipHorizontalOffset { get => GetValue(ToolTipHorizontalOffsetProperty); set => SetValue(ToolTipHorizontalOffsetProperty, value); }
     public double ToolTipVerticalOffset { get => GetValue(ToolTipVerticalOffsetProperty); set => SetValue(ToolTipVerticalOffsetProperty, value); }
+    public TimeSpan ToolTipHideDelay { get => GetValue(ToolTipHideDelayProperty); set => SetValue(ToolTipHideDelayProperty, value); }
     public Func<double, string>? YAxisLabelFormatter { get => GetValue(YAxisLabelFormatterProperty); set => SetValue(YAxisLabelFormatterProperty, value); }
     public Func<IChartDataPoint, string>? ToolTipFormatter { get => GetValue(ToolTipFormatterProperty); set => SetValue(ToolTipFormatterProperty, value); }
     #endregion
 
     protected IReadOnlyList<IChartDataPoint> ChartItems => _items;
 
+    protected virtual List<IChartDataPoint> BuildChartItems() =>
+        ChartDataPipeline.BuildItems(ItemsSource, Values, XAxisLabelsSource, XAxisLabels);
+
+    protected virtual IEnumerable<object?> GetAdditionalObservedCollections() => [];
+
     protected IReadOnlyList<double> AnimatedValues => _animation.Values;
+
+    internal bool IsAnimationRunning => _animation.IsAnimating;
 
     internal Border ToolTipPresenter => _toolTip.Visual;
 
@@ -296,10 +307,26 @@ public abstract class CartesianChart : Control
     protected override void OnPointerExited(PointerEventArgs e)
     {
         base.OnPointerExited(e);
-        if (_toolTip.Clear())
+        _pointerPosition = e.GetPosition(this);
+        _toolTip.Clear();
+        _toolTip.RequestHide(reevaluatePointer: IsPointerWithinChart());
+    }
+
+    internal void ReevaluateToolTip()
+    {
+        if (!IsPointerWithinChart())
         {
-            _toolTip.Refresh(_items);
+            _toolTip.Hide();
+            return;
         }
+
+        int index = HitTestDataPoint(_pointerPosition);
+        _toolTip.Reevaluate(index, _pointerPosition, _items);
+    }
+
+    private bool IsPointerWithinChart()
+    {
+        return IsPointerOver || _toolTip.Visual.IsPointerOver;
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
@@ -420,13 +447,17 @@ public abstract class CartesianChart : Control
         }
     }
 
-    private void SubscribeToCollections()
+    protected void SubscribeToCollections()
     {
-        _dataObserver.ObserveCollections(
+        object?[] sources =
+        [
             ItemsSource ?? (object?)Values,
             XAxisLabelsSource,
             YAxisLabelsSource,
-            Thresholds);
+            Thresholds,
+            .. GetAdditionalObservedCollections(),
+        ];
+        _dataObserver.ObserveCollections(sources);
     }
 
     private void OnObservedCollectionChanged(object? sender)
@@ -446,6 +477,7 @@ public abstract class CartesianChart : Control
             return;
         }
 
+        SubscribeToCollections();
         HandleNewData();
     }
 
@@ -460,7 +492,7 @@ public abstract class CartesianChart : Control
         HandleNewData();
     }
 
-    private void HandleNewData()
+    protected void HandleNewData()
     {
         if (!Dispatcher.UIThread.CheckAccess())
         {
@@ -469,7 +501,7 @@ public abstract class CartesianChart : Control
         }
 
         _updateScheduler.Schedule(
-            ChartDataPipeline.BuildItems(ItemsSource, Values, XAxisLabelsSource, XAxisLabels),
+            BuildChartItems(),
             UpdateThrottleInterval);
     }
 

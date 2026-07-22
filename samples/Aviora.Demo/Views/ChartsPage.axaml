@@ -174,25 +174,44 @@
 
                         <controls:AvioraCard HorizontalAlignment="Stretch">
                             <StackPanel Spacing="10">
-                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="Linear comparison" />
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="Multi-series comparison" />
                                 <TextBlock Opacity="0.65"
-                                           Text="Straight segments, explicit Y-axis labels, and delegate-based Tooltip formatting"
+                                           Text="Three independently styled curves sharing category positions and the Y-axis range"
                                            TextWrapping="Wrap" />
-                                <controls:LineChart Height="240"
-                                                    ItemsSource="{Binding AnimatedTrend}"
+                                <StackPanel HorizontalAlignment="Center"
+                                            Orientation="Horizontal"
+                                            Spacing="22">
+                                    <StackPanel Orientation="Horizontal" Spacing="7">
+                                        <Ellipse Width="10" Height="10" VerticalAlignment="Center" Fill="#2563EB" />
+                                        <TextBlock Text="Revenue" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="7">
+                                        <Ellipse Width="10" Height="10" VerticalAlignment="Center" Fill="#0F766E" />
+                                        <TextBlock Text="Orders" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="7">
+                                        <Ellipse Width="10" Height="10" VerticalAlignment="Center" Fill="#D97706" />
+                                        <TextBlock Text="Forecast" />
+                                    </StackPanel>
+                                </StackPanel>
+                                <controls:LineChart Height="280"
+                                                    Series="{Binding ComparisonSeries}"
+                                                    XAxisLabelsSource="{Binding ComparisonLabels}"
+                                                    XAxisLabelMode="All"
                                                     AutoRange="False"
                                                     MinValue="0"
                                                     MaxValue="100"
                                                     YAxisLabelsSource="{Binding PerformanceAxisLabels}"
-                                                    InterpolationMode="Linear"
-                                                    LineBrush="#7C3AED"
-                                                    LineThickness="2"
-                                                    ShowPoints="False"
+                                                    InterpolationMode="Smooth"
+                                                    LineThickness="2.5"
+                                                    ShowPoints="True"
+                                                    PointRadius="3.5"
+                                                    PointStrokeBrush="White"
+                                                    PointStrokeThickness="1.5"
                                                     ShowGridLines="{Binding ShowGridLines}"
                                                     IsAnimationEnabled="{Binding IsAnimationEnabled}"
                                                     AnimationDuration="0:0:0.55"
                                                     IsToolTipEnabled="{Binding IsToolTipEnabled}"
-                                                    ToolTipFormatter="{Binding TrendToolTipFormatter}"
                                                     UpdateThrottleInterval="0" />
                             </StackPanel>
                         </controls:AvioraCard>

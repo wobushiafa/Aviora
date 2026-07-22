@@ -77,6 +77,33 @@ public partial class ChartsPageViewModel : DemoPageViewModel
 
     public IReadOnlyList<string> WeeklyLabels { get; } = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+    public IReadOnlyList<string> ComparisonLabels { get; } = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+
+    public IReadOnlyList<LineChartSeries> ComparisonSeries { get; } =
+    [
+        new LineChartSeries
+        {
+            Title = "Revenue",
+            Values = [38, 46, 52, 61, 68, 78],
+            LineBrush = new SolidColorBrush(Color.Parse("#2563EB")),
+            PointBrush = new SolidColorBrush(Color.Parse("#1D4ED8")),
+        },
+        new LineChartSeries
+        {
+            Title = "Orders",
+            Values = [31, 39, 36, 51, 57, 66],
+            LineBrush = new SolidColorBrush(Color.Parse("#0F766E")),
+            PointBrush = new SolidColorBrush(Color.Parse("#0D9488")),
+        },
+        new LineChartSeries
+        {
+            Title = "Forecast",
+            Values = [42, 44, 49, 56, 64, 72],
+            LineBrush = new SolidColorBrush(Color.Parse("#D97706")),
+            PointBrush = new SolidColorBrush(Color.Parse("#F59E0B")),
+        },
+    ];
+
     public IReadOnlyList<ChartThreshold> WeeklyScoreThresholds { get; } =
     [
         new ChartThreshold { Label = "Critical", Value = 30, Brush = Brushes.Crimson },

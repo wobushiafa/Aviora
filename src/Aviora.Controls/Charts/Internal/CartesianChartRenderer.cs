@@ -9,10 +9,12 @@ internal abstract class CartesianChartRenderer<TChart>
 {
     private readonly ChartTextLayout _textLayout = new();
     private ChartRenderState? _state;
+    private XAxisLabelCache? _xAxisLabelCache;
 
-    public void Invalidate()
+    public virtual void Invalidate()
     {
         _state = null;
+        _xAxisLabelCache = null;
         _textLayout.Clear();
     }
 
@@ -46,7 +48,7 @@ internal abstract class CartesianChartRenderer<TChart>
     public virtual int HitTest(TChart chart, IReadOnlyList<IChartDataPoint> items, Point point)
     {
         ChartRenderState state = EnsureState(chart, items);
-        return ChartLayoutCalculator.HitTest(state.Layout, point, items.Count);
+        return ChartLayoutCalculator.HitTest(state.Layout, point, state.CategoryCount);
     }
 
     protected abstract void DrawSeries(
@@ -64,13 +66,18 @@ internal abstract class CartesianChartRenderer<TChart>
 
     protected virtual double GetItemWidthRatio(TChart chart) => 1;
 
+    protected virtual int GetCategoryCount(IReadOnlyList<IChartDataPoint> items) => items.Count;
+
+    protected virtual IReadOnlyList<string> GetDefaultXAxisLabels(IReadOnlyList<IChartDataPoint> items) =>
+        items.Select(item => item.Label ?? string.Empty).ToList();
+
     protected static double GetItemCenterX(ChartLayout layout, int index) =>
         layout.Plot.Left + (index * layout.SlotWidth) + (layout.SlotWidth / 2);
 
     protected static double MapY(double value, ChartRenderState state) =>
         ChartLayoutCalculator.MapY(value, state.Layout.Plot, state.Scale);
 
-    private ChartRenderState EnsureState(TChart chart, IReadOnlyList<IChartDataPoint> items)
+    protected ChartRenderState EnsureState(TChart chart, IReadOnlyList<IChartDataPoint> items)
     {
         if (_state != null)
         {
@@ -78,7 +85,8 @@ internal abstract class CartesianChartRenderer<TChart>
         }
 
         IReadOnlyList<ChartThreshold> thresholds = chart.Thresholds?.ToList() ?? [];
-        ChartLayout layout = CalculateLayout(chart, items.Count, thresholds);
+        int categoryCount = GetCategoryCount(items);
+        ChartLayout layout = CalculateLayout(chart, categoryCount, thresholds);
         ChartAxisScale scale = ChartAxisCalculator.Calculate(
             items.Select(item => item.Value),
             chart.AutoRange,
@@ -97,12 +105,13 @@ internal abstract class CartesianChartRenderer<TChart>
         List<string> xLabels = ChartDataPipeline.ResolveLabels(chart.XAxisLabelsSource, chart.XAxisLabels);
         if (xLabels.Count == 0)
         {
-            xLabels = items.Select(item => item.Label ?? string.Empty).ToList();
+            xLabels = GetDefaultXAxisLabels(items).ToList();
         }
 
         _state = new ChartRenderState
         {
             Items = items,
+            CategoryCount = categoryCount,
             Thresholds = thresholds,
             Layout = layout,
             Scale = scale,
@@ -307,6 +316,21 @@ internal abstract class CartesianChartRenderer<TChart>
             return;
         }
 
+        XAxisLabelCache cache = GetXAxisLabelCache(chart, state);
+        foreach (int index in cache.VisibleIndices)
+        {
+            XAxisLabelPlacement placement = cache.Placements[index];
+            context.DrawText(placement.Text, new Point(placement.Left, state.Layout.XAxisTop));
+        }
+    }
+
+    private XAxisLabelCache GetXAxisLabelCache(TChart chart, ChartRenderState state)
+    {
+        if (_xAxisLabelCache?.State == state)
+        {
+            return _xAxisLabelCache;
+        }
+
         var placements = new List<XAxisLabelPlacement>(state.XAxisLabels.Count);
         for (int index = 0; index < state.XAxisLabels.Count; index++)
         {
@@ -317,11 +341,11 @@ internal abstract class CartesianChartRenderer<TChart>
             }
 
             FormattedText text = _textLayout.Format(label, chart.XAxisFontSize, chart.XAxisTextBrush);
-            double itemIndex = state.XAxisLabels.Count == state.Items.Count
+            double itemIndex = state.XAxisLabels.Count == state.CategoryCount
                 ? index
                 : state.XAxisLabels.Count == 1
-                    ? (state.Items.Count - 1) / 2.0
-                    : index * (state.Items.Count - 1.0) / (state.XAxisLabels.Count - 1);
+                    ? (state.CategoryCount - 1) / 2.0
+                    : index * (state.CategoryCount - 1.0) / (state.XAxisLabels.Count - 1);
             double center = state.Layout.Plot.Left +
                             (itemIndex * state.Layout.SlotWidth) +
                             (state.Layout.SlotWidth / 2);
@@ -337,11 +361,8 @@ internal abstract class CartesianChartRenderer<TChart>
             placements.Select(item => item.Right).ToList(),
             chart.XAxisLabelMode,
             chart.XAxisLabelInterval);
-        foreach (int index in visible)
-        {
-            XAxisLabelPlacement placement = placements[index];
-            context.DrawText(placement.Text, new Point(placement.Left, state.Layout.XAxisTop));
-        }
+        _xAxisLabelCache = new XAxisLabelCache(state, placements.ToArray(), visible.ToArray());
+        return _xAxisLabelCache;
     }
 
     private void DrawEmptyState(DrawingContext context, TChart chart, ChartRenderState state)
@@ -363,4 +384,9 @@ internal abstract class CartesianChartRenderer<TChart>
     {
         public double Right => Left + Text.Width;
     }
+
+    private sealed record XAxisLabelCache(
+        ChartRenderState State,
+        XAxisLabelPlacement[] Placements,
+        int[] VisibleIndices);
 }

@@ -300,6 +300,52 @@ public class ColumnChartTests
     }
 
     [Fact]
+    public void Tooltip_hide_delay_defaults_to_a_short_grace_period()
+    {
+        var chart = new LineChart();
+
+        Assert.Equal(TimeSpan.FromMilliseconds(250), chart.ToolTipHideDelay);
+    }
+
+    [Fact]
+    public void Tooltip_hide_delay_keeps_the_presenter_visible_during_a_transient_miss()
+    {
+        var chart = new LineChart { ToolTipHideDelay = TimeSpan.FromSeconds(1) };
+        var presenter = new ChartToolTipPresenter(chart);
+        IChartDataPoint[] items = [new ChartDataPoint { Label = "Revenue", Value = 42 }];
+
+        Assert.True(presenter.Update(0, new Point(100, 80)));
+        presenter.Refresh(items);
+        Assert.True(presenter.Visual.IsVisible);
+
+        Assert.True(presenter.Clear());
+        presenter.Refresh(items);
+        Assert.True(presenter.Visual.IsVisible);
+
+        presenter.Reevaluate(0, new Point(102, 82), items);
+        Assert.True(presenter.Visual.IsVisible);
+
+        presenter.Reevaluate(-1, default, items);
+        Assert.False(presenter.Visual.IsVisible);
+    }
+
+    [Fact]
+    public void Pointer_exit_can_hide_without_reusing_the_last_hit_position()
+    {
+        var chart = new LineChart { ToolTipHideDelay = TimeSpan.Zero };
+        var presenter = new ChartToolTipPresenter(chart);
+        IChartDataPoint[] items = [new ChartDataPoint { Label = "Revenue", Value = 42 }];
+
+        presenter.Update(0, new Point(100, 80));
+        presenter.Refresh(items);
+        Assert.True(presenter.Visual.IsVisible);
+
+        presenter.Clear();
+        presenter.RequestHide(reevaluatePointer: false);
+        Assert.False(presenter.Visual.IsVisible);
+    }
+
+    [Fact]
     public void Tooltip_style_properties_update_the_single_presenter()
     {
         var chart = new ColumnChart

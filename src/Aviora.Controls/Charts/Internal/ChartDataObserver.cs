@@ -34,7 +34,9 @@ internal sealed class ChartDataObserver : IDisposable
     public void ObserveItems(IEnumerable<IChartDataPoint> items)
     {
         ClearItems();
-        foreach (INotifyPropertyChanged item in items.OfType<INotifyPropertyChanged>())
+        foreach (INotifyPropertyChanged item in items
+                     .Select(item => item is ChartDataPipeline.SeriesDataPoint series ? series.Source : item)
+                     .OfType<INotifyPropertyChanged>())
         {
             if (_items.Add(item))
             {

@@ -6,10 +6,23 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-22
+
 ### Added
 
 - Added `ProgressRing` with determinate and indeterminate ring rendering.
 - Added Wave, Orbit, and DoubleRing loading indicator styles.
+- Added multi-series `LineChart` data, styling, documentation, tests, and demo
+  examples.
+
+### Changed
+
+- Added a configurable 250 ms Tooltip hide grace period and reused unchanged
+  Tooltip content to avoid redundant layout passes.
+- Reworked LineChart hit testing to use cached projected points, zero-allocation
+  squared-distance checks, and per-series X-coordinate lookup.
+- Cached line segments, static geometries, pens, and X-axis label layouts to
+  reduce render time and managed allocations.
 
 ## [0.2.0] - 2026-07-21
 

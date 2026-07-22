@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Threading;
 
 namespace Aviora.Controls;
 
@@ -8,6 +9,13 @@ internal sealed class ChartToolTipPresenter
     private readonly CartesianChart _owner;
     private readonly ContentControl _content = new() { ClipToBounds = true };
     private readonly ChartToolTipState _state = new();
+    private DispatcherTimer? _hideTimer;
+    private bool _reevaluatePointerOnHide;
+    private int _displayedIndex = -1;
+    private IChartDataPoint? _displayedItem;
+    private object? _displayedContent;
+    private object? _displayedTemplate;
+    private bool _styleNeedsMeasure;
 
     public ChartToolTipPresenter(CartesianChart owner)
     {
@@ -36,9 +44,32 @@ internal sealed class ChartToolTipPresenter
         property == CartesianChart.ToolTipBoxShadowProperty ||
         property == CartesianChart.ToolTipHorizontalOffsetProperty ||
         property == CartesianChart.ToolTipVerticalOffsetProperty ||
+        property == CartesianChart.ToolTipHideDelayProperty ||
         property == CartesianChart.ToolTipFormatterProperty;
 
-    public bool Update(int index, Point pointerPosition) => _state.Update(index, pointerPosition);
+    public bool Update(int index, Point pointerPosition)
+    {
+        if (index >= 0)
+        {
+            CancelHide();
+        }
+
+        return _state.Update(index, pointerPosition);
+    }
+
+    public void Reevaluate(int index, Point pointerPosition, IReadOnlyList<IChartDataPoint> items)
+    {
+        if (index >= 0)
+        {
+            CancelHide();
+            _state.Update(index, pointerPosition);
+            Refresh(items);
+            return;
+        }
+
+        _state.Update(-1, pointerPosition);
+        HideNow();
+    }
 
     public bool Clear() => _state.Clear();
 
@@ -54,6 +85,7 @@ internal sealed class ChartToolTipPresenter
         Visual.BoxShadow = _owner.ToolTipBoxShadow;
         _content.Foreground = _owner.ToolTipTextBrush;
         _content.FontSize = NormalizePositive(_owner.ToolTipFontSize, 11);
+        _styleNeedsMeasure = true;
     }
 
     public void Refresh(IReadOnlyList<IChartDataPoint> items)
@@ -61,37 +93,113 @@ internal sealed class ChartToolTipPresenter
         int index = _state.HoveredIndex;
         if (!_owner.IsToolTipEnabled || index < 0 || index >= items.Count)
         {
-            Hide();
+            if (!_owner.IsToolTipEnabled)
+            {
+                Hide();
+            }
+            else
+            {
+                RequestHide(reevaluatePointer: true);
+            }
             return;
         }
 
         IChartDataPoint item = items[index];
+        object content;
+        object? template;
         if (_owner.ToolTipTemplate != null)
         {
-            _content.Content = item;
-            _content.ContentTemplate = _owner.ToolTipTemplate;
+            content = item;
+            template = _owner.ToolTipTemplate;
         }
         else
         {
-            string content = _owner.ToolTipFormatter?.Invoke(item) ??
-                             item.ToolTip ??
-                             BuildDefaultContent(item);
-            if (string.IsNullOrWhiteSpace(content))
+            string text = _owner.ToolTipFormatter?.Invoke(item) ??
+                          item.ToolTip ??
+                          BuildDefaultContent(item);
+            if (string.IsNullOrWhiteSpace(text))
             {
                 Hide();
                 return;
             }
 
-            _content.ContentTemplate = null;
+            content = text;
+            template = null;
+        }
+
+        bool contentChanged = index != _displayedIndex ||
+                              !ReferenceEquals(item, _displayedItem) ||
+                              !Equals(content, _displayedContent) ||
+                              !ReferenceEquals(template, _displayedTemplate);
+        bool needsMeasure = contentChanged || !Visual.IsVisible || _styleNeedsMeasure;
+        if (contentChanged)
+        {
+            _content.ContentTemplate = _owner.ToolTipTemplate;
             _content.Content = content;
+            _displayedIndex = index;
+            _displayedItem = item;
+            _displayedContent = content;
+            _displayedTemplate = template;
         }
 
         Visual.IsVisible = true;
-        Visual.InvalidateMeasure();
-        _owner.InvalidateMeasure();
+        if (needsMeasure)
+        {
+            MeasureAndArrange();
+        }
     }
 
     public void Hide()
+    {
+        CancelHide();
+        HideNow();
+    }
+
+    public void RequestHide(bool reevaluatePointer)
+    {
+        TimeSpan delay = _owner.ToolTipHideDelay;
+        if (delay <= TimeSpan.Zero)
+        {
+            Hide();
+            return;
+        }
+
+        _reevaluatePointerOnHide = reevaluatePointer;
+
+        if (_hideTimer == null)
+        {
+            _hideTimer = new DispatcherTimer(delay, DispatcherPriority.Normal, HideTimerTick);
+        }
+        else
+        {
+            _hideTimer.Interval = delay;
+            _hideTimer.Stop();
+        }
+
+        _hideTimer.Start();
+    }
+
+    private void HideTimerTick(object? sender, EventArgs e)
+    {
+        bool reevaluatePointer = _reevaluatePointerOnHide;
+        CancelHide();
+        if (reevaluatePointer)
+        {
+            _owner.ReevaluateToolTip();
+        }
+        else
+        {
+            HideNow();
+        }
+    }
+
+    private void CancelHide()
+    {
+        _hideTimer?.Stop();
+        _reevaluatePointerOnHide = false;
+    }
+
+    private void HideNow()
     {
         if (!Visual.IsVisible)
         {
@@ -100,6 +208,14 @@ internal sealed class ChartToolTipPresenter
 
         Visual.IsVisible = false;
         _owner.InvalidateArrange();
+    }
+
+    private void MeasureAndArrange()
+    {
+        Visual.InvalidateMeasure();
+        Visual.Measure(_owner.Bounds.Size);
+        _owner.InvalidateArrange();
+        _styleNeedsMeasure = false;
     }
 
     public void Measure(Size availableSize) => Visual.Measure(availableSize);

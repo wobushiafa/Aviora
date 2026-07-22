@@ -6,6 +6,8 @@ internal sealed class ChartRenderState
 {
     public required IReadOnlyList<IChartDataPoint> Items { get; init; }
 
+    public required int CategoryCount { get; init; }
+
     public required IReadOnlyList<ChartThreshold> Thresholds { get; init; }
 
     public required ChartLayout Layout { get; init; }

@@ -10,6 +10,8 @@ namespace Aviora.Controls;
 /// </summary>
 public class LineChart : CartesianChart
 {
+    public static readonly StyledProperty<IEnumerable<LineChartSeries>?> SeriesProperty =
+        AvaloniaProperty.Register<LineChart, IEnumerable<LineChartSeries>?>(nameof(Series));
     public static readonly StyledProperty<IBrush> LineBrushProperty =
         AvaloniaProperty.Register<LineChart, IBrush>(nameof(LineBrush), AvioraControlPalette.Accent);
     public static readonly StyledProperty<double> LineThicknessProperty =
@@ -63,6 +65,34 @@ public class LineChart : CartesianChart
     public double PointStrokeThickness { get => GetValue(PointStrokeThicknessProperty); set => SetValue(PointStrokeThicknessProperty, value); }
     public IBrush? SelectedPointBrush { get => GetValue(SelectedPointBrushProperty); set => SetValue(SelectedPointBrushProperty, value); }
     public double SelectedPointRadius { get => GetValue(SelectedPointRadiusProperty); set => SetValue(SelectedPointRadiusProperty, value); }
+    public IEnumerable<LineChartSeries>? Series { get => GetValue(SeriesProperty); set => SetValue(SeriesProperty, value); }
+
+    protected override List<IChartDataPoint> BuildChartItems() =>
+        Series?.Any() == true ? ChartDataPipeline.BuildSeriesItems(Series) : base.BuildChartItems();
+
+    protected override IEnumerable<object?> GetAdditionalObservedCollections()
+    {
+        if (Series == null)
+        {
+            yield break;
+        }
+
+        yield return Series;
+        foreach (LineChartSeries series in Series)
+        {
+            yield return series.ItemsSource ?? (object?)series.Values;
+        }
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == SeriesProperty)
+        {
+            SubscribeToCollections();
+            HandleNewData();
+        }
+    }
 
     protected override void RenderChart(DrawingContext context)
     {

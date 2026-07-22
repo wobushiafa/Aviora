@@ -60,4 +60,53 @@ public class LineChartTests
 
         Assert.Same(points, chart.ItemsSource);
     }
+
+    [Fact]
+    public void LineChart_builds_multiple_series_with_shared_category_indices()
+    {
+        LineChartSeries[] series =
+        [
+            new()
+            {
+                Title = "Revenue",
+                Values = [10, 20, 30],
+                LineBrush = Brushes.Blue,
+            },
+            new()
+            {
+                Title = "Cost",
+                Values = [8, 12, 18],
+                LineBrush = Brushes.Red,
+            },
+        ];
+
+        List<IChartDataPoint> items = ChartDataPipeline.BuildSeriesItems(series);
+
+        Assert.Equal(6, items.Count);
+        ChartDataPipeline.SeriesDataPoint[] revenue = items
+            .Cast<ChartDataPipeline.SeriesDataPoint>()
+            .Where(item => item.SeriesIndex == 0)
+            .ToArray();
+        ChartDataPipeline.SeriesDataPoint[] cost = items
+            .Cast<ChartDataPipeline.SeriesDataPoint>()
+            .Where(item => item.SeriesIndex == 1)
+            .ToArray();
+        Assert.Equal([0, 1, 2], revenue.Select(item => item.PointIndex));
+        Assert.Equal([0, 1, 2], cost.Select(item => item.PointIndex));
+        Assert.All(revenue, item => Assert.Same(Brushes.Blue, item.LineBrush));
+        Assert.All(cost, item => Assert.Same(Brushes.Red, item.LineBrush));
+    }
+
+    [Fact]
+    public void Series_takes_precedence_over_the_legacy_single_series_source()
+    {
+        LineChartSeries[] series = [new() { Values = [1, 2, 3] }];
+        var chart = new LineChart
+        {
+            Values = [99],
+            Series = series,
+        };
+
+        Assert.Same(series, chart.Series);
+    }
 }
