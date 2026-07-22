@@ -1,0 +1,73 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="https://github.com/wobushiafa/Aviora"
+             xmlns:vm="using:Aviora.Demo.ViewModels"
+             x:Class="Aviora.Demo.Views.ProgressPage"
+             x:DataType="vm:ProgressPageViewModel"
+             mc:Ignorable="d"
+             d:DesignWidth="900"
+             d:DesignHeight="620">
+  <Grid RowDefinitions="Auto,*" RowSpacing="20">
+    <StackPanel Spacing="4">
+      <TextBlock FontSize="24" FontWeight="SemiBold" Text="Progress" />
+      <TextBlock Opacity="0.65" Text="Determinate and indeterminate progress indicators" />
+    </StackPanel>
+
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="4,4,4,24" Spacing="18">
+        <controls:AvioraCard>
+          <StackPanel Spacing="20">
+            <StackPanel Spacing="3">
+              <TextBlock FontSize="18" FontWeight="SemiBold" Text="Progress ring" />
+              <TextBlock Opacity="0.65" Text="Values use the inherited RangeBase API" />
+            </StackPanel>
+            <WrapPanel HorizontalAlignment="Center" ItemWidth="150" ItemHeight="110">
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                <controls:ProgressRing Width="52" Height="52" Value="25" />
+                <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="25%" />
+              </StackPanel>
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                <controls:ProgressRing Width="52" Height="52" Value="60" />
+                <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="60%" />
+              </StackPanel>
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                <controls:ProgressRing Width="52" Height="52" Value="100" />
+                <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="100%" />
+              </StackPanel>
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                <controls:ProgressRing Width="52" Height="52" IsIndeterminate="True" />
+                <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Indeterminate" />
+              </StackPanel>
+            </WrapPanel>
+          </StackPanel>
+        </controls:AvioraCard>
+
+        <controls:AvioraCard>
+          <StackPanel Spacing="20">
+            <StackPanel Spacing="3">
+              <TextBlock FontSize="18" FontWeight="SemiBold" Text="Appearance" />
+              <TextBlock Opacity="0.65" Text="Track, indicator, thickness, size, and animation timing" />
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="36">
+              <controls:ProgressRing Width="72"
+                                     Height="72"
+                                     Value="72"
+                                     IndicatorBrush="#0F766E"
+                                     TrackBrush="#99CCFBF1"
+                                     StrokeThickness="7" />
+              <controls:ProgressRing Width="44"
+                                     Height="44"
+                                     IsIndeterminate="True"
+                                     IndicatorBrush="#D97706"
+                                     TrackBrush="#99FDE68A"
+                                     StrokeThickness="4"
+                                     AnimationDuration="0:0:0.6" />
+            </StackPanel>
+          </StackPanel>
+        </controls:AvioraCard>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

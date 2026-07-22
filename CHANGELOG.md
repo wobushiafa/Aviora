@@ -6,6 +6,11 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Added `ProgressRing` with determinate and indeterminate ring rendering.
+- Added Wave, Orbit, and DoubleRing loading indicator styles.
+
 ## [0.2.0] - 2026-07-21
 
 ### Added

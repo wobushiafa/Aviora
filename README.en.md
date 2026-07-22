@@ -17,7 +17,8 @@ Aviora is a modern, cross-platform open-source control library for [Avalonia](ht
 - `LineChart`: lines with smooth interpolation, area fills, points, and interaction.
 - `Thermometer`: ranges, ticks, labels, gradient mapping, and transitions.
 - `DialGauge`: range-colored ticks, labels, needles, and transitions.
-- `Loading`: Ring, Dots, Pulse, and Bars indicators with support for custom content.
+- `ProgressRing`: circular determinate progress and an animated indeterminate state.
+- `Loading`: Ring, Dots, Pulse, Bars, Wave, Orbit, and DoubleRing indicators with support for custom content.
 - `LoadingOverlay`: a global loading mask with asynchronous scopes, concurrent requests, host routing, and an MVVM service.
 - `Drawer`: multiple placements, overlay and push modes, dismissal, and an asynchronous presentation service.
 - `Dialog`: modal custom content with asynchronous results, presentation sessions, request queues, and multi-host routing.
@@ -133,6 +134,17 @@ public IReadOnlyList<IChartDataPoint> Sales { get; } =
 ```
 
 ### Loading
+
+The circular progress bar supports determinate values and an indeterminate animation matching the Loading Ring:
+
+```xml
+<aviora:ProgressRing Width="52"
+                     Height="52"
+                     Value="65"
+                     StrokeThickness="5" />
+
+<aviora:ProgressRing IsIndeterminate="True" />
+```
 
 Select a built-in style and optionally configure its brush, size, thickness, and cycle duration:
 

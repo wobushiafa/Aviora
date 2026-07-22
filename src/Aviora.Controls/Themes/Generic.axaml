@@ -117,6 +117,15 @@
     </Setter>
   </ControlTheme>
 
+  <ControlTheme x:Key="{x:Type controls:ProgressRing}"
+                TargetType="controls:ProgressRing">
+    <Setter Property="Width" Value="48" />
+    <Setter Property="Height" Value="48" />
+    <Setter Property="IndicatorBrush" Value="{DynamicResource AvioraAccentBrush}" />
+    <Setter Property="TrackBrush" Value="{DynamicResource AvioraSubtleBrush}" />
+    <Setter Property="IsHitTestVisible" Value="False" />
+  </ControlTheme>
+
   <ControlTheme x:Key="{x:Type controls:ColumnChart}"
                 TargetType="controls:ColumnChart">
     <Setter Property="DefaultBrush" Value="{DynamicResource AvioraAccentBrush}" />

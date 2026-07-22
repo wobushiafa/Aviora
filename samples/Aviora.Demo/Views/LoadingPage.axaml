@@ -38,7 +38,7 @@
           <StackPanel Spacing="20">
             <StackPanel Spacing="3">
               <TextBlock FontSize="18" FontWeight="SemiBold" Text="Built-in styles" />
-              <TextBlock Opacity="0.65" Text="Four indicators with the same compact API" />
+              <TextBlock Opacity="0.65" Text="Seven indicators with the same compact API" />
             </StackPanel>
             <WrapPanel HorizontalAlignment="Center" ItemWidth="150" ItemHeight="110">
               <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
@@ -56,6 +56,18 @@
               <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
                 <controls:Loading Width="44" Height="44" IndicatorStyle="Bars" />
                 <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Bars" />
+              </StackPanel>
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                <controls:Loading Width="44" Height="44" IndicatorStyle="Wave" />
+                <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Wave" />
+              </StackPanel>
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                <controls:Loading Width="44" Height="44" IndicatorStyle="Orbit" />
+                <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Orbit" />
+              </StackPanel>
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                <controls:Loading Width="44" Height="44" IndicatorStyle="DoubleRing" />
+                <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Double ring" />
               </StackPanel>
             </WrapPanel>
           </StackPanel>

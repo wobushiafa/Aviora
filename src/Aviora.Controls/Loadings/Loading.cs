@@ -135,6 +135,15 @@ public class Loading : ContentControl
             case LoadingIndicatorStyle.Bars:
                 DrawBars(context, progress);
                 break;
+            case LoadingIndicatorStyle.Wave:
+                DrawWave(context, progress);
+                break;
+            case LoadingIndicatorStyle.Orbit:
+                DrawOrbit(context, progress);
+                break;
+            case LoadingIndicatorStyle.DoubleRing:
+                DrawDoubleRing(context, progress);
+                break;
         }
     }
 
@@ -181,34 +190,11 @@ public class Loading : ContentControl
         context.DrawGeometry(null, new Pen(IndicatorBrush, thickness, lineCap: PenLineCap.Round), geometry);
     }
 
-    internal static PathGeometry CreateRingArcGeometry(Point center, double radius, double startAngle, double sweep)
-    {
-        var figure = new PathFigure
-        {
-            StartPoint = PointOnCircle(center, radius, startAngle),
-            IsClosed = false,
-            IsFilled = false,
-        };
-        figure.Segments!.Add(new ArcSegment
-        {
-            Point = PointOnCircle(center, radius, startAngle + sweep),
-            Size = new Size(radius, radius),
-            IsLargeArc = sweep > 180,
-            SweepDirection = SweepDirection.Clockwise,
-        });
-        var geometry = new PathGeometry();
-        geometry.Figures!.Add(figure);
-        return geometry;
-    }
+    internal static PathGeometry CreateRingArcGeometry(Point center, double radius, double startAngle, double sweep) =>
+        RingDrawing.CreateArcGeometry(center, radius, startAngle, sweep);
 
-    internal static (double StartAngle, double SweepAngle) CalculateRingArc(double progress)
-    {
-        double normalized = progress - Math.Floor(progress);
-        double growth = 0.5 - (Math.Cos(normalized * Math.Tau) * 0.5);
-        double sweep = 70 + (growth * 210);
-        double start = (normalized * 720) - 90 - (growth * 110);
-        return (start, sweep);
-    }
+    internal static (double StartAngle, double SweepAngle) CalculateRingArc(double progress) =>
+        RingDrawing.CalculateIndeterminateArc(progress);
 
     private void DrawDots(DrawingContext context, double progress)
     {
@@ -278,6 +264,75 @@ public class Loading : ContentControl
         }
     }
 
+    private void DrawWave(DrawingContext context, double progress)
+    {
+        double size = Math.Min(Bounds.Width, Bounds.Height);
+        double radius = Math.Max(1, Math.Min(size / 12, StrokeThickness));
+        double spacing = radius * 2.6;
+        Point center = GetCenter();
+
+        for (int index = 0; index < 5; index++)
+        {
+            double phase = (progress - (index * 0.1) + 1) % 1;
+            double wave = Math.Sin(phase * Math.Tau);
+            double opacity = 0.55 + (((wave + 1) / 2) * 0.45);
+            using (context.PushOpacity(opacity))
+            {
+                context.DrawEllipse(
+                    IndicatorBrush,
+                    null,
+                    new Point(center.X + ((index - 2) * spacing), center.Y - (wave * size * 0.16)),
+                    radius,
+                    radius);
+            }
+        }
+    }
+
+    private void DrawOrbit(DrawingContext context, double progress)
+    {
+        double size = Math.Min(Bounds.Width, Bounds.Height);
+        double dotRadius = Math.Max(1, Math.Min(StrokeThickness, size / 10));
+        double orbitRadius = Math.Max(0, (size / 2) - dotRadius);
+        Point center = GetCenter();
+
+        for (int index = 0; index < 3; index++)
+        {
+            double phase = (progress + (index / 3d)) % 1;
+            double angle = phase * Math.Tau;
+            using (context.PushOpacity(1 - (index * 0.25)))
+            {
+                context.DrawEllipse(
+                    IndicatorBrush,
+                    null,
+                    new Point(center.X + (Math.Cos(angle) * orbitRadius), center.Y + (Math.Sin(angle) * orbitRadius)),
+                    dotRadius * (1 - (index * 0.12)),
+                    dotRadius * (1 - (index * 0.12)));
+            }
+        }
+    }
+
+    private void DrawDoubleRing(DrawingContext context, double progress)
+    {
+        double thickness = GetEffectiveThickness();
+        Point center = GetCenter();
+        double outerRadius = GetRadius(thickness);
+        double innerRadius = outerRadius - (thickness * 2.2);
+        if (innerRadius <= 0)
+        {
+            DrawRing(context, progress);
+            return;
+        }
+
+        PathGeometry outer = RingDrawing.CreateArcGeometry(center, outerRadius, (progress * 360) - 90, 135);
+        PathGeometry inner = RingDrawing.CreateArcGeometry(center, innerRadius, (-progress * 360) - 90, 110);
+        var pen = new Pen(IndicatorBrush, thickness, lineCap: PenLineCap.Round);
+        context.DrawGeometry(null, pen, outer);
+        using (context.PushOpacity(0.65))
+        {
+            context.DrawGeometry(null, pen, inner);
+        }
+    }
+
     private void OnAnimationStateChanged()
     {
         InvalidateVisual();
@@ -316,9 +371,4 @@ public class Loading : ContentControl
     private double GetRadius(double thickness) =>
         Math.Max(0, (Math.Min(Bounds.Width, Bounds.Height) - thickness) / 2);
 
-    private static Point PointOnCircle(Point center, double radius, double angle)
-    {
-        double radians = angle * Math.PI / 180;
-        return new Point(center.X + (Math.Cos(radians) * radius), center.Y + (Math.Sin(radians) * radius));
-    }
 }

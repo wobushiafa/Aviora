@@ -16,4 +16,13 @@ public enum LoadingIndicatorStyle
 
     /// <summary>Animated vertical bars.</summary>
     Bars,
+
+    /// <summary>Five dots moving in a wave.</summary>
+    Wave,
+
+    /// <summary>Dots orbiting around a center point.</summary>
+    Orbit,
+
+    /// <summary>Two counter-rotating arcs.</summary>
+    DoubleRing,
 }

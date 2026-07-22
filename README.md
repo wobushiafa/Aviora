@@ -17,7 +17,8 @@ Aviora 是一个面向 [Avalonia](https://avaloniaui.net/) 的现代化、跨平
 - `LineChart`：支持平滑曲线、区域填充、数据点和交互的折线图。
 - `Thermometer`：支持范围、刻度、标签、渐变映射和过渡动画的温度计。
 - `DialGauge`：支持分段刻度、标签、指针和过渡动画的圆形仪表。
-- `Loading`：内置 Ring、Dots、Pulse 和 Bars 样式，并支持自定义内容。
+- `ProgressRing`：支持确定进度和不确定动画的环形进度条。
+- `Loading`：内置 Ring、Dots、Pulse、Bars、Wave、Orbit 和 DoubleRing 样式，并支持自定义内容。
 - `LoadingOverlay`：支持异步作用域、并发请求、多宿主路由和 MVVM 服务调用的全局加载遮罩。
 - `Drawer`：支持多方向、遮罩、Push/Overlay 模式及异步服务调用的抽屉。
 - `Dialog`：支持异步结果、会话关闭、请求排队、多宿主路由和自定义内容的模态对话框。
@@ -133,6 +134,17 @@ public IReadOnlyList<IChartDataPoint> Sales { get; } =
 ```
 
 ### Loading
+
+环形进度条支持确定值，也可以切换为与 Loading Ring 一致的不确定动画：
+
+```xml
+<aviora:ProgressRing Width="52"
+                     Height="52"
+                     Value="65"
+                     StrokeThickness="5" />
+
+<aviora:ProgressRing IsIndeterminate="True" />
+```
 
 使用内置样式，并按需设置颜色、尺寸、粗细和动画周期：
 

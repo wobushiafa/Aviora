@@ -27,6 +27,9 @@ public class LoadingTests
     [InlineData(LoadingIndicatorStyle.Dots)]
     [InlineData(LoadingIndicatorStyle.Pulse)]
     [InlineData(LoadingIndicatorStyle.Bars)]
+    [InlineData(LoadingIndicatorStyle.Wave)]
+    [InlineData(LoadingIndicatorStyle.Orbit)]
+    [InlineData(LoadingIndicatorStyle.DoubleRing)]
     public void Built_in_styles_can_be_selected(LoadingIndicatorStyle style)
     {
         var loading = new Loading { IndicatorStyle = style };
