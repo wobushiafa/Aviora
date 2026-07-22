@@ -71,12 +71,14 @@ public class LineChartTests
                 Title = "Revenue",
                 Values = [10, 20, 30],
                 LineBrush = Brushes.Blue,
+                AreaFillBrush = Brushes.LightBlue,
             },
             new()
             {
                 Title = "Cost",
                 Values = [8, 12, 18],
                 LineBrush = Brushes.Red,
+                AreaFillBrush = Brushes.MistyRose,
             },
         ];
 
@@ -95,6 +97,8 @@ public class LineChartTests
         Assert.Equal([0, 1, 2], cost.Select(item => item.PointIndex));
         Assert.All(revenue, item => Assert.Same(Brushes.Blue, item.LineBrush));
         Assert.All(cost, item => Assert.Same(Brushes.Red, item.LineBrush));
+        Assert.All(revenue, item => Assert.Same(Brushes.LightBlue, item.AreaFillBrush));
+        Assert.All(cost, item => Assert.Same(Brushes.MistyRose, item.AreaFillBrush));
     }
 
     [Fact]

@@ -17,6 +17,9 @@ public sealed class LineChartSeries
     /// <summary>Gets the line brush for this series.</summary>
     public IBrush? LineBrush { get; init; }
 
+    /// <summary>Gets the area fill brush for this series.</summary>
+    public IBrush? AreaFillBrush { get; init; }
+
     /// <summary>Gets the point brush for this series.</summary>
     public IBrush? PointBrush { get; init; }
 }

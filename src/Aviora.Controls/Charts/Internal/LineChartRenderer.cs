@@ -123,7 +123,7 @@ internal sealed class LineChartRenderer : CartesianChartRenderer<LineChart>
         LineSeriesSegments[] series = GetSegments(chart, state, animatedValues);
         double baseline = MapY(Math.Clamp(0, state.Scale.Minimum, state.Scale.Maximum), state);
         double lineThickness = NormalizeNonNegative(chart.LineThickness);
-        LineSeriesGeometry[]? geometries = lineThickness > 0 || chart.AreaFillBrush != null
+        LineSeriesGeometry[]? geometries = lineThickness > 0 || series.Any(current => current.AreaFillBrush != null)
             ? GetGeometries(chart, state, series, baseline)
             : null;
         using (context.PushClip(state.Layout.Plot))
@@ -137,11 +137,11 @@ internal sealed class LineChartRenderer : CartesianChartRenderer<LineChart>
                 }
 
                 LineSeriesGeometry? geometry = geometries?[seriesIndex];
-                if (chart.AreaFillBrush != null && geometry != null)
+                if (current.AreaFillBrush != null && geometry != null)
                 {
                     foreach (StreamGeometry area in geometry.Areas)
                     {
-                        context.DrawGeometry(chart.AreaFillBrush, null, area);
+                        context.DrawGeometry(current.AreaFillBrush, null, area);
                     }
                 }
 
@@ -216,6 +216,7 @@ internal sealed class LineChartRenderer : CartesianChartRenderer<LineChart>
         var segmentsBySeries = new List<List<LinePoint>>?[seriesCount];
         var currentBySeries = new List<LinePoint>?[seriesCount];
         var brushes = new IBrush?[seriesCount];
+        var areaFillBrushes = new IBrush?[seriesCount];
         var hasItems = new bool[seriesCount];
         for (int index = 0; index < state.Items.Count; index++)
         {
@@ -223,6 +224,8 @@ internal sealed class LineChartRenderer : CartesianChartRenderer<LineChart>
             int seriesIndex = GetSeriesIndex(item, seriesCount);
             hasItems[seriesIndex] = true;
             brushes[seriesIndex] ??= (item as ChartDataPipeline.SeriesDataPoint)?.LineBrush ?? chart.LineBrush;
+            areaFillBrushes[seriesIndex] ??=
+                (item as ChartDataPipeline.SeriesDataPoint)?.AreaFillBrush ?? chart.AreaFillBrush;
             if (index >= animatedValues.Count || !double.IsFinite(item.Value))
             {
                 currentBySeries[seriesIndex] = null;
@@ -247,6 +250,7 @@ internal sealed class LineChartRenderer : CartesianChartRenderer<LineChart>
         {
             result[index] = new LineSeriesSegments(
                 brushes[index] ?? chart.LineBrush,
+                areaFillBrushes[index] ?? chart.AreaFillBrush,
                 segmentsBySeries[index] ?? [],
                 hasItems[index]);
         }
@@ -284,7 +288,7 @@ internal sealed class LineChartRenderer : CartesianChartRenderer<LineChart>
                     lines.Add(BuildGeometry(segment, chart.InterpolationMode, isArea: false, baseline));
                 }
 
-                if (chart.AreaFillBrush != null && segment.Count > 0)
+                if (current.AreaFillBrush != null && segment.Count > 0)
                 {
                     areas.Add(BuildGeometry(segment, chart.InterpolationMode, isArea: true, baseline));
                 }
@@ -532,6 +536,10 @@ internal sealed class LineChartRenderer : CartesianChartRenderer<LineChart>
     private readonly record struct HitPoint(int Index, int PointIndex, Point Position);
     private readonly record struct HitSeries(HitPoint[] Points);
     private readonly record struct LinePoint(int Index, Point Position);
-    private sealed record LineSeriesSegments(IBrush LineBrush, List<List<LinePoint>> Segments, bool HasItems);
+    private sealed record LineSeriesSegments(
+        IBrush LineBrush,
+        IBrush? AreaFillBrush,
+        List<List<LinePoint>> Segments,
+        bool HasItems);
     private sealed record LineSeriesGeometry(StreamGeometry[] Lines, StreamGeometry[] Areas, Pen? LinePen);
 }

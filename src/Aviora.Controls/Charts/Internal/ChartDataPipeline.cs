@@ -8,12 +8,26 @@ internal static class ChartDataPipeline
     internal sealed class SeriesDataPoint : IChartDataPoint
     {
         private readonly IChartDataPoint _inner;
-        public SeriesDataPoint(IChartDataPoint inner, int seriesIndex, int pointIndex, IBrush? lineBrush, IBrush? pointBrush)
-        { _inner = inner; SeriesIndex = seriesIndex; PointIndex = pointIndex; LineBrush = lineBrush; PointBrush = pointBrush; }
+        public SeriesDataPoint(
+            IChartDataPoint inner,
+            int seriesIndex,
+            int pointIndex,
+            IBrush? lineBrush,
+            IBrush? areaFillBrush,
+            IBrush? pointBrush)
+        {
+            _inner = inner;
+            SeriesIndex = seriesIndex;
+            PointIndex = pointIndex;
+            LineBrush = lineBrush;
+            AreaFillBrush = areaFillBrush;
+            PointBrush = pointBrush;
+        }
         public int SeriesIndex { get; }
         public int PointIndex { get; }
         public IChartDataPoint Source => _inner;
         public IBrush? LineBrush { get; }
+        public IBrush? AreaFillBrush { get; }
         public IBrush? PointBrush { get; }
         public object? Key => _inner.Key;
         public string? Label => _inner.Label;
@@ -32,7 +46,13 @@ internal static class ChartDataPipeline
             int pointIndex = 0;
             foreach (IChartDataPoint item in BuildItems(definition.ItemsSource, definition.Values, null, null))
             {
-                result.Add(new SeriesDataPoint(item, seriesIndex, pointIndex, definition.LineBrush, definition.PointBrush));
+                result.Add(new SeriesDataPoint(
+                    item,
+                    seriesIndex,
+                    pointIndex,
+                    definition.LineBrush,
+                    definition.AreaFillBrush,
+                    definition.PointBrush));
                 pointIndex++;
             }
             seriesIndex++;

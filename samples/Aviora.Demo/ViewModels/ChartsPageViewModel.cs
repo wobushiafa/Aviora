@@ -86,6 +86,7 @@ public partial class ChartsPageViewModel : DemoPageViewModel
             Title = "Revenue",
             Values = [38, 46, 52, 61, 68, 78],
             LineBrush = new SolidColorBrush(Color.Parse("#2563EB")),
+            AreaFillBrush = new SolidColorBrush(Color.Parse("#302563EB")),
             PointBrush = new SolidColorBrush(Color.Parse("#1D4ED8")),
         },
         new LineChartSeries
@@ -93,6 +94,7 @@ public partial class ChartsPageViewModel : DemoPageViewModel
             Title = "Orders",
             Values = [31, 39, 36, 51, 57, 66],
             LineBrush = new SolidColorBrush(Color.Parse("#0F766E")),
+            AreaFillBrush = new SolidColorBrush(Color.Parse("#300F766E")),
             PointBrush = new SolidColorBrush(Color.Parse("#0D9488")),
         },
         new LineChartSeries
@@ -100,6 +102,7 @@ public partial class ChartsPageViewModel : DemoPageViewModel
             Title = "Forecast",
             Values = [42, 44, 49, 56, 64, 72],
             LineBrush = new SolidColorBrush(Color.Parse("#D97706")),
+            AreaFillBrush = new SolidColorBrush(Color.Parse("#30D97706")),
             PointBrush = new SolidColorBrush(Color.Parse("#F59E0B")),
         },
     ];

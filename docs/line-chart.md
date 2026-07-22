@@ -7,8 +7,8 @@ bindings remain available for a single series.
 ## Multiple series
 
 Bind `Series` to a collection of `LineChartSeries` objects. Each series can use
-rich `ItemsSource` data or simple numeric `Values`, and can define its own line
-and point brushes:
+rich `ItemsSource` data or simple numeric `Values`, and can define its own line,
+area, and point brushes:
 
 ```csharp
 public IReadOnlyList<LineChartSeries> Comparison { get; } =
@@ -18,6 +18,7 @@ public IReadOnlyList<LineChartSeries> Comparison { get; } =
         Title = "Revenue",
         ItemsSource = RevenueTrend,
         LineBrush = Brushes.DodgerBlue,
+        AreaFillBrush = new SolidColorBrush(Color.Parse("#402563EB")),
         PointBrush = Brushes.RoyalBlue,
     },
     new()
@@ -25,6 +26,7 @@ public IReadOnlyList<LineChartSeries> Comparison { get; } =
         Title = "Cost",
         ItemsSource = CostTrend,
         LineBrush = Brushes.IndianRed,
+        AreaFillBrush = new SolidColorBrush(Color.Parse("#40CD5C5C")),
         PointBrush = Brushes.Firebrick,
     },
 ];
