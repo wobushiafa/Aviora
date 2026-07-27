@@ -144,7 +144,6 @@
                 TargetType="controls:LineChart">
     <Setter Property="LineBrush" Value="{DynamicResource AvioraAccentBrush}" />
     <Setter Property="PointBrush" Value="{DynamicResource AvioraAccentStrongBrush}" />
-    <Setter Property="SelectedPointBrush" Value="{DynamicResource AvioraAccentStrongBrush}" />
     <Setter Property="AreaFillBrush" Value="{DynamicResource AvioraSubtleBrush}" />
     <Setter Property="GridLineBrush" Value="{DynamicResource AvioraBorderBrush}" />
     <Setter Property="XAxisTextBrush" Value="{DynamicResource AvioraTextMutedBrush}" />

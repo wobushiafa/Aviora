@@ -6,6 +6,13 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-07-27
+
+### Changed
+
+- Centered Y-axis labels using rendered glyph metrics so alignment remains correct across font sizes.
+- Disabled the default selected-point visual for `LineChart`; applications can still opt in with `SelectedPointBrush` or `SelectedPointRadius`.
+
 ## [0.3.1] - 2026-07-22
 
 ### Added

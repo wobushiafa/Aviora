@@ -263,8 +263,12 @@ internal abstract class CartesianChartRenderer<TChart>
                 continue;
             }
 
+            // Center the visible glyph bounds on the grid line. Height describes the
+            // line box, while Extent and OverhangAfter describe the rendered ink.
+            double glyphCenterFromOrigin =
+                text.Height + text.OverhangAfter - (text.Extent / 2);
             double y = Math.Clamp(
-                targetY - (text.Height / 2),
+                targetY - glyphCenterFromOrigin,
                 0,
                 Math.Max(0, chart.Bounds.Height - text.Height));
             context.DrawText(

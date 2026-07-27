@@ -38,6 +38,30 @@ public class ChartRenderingTests
     }
 
     [AvaloniaFact]
+    public void LineChart_default_theme_does_not_show_a_selected_point_state()
+    {
+        var chart = new LineChart
+        {
+            IsAnimationEnabled = false,
+            Values = [20, 40, 60],
+            SelectedIndex = 1,
+        };
+        var window = new Window { Content = chart };
+
+        try
+        {
+            window.Show();
+
+            Assert.Null(chart.SelectedPointBrush);
+            Assert.True(double.IsNaN(chart.SelectedPointRadius));
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
     public void Smooth_line_and_area_are_clipped_to_the_plot()
     {
         var chart = new LineChart
