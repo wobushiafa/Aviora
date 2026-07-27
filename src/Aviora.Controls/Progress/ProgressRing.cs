@@ -23,6 +23,13 @@ public class ProgressRing : RangeBase
     public static readonly StyledProperty<double> StrokeThicknessProperty =
         AvaloniaProperty.Register<ProgressRing, double>(nameof(StrokeThickness), 4, validate: value => value > 0);
 
+    /// <summary>Defines the <see cref="StartAngle"/> property.</summary>
+    public static readonly StyledProperty<double> StartAngleProperty =
+        AvaloniaProperty.Register<ProgressRing, double>(
+            nameof(StartAngle),
+            -90,
+            validate: double.IsFinite);
+
     /// <summary>Defines the <see cref="IsIndeterminate"/> property.</summary>
     public static readonly StyledProperty<bool> IsIndeterminateProperty =
         AvaloniaProperty.Register<ProgressRing, bool>(nameof(IsIndeterminate));
@@ -45,6 +52,7 @@ public class ProgressRing : RangeBase
             IndicatorBrushProperty,
             TrackBrushProperty,
             StrokeThicknessProperty,
+            StartAngleProperty,
             IsIndeterminateProperty,
             AnimationDurationProperty);
         IsIndeterminateProperty.Changed.AddClassHandler<ProgressRing>((progress, _) => progress.OnAnimationStateChanged());
@@ -70,6 +78,16 @@ public class ProgressRing : RangeBase
     {
         get => GetValue(StrokeThicknessProperty);
         set => SetValue(StrokeThicknessProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the angle, in degrees, where the progress arc starts.
+    /// Zero degrees is the rightmost point and positive angles advance clockwise.
+    /// </summary>
+    public double StartAngle
+    {
+        get => GetValue(StartAngleProperty);
+        set => SetValue(StartAngleProperty, value);
     }
 
     /// <summary>Gets or sets whether the control displays continuous indeterminate progress.</summary>
@@ -121,7 +139,7 @@ public class ProgressRing : RangeBase
         if (IsIndeterminate)
         {
             (double start, double sweep) = RingDrawing.CalculateIndeterminateArc(GetAnimationProgress());
-            DrawArc(context, center, radius, thickness, start, sweep);
+            DrawArc(context, center, radius, thickness, start + StartAngle + 90, sweep);
             return;
         }
 
@@ -133,7 +151,7 @@ public class ProgressRing : RangeBase
         }
         else if (progress > 0)
         {
-            DrawArc(context, center, radius, thickness, -90, progress * 360);
+            DrawArc(context, center, radius, thickness, StartAngle, progress * 360);
         }
     }
 

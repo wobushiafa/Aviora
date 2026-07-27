@@ -11,6 +11,13 @@ namespace Aviora.Controls.Tests;
 public class ProgressRingTests
 {
     [Fact]
+    public void Start_angle_defaults_to_top()
+    {
+        var progress = new ProgressRing();
+        Assert.Equal(-90, progress.StartAngle);
+    }
+
+    [Fact]
     public void Progress_ring_has_usable_defaults()
     {
         var progress = new ProgressRing();
@@ -32,6 +39,25 @@ public class ProgressRingTests
         progress.Measure(new Size(48, 48));
         progress.Arrange(new Rect(0, 0, 48, 48));
         Assert.True(CountVisiblePixels(progress) > 50);
+    }
+
+    [AvaloniaFact]
+    public void Start_angle_changes_determinate_arc_origin()
+    {
+        var progress = new ProgressRing
+        {
+            Width = 48,
+            Height = 48,
+            Value = 10,
+            StartAngle = 0,
+            IndicatorBrush = Brushes.Magenta,
+            TrackBrush = null,
+        };
+        progress.Measure(new Size(48, 48));
+        progress.Arrange(new Rect(0, 0, 48, 48));
+
+        Assert.True(GetAlpha(progress, 46, 24) > 0);
+        Assert.Equal(0, GetAlpha(progress, 24, 2));
     }
 
     [AvaloniaFact]
@@ -70,5 +96,21 @@ public class ProgressRingTests
         }
 
         return visiblePixels;
+    }
+
+    private static byte GetAlpha(Control control, int x, int y)
+    {
+        const int size = 48;
+        using var target = new RenderTargetBitmap(new PixelSize(size, size));
+        target.Render(control);
+        using var pixels = new WriteableBitmap(
+            new PixelSize(size, size), new Vector(96, 96),
+            PixelFormat.Bgra8888, AlphaFormat.Unpremul);
+        using ILockedFramebuffer framebuffer = pixels.Lock();
+        target.CopyPixels(framebuffer);
+
+        var buffer = new byte[framebuffer.RowBytes * framebuffer.Size.Height];
+        Marshal.Copy(framebuffer.Address, buffer, 0, buffer.Length);
+        return buffer[(y * framebuffer.RowBytes) + (x * 4) + 3];
     }
 }
