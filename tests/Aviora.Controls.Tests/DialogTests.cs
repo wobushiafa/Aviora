@@ -19,8 +19,30 @@ public class DialogTests
         Assert.Equal(280, dialog.MinDialogWidth);
         Assert.Equal(720, dialog.MaxDialogWidth);
         Assert.False(dialog.IsLightDismissEnabled);
-        Assert.True(dialog.IsEscapeKeyEnabled);
+        Assert.False(dialog.IsEscapeKeyEnabled);
         Assert.True(dialog.IsOverlayVisible);
+        Assert.True(dialog.IsAnimationEnabled);
+    }
+
+    [Fact]
+    public void Dialog_options_have_safe_defaults()
+    {
+        var options = new DialogOptions();
+
+        Assert.False(options.IsLightDismissEnabled);
+        Assert.False(options.IsEscapeKeyEnabled);
+        Assert.True(options.IsOverlayVisible);
+        Assert.True(options.IsAnimationEnabled);
+        Assert.Equal(TimeSpan.FromMilliseconds(180), options.AnimationDuration);
+    }
+
+    [Fact]
+    public void Dialog_options_reject_a_negative_animation_duration()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new DialogOptions
+        {
+            AnimationDuration = TimeSpan.FromMilliseconds(-1),
+        });
     }
 
     [Fact]
@@ -221,8 +243,62 @@ public class DialogTests
             Assert.Equal(500, dialog.DialogWidth);
             Assert.Equal(300, dialog.DialogHeight);
             Assert.False(dialog.IsLightDismissEnabled);
-            Assert.True(dialog.IsEscapeKeyEnabled);
+            Assert.False(dialog.IsEscapeKeyEnabled);
             Assert.True(dialog.IsOverlayVisible);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task Global_options_apply_and_request_options_take_precedence()
+    {
+        var service = new DialogService(new DialogOptions
+        {
+            IsLightDismissEnabled = true,
+            IsEscapeKeyEnabled = true,
+            IsOverlayVisible = false,
+            IsAnimationEnabled = false,
+            AnimationDuration = TimeSpan.FromMilliseconds(5),
+        });
+        var dialog = new Dialog { Service = service };
+        var window = new Window { Content = dialog };
+
+        try
+        {
+            window.Show();
+            Task<DialogResult> first = service.ShowAsync(new DialogRequest("global"));
+            await FlushDispatcherAsync();
+
+            Assert.True(dialog.IsLightDismissEnabled);
+            Assert.True(dialog.IsEscapeKeyEnabled);
+            Assert.False(dialog.IsOverlayVisible);
+            Assert.False(dialog.IsAnimationEnabled);
+            Assert.Equal(TimeSpan.FromMilliseconds(5), dialog.AnimationDuration);
+
+            dialog.TryClose();
+            await first;
+
+            Task<DialogResult> second = service.ShowAsync(new DialogRequest("request")
+            {
+                IsLightDismissEnabled = false,
+                IsEscapeKeyEnabled = false,
+                IsOverlayVisible = true,
+                IsAnimationEnabled = false,
+                AnimationDuration = TimeSpan.FromMilliseconds(10),
+            });
+            await FlushDispatcherAsync();
+
+            Assert.False(dialog.IsLightDismissEnabled);
+            Assert.False(dialog.IsEscapeKeyEnabled);
+            Assert.True(dialog.IsOverlayVisible);
+            Assert.False(dialog.IsAnimationEnabled);
+            Assert.Equal(TimeSpan.FromMilliseconds(10), dialog.AnimationDuration);
+
+            dialog.TryClose();
+            await second;
         }
         finally
         {

@@ -71,7 +71,7 @@ public class Dialog : ContentControl, IDialogHost
 
     /// <summary>Defines the <see cref="IsEscapeKeyEnabled"/> property.</summary>
     public static readonly StyledProperty<bool> IsEscapeKeyEnabledProperty =
-        AvaloniaProperty.Register<Dialog, bool>(nameof(IsEscapeKeyEnabled), true);
+        AvaloniaProperty.Register<Dialog, bool>(nameof(IsEscapeKeyEnabled));
 
     /// <summary>Defines the <see cref="IsOverlayVisible"/> property.</summary>
     public static readonly StyledProperty<bool> IsOverlayVisibleProperty =

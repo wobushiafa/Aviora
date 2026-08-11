@@ -8,6 +8,18 @@ public sealed class DialogService : IDialogHostService
 {
     private readonly object _syncRoot = new();
     private readonly Dictionary<string, HostState> _hosts = new(StringComparer.Ordinal);
+    private readonly DialogOptions? _options;
+
+    /// <summary>Initializes a dialog service that uses each host's configured defaults.</summary>
+    public DialogService()
+    {
+    }
+
+    /// <summary>Initializes a dialog service with application-wide presentation defaults.</summary>
+    public DialogService(DialogOptions options)
+    {
+        _options = options ?? throw new ArgumentNullException(nameof(options));
+    }
 
     /// <inheritdoc />
     public Task<DialogResult> ShowAsync(DialogRequest request, CancellationToken cancellationToken = default)
@@ -19,6 +31,7 @@ public sealed class DialogService : IDialogHostService
             return Task.FromCanceled<DialogResult>(cancellationToken);
         }
 
+        request = ApplyOptions(request);
         var operation = new DialogOperation(this, request, cancellationToken);
         try
         {
@@ -57,6 +70,29 @@ public sealed class DialogService : IDialogHostService
             ScheduleNext(request.HostId);
         }
         return operation.Completion.Task;
+    }
+
+    private DialogRequest ApplyOptions(DialogRequest request)
+    {
+        if (_options is null)
+        {
+            return request;
+        }
+
+        return new DialogRequest(request.Content)
+        {
+            ContentFactory = request.ContentFactory,
+            HostId = request.HostId,
+            PresentationMode = request.PresentationMode,
+            Width = request.Width,
+            Height = request.Height,
+            IsLightDismissEnabled = request.IsLightDismissEnabled ?? _options.IsLightDismissEnabled,
+            IsEscapeKeyEnabled = request.IsEscapeKeyEnabled ?? _options.IsEscapeKeyEnabled,
+            IsOverlayVisible = request.IsOverlayVisible ?? _options.IsOverlayVisible,
+            IsAnimationEnabled = request.IsAnimationEnabled ?? _options.IsAnimationEnabled,
+            AnimationDuration = request.AnimationDuration ?? _options.AnimationDuration,
+            Tag = request.Tag,
+        };
     }
 
     /// <inheritdoc />

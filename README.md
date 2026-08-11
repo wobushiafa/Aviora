@@ -262,10 +262,18 @@ public sealed class SettingsViewModel(IDrawerService drawerService)
 ```
 
 ```csharp
-var dialogService = new DialogService();
+var dialogService = new DialogService(new DialogOptions
+{
+    IsAnimationEnabled = true,
+    IsEscapeKeyEnabled = false,
+    IsLightDismissEnabled = false,
+    IsOverlayVisible = true,
+});
 DialogHost.Service = dialogService;
 DataContext = new MainWindowViewModel(dialogService);
 ```
+
+以上也是内建默认值；单次 `DialogRequest` 仍可按需覆盖这些全局设置。
 
 ViewModel 可以直接展示内容；需要从内容内部关闭并返回结果时使用会话工厂：
 

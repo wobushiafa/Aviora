@@ -262,10 +262,18 @@ Place a Dialog host at the outermost window layer and connect its service at the
 ```
 
 ```csharp
-var dialogService = new DialogService();
+var dialogService = new DialogService(new DialogOptions
+{
+    IsAnimationEnabled = true,
+    IsEscapeKeyEnabled = false,
+    IsLightDismissEnabled = false,
+    IsOverlayVisible = true,
+});
 DialogHost.Service = dialogService;
 DataContext = new MainWindowViewModel(dialogService);
 ```
+
+These are also the built-in defaults. An individual `DialogRequest` can still override them when needed.
 
 A ViewModel can present content directly. Use a session factory when the content must close itself and return a result:
 
