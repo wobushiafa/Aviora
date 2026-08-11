@@ -1,6 +1,7 @@
 using Aviora.Presentation.Drawers;
 using Aviora.Presentation.Dialogs;
 using Aviora.Presentation.Loadings;
+using Aviora.Presentation.Toasts;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Aviora.Demo.ViewModels;
@@ -13,7 +14,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel(
         IDrawerService drawerService,
         IDialogService dialogService,
-        ILoadingService loadingService)
+        ILoadingService loadingService,
+        IToastService toastService)
     {
         Pages =
         [
@@ -24,6 +26,7 @@ public partial class MainWindowViewModel : ViewModelBase
             new ProgressPageViewModel(),
             new DrawerPageViewModel(drawerService),
             new DialogPageViewModel(dialogService),
+            new ToastPageViewModel(toastService),
         ];
         _selectedPage = Pages[0];
     }

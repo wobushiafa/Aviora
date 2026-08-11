@@ -6,7 +6,7 @@
 
 [简体中文](https://github.com/wobushiafa/Aviora/blob/main/README.md) | English
 
-Aviora is a modern, cross-platform open-source control library for [Avalonia](https://avaloniaui.net/), with charts, gauges, loading indicators, drawers, dialogs, and general-purpose surfaces.
+Aviora is a modern, cross-platform open-source control library for [Avalonia](https://avaloniaui.net/), with charts, gauges, loading indicators, drawers, dialogs, toast notifications, and general-purpose surfaces.
 
 > The project is in its early development stage. Public APIs may change before the first stable release.
 
@@ -22,6 +22,7 @@ Aviora is a modern, cross-platform open-source control library for [Avalonia](ht
 - `LoadingOverlay`: a global loading mask with asynchronous scopes, concurrent requests, host routing, and an MVVM service.
 - `Drawer`: multiple placements, overlay and push modes, dismissal, and an asynchronous presentation service.
 - `Dialog`: modal custom content with asynchronous results, presentation sessions, request queues, and multi-host routing.
+- `ToastHost`: global notifications with concurrent stacking, six placements, timeout/action/cancellation dismissal, animation, and external templates.
 
 ## Installation
 
@@ -292,6 +293,48 @@ DialogResult childResult = await dialogService.ShowAsync(new DialogRequest(child
     PresentationMode = DialogPresentationMode.Stack, // or Navigate
 });
 ```
+
+### Toast
+
+Place `ToastHost` at the outermost window layer and connect the global service. The host defaults to the top-right corner, a four-second duration, and no visible-count limit; set a positive `MaxVisible` value to enable queueing:
+
+```xml
+<aviora:ToastHost x:Name="ToastHost"
+                  Placement="TopRight"
+                  MaxVisible="0"
+                  IsClickDismissEnabled="True"
+                  AnimationDuration="0:0:0.22"
+                  ExitAnimationDuration="0:0:0.15">
+  <!-- Pages, Drawer, Dialog, and LoadingOverlay -->
+</aviora:ToastHost>
+```
+
+```csharp
+var toastService = new ToastService();
+ToastHost.Service = toastService;
+
+toastService.ShowSuccess("Settings are synchronized", "Saved");
+toastService.ShowError("Check your connection and try again", "Upload failed", ToastPlacement.BottomRight);
+```
+
+A request can override placement, duration, button or content-click dismissal, and can expose an action. The returned session can dismiss the toast or observe its exact completion reason:
+
+```csharp
+IToastSession session = toastService.Show(new ToastRequest("The file was moved to the archive")
+{
+    Title = "Archived",
+    Severity = ToastSeverity.Information,
+    Placement = ToastPlacement.BottomCenter,
+    Duration = Timeout.InfiniteTimeSpan,
+    IsClickDismissEnabled = false,
+    ActionText = "Undo",
+    ActionCommand = UndoCommand,
+});
+
+ToastDismissReason reason = await session.Completion;
+```
+
+Set `ToastTemplate` to replace the notification content or `ToastTheme` to replace the complete ControlTheme. Clicking non-interactive toast content dismisses it by default; the action and close buttons retain their own behavior, and complex custom content can opt out with `IsClickDismissEnabled="False"`. Custom themes can target the `:information`, `:success`, `:warning`, `:error`, `:dismissible`, `:actionable`, and `:untitled` pseudoclasses. `AnimationDuration` controls entry timing, `ExitAnimationDuration` makes exit faster, and `ReflowAnimationDuration` controls the smooth repositioning of remaining notifications when a notification enters or leaves the stack; bind `IsAnimationEnabled` to the application's reduced-motion preference to disable translation and fading.
 
 ## Build from source
 

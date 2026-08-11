@@ -6,7 +6,7 @@
 
 简体中文 | [English](https://github.com/wobushiafa/Aviora/blob/main/README.en.md)
 
-Aviora 是一个面向 [Avalonia](https://avaloniaui.net/) 的现代化、跨平台开源控件库，提供图表、仪表、加载指示器、抽屉、对话框和通用容器控件。
+Aviora 是一个面向 [Avalonia](https://avaloniaui.net/) 的现代化、跨平台开源控件库，提供图表、仪表、加载指示器、抽屉、对话框、Toast 通知和通用容器控件。
 
 > 项目目前处于早期开发阶段，首个稳定版本发布前公共 API 仍可能调整。
 
@@ -22,6 +22,7 @@ Aviora 是一个面向 [Avalonia](https://avaloniaui.net/) 的现代化、跨平
 - `LoadingOverlay`：支持异步作用域、并发请求、多宿主路由和 MVVM 服务调用的全局加载遮罩。
 - `Drawer`：支持多方向、遮罩、Push/Overlay 模式及异步服务调用的抽屉。
 - `Dialog`：支持异步结果、会话关闭、请求排队、多宿主路由和自定义内容的模态对话框。
+- `ToastHost`：支持并发堆叠、六方位显示、超时/动作/取消关闭、动画和外部模板的全局通知宿主。
 
 ## 安装
 
@@ -292,6 +293,48 @@ DialogResult childResult = await dialogService.ShowAsync(new DialogRequest(child
     PresentationMode = DialogPresentationMode.Stack, // or Navigate
 });
 ```
+
+### Toast
+
+将 `ToastHost` 放在窗口最外层并连接全局服务。宿主默认位于右上角，通知显示 4 秒，默认不限制同时显示的数量；设置 `MaxVisible` 为正数即可启用排队限制：
+
+```xml
+<aviora:ToastHost x:Name="ToastHost"
+                  Placement="TopRight"
+                  MaxVisible="0"
+                  IsClickDismissEnabled="True"
+                  AnimationDuration="0:0:0.22"
+                  ExitAnimationDuration="0:0:0.15">
+  <!-- 页面、Drawer、Dialog 和 LoadingOverlay -->
+</aviora:ToastHost>
+```
+
+```csharp
+var toastService = new ToastService();
+ToastHost.Service = toastService;
+
+toastService.ShowSuccess("配置已同步", "保存成功");
+toastService.ShowError("请检查网络后重试", "上传失败", ToastPlacement.BottomRight);
+```
+
+请求可以覆盖位置、时长、是否允许关闭或点击内容关闭，并提供动作按钮；返回的会话可主动关闭，也可等待具体关闭原因：
+
+```csharp
+IToastSession session = toastService.Show(new ToastRequest("文件已移入归档")
+{
+    Title = "已归档",
+    Severity = ToastSeverity.Information,
+    Placement = ToastPlacement.BottomCenter,
+    Duration = Timeout.InfiniteTimeSpan,
+    IsClickDismissEnabled = false,
+    ActionText = "撤销",
+    ActionCommand = UndoCommand,
+});
+
+ToastDismissReason reason = await session.Completion;
+```
+
+设置 `ToastTemplate` 可替换通知内容区域；设置 `ToastTheme` 可替换整条通知的 ControlTheme。默认点击通知的非交互内容区域即可关闭；动作按钮和关闭按钮不会触发该行为，复杂自定义内容可设置 `IsClickDismissEnabled="False"`。自定义主题可使用 `:information`、`:success`、`:warning`、`:error`、`:dismissible`、`:actionable` 和 `:untitled` 伪类。`AnimationDuration` 控制进入时长，`ExitAnimationDuration` 控制更快的退出时长，`ReflowAnimationDuration` 控制新增或关闭通知后其余通知的平滑重排；将 `IsAnimationEnabled` 绑定到应用的“减少动态效果”设置即可关闭位移和淡入淡出。
 
 ## 从源码构建
 

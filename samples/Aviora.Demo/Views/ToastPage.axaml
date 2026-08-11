@@ -1,0 +1,73 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="https://github.com/wobushiafa/Aviora"
+             xmlns:vm="using:Aviora.Demo.ViewModels"
+             x:Class="Aviora.Demo.Views.ToastPage"
+             x:DataType="vm:ToastPageViewModel"
+             mc:Ignorable="d"
+             d:DesignWidth="760"
+             d:DesignHeight="640">
+  <Grid RowDefinitions="Auto,*" RowSpacing="20">
+    <StackPanel Spacing="4">
+      <TextBlock FontSize="24" FontWeight="SemiBold" Text="Toast" />
+      <TextBlock Opacity="0.65" Text="Global, concurrent notifications through IToastService" />
+    </StackPanel>
+
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="0,0,4,24" Spacing="18">
+        <controls:AvioraCard>
+          <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="14">
+            <TextBlock FontSize="18" FontWeight="SemiBold" Text="Notification type" />
+            <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*" ColumnSpacing="10">
+              <Button HorizontalContentAlignment="Center"
+                      Command="{Binding ShowInformationCommand}"
+                      Content="Information" />
+              <Button Grid.Column="1"
+                      HorizontalContentAlignment="Center"
+                      Command="{Binding ShowSuccessCommand}"
+                      Content="Success" />
+              <Button Grid.Column="2"
+                      HorizontalContentAlignment="Center"
+                      Command="{Binding ShowWarningCommand}"
+                      Content="Warning" />
+              <Button Grid.Column="3"
+                      HorizontalContentAlignment="Center"
+                      Command="{Binding ShowErrorCommand}"
+                      Content="Error" />
+            </Grid>
+            <Border Grid.Row="2"
+                    Padding="12,9"
+                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                    CornerRadius="4">
+              <TextBlock FontSize="12" Opacity="0.72" Text="{Binding ToastStatus}" />
+            </Border>
+          </Grid>
+        </controls:AvioraCard>
+
+        <controls:AvioraCard>
+          <Grid ColumnDefinitions="*,*" ColumnSpacing="24">
+            <StackPanel Spacing="10">
+              <TextBlock FontSize="18" FontWeight="SemiBold" Text="Placement" />
+              <ComboBox ItemsSource="{Binding Placements}"
+                        SelectedItem="{Binding SelectedPlacement}" />
+              <ToggleSwitch Content="Persistent notification"
+                            IsChecked="{Binding IsPersistent}" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Spacing="10">
+              <TextBlock FontSize="18" FontWeight="SemiBold" Text="Interaction" />
+              <Button HorizontalContentAlignment="Center"
+                      Command="{Binding ShowActionCommand}"
+                      Content="Show action toast" />
+              <Button HorizontalContentAlignment="Center"
+                      Command="{Binding DismissLastCommand}"
+                      Content="Dismiss last toast" />
+            </StackPanel>
+          </Grid>
+        </controls:AvioraCard>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

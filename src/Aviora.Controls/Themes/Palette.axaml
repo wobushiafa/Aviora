@@ -3,6 +3,8 @@
   <!-- Fallback values also make the palette usable when no theme variant is resolved. -->
   <SolidColorBrush x:Key="AvioraAccentBrush" Color="#0F766E" />
   <SolidColorBrush x:Key="AvioraAccentStrongBrush" Color="#115E59" />
+  <SolidColorBrush x:Key="AvioraInfoBrush" Color="#2563EB" />
+  <SolidColorBrush x:Key="AvioraSuccessBrush" Color="#16A34A" />
   <SolidColorBrush x:Key="AvioraWarningBrush" Color="#D97706" />
   <SolidColorBrush x:Key="AvioraDangerBrush" Color="#DC2626" />
   <SolidColorBrush x:Key="AvioraSurfaceBrush" Color="#FFFFFF" />
@@ -19,6 +21,8 @@
     <ResourceDictionary x:Key="Light">
       <SolidColorBrush x:Key="AvioraAccentBrush" Color="#0F766E" />
       <SolidColorBrush x:Key="AvioraAccentStrongBrush" Color="#115E59" />
+      <SolidColorBrush x:Key="AvioraInfoBrush" Color="#2563EB" />
+      <SolidColorBrush x:Key="AvioraSuccessBrush" Color="#16A34A" />
       <SolidColorBrush x:Key="AvioraWarningBrush" Color="#D97706" />
       <SolidColorBrush x:Key="AvioraDangerBrush" Color="#DC2626" />
       <SolidColorBrush x:Key="AvioraSurfaceBrush" Color="#FFFFFF" />
@@ -35,6 +39,8 @@
     <ResourceDictionary x:Key="Dark">
       <SolidColorBrush x:Key="AvioraAccentBrush" Color="#2DD4BF" />
       <SolidColorBrush x:Key="AvioraAccentStrongBrush" Color="#5EEAD4" />
+      <SolidColorBrush x:Key="AvioraInfoBrush" Color="#60A5FA" />
+      <SolidColorBrush x:Key="AvioraSuccessBrush" Color="#4ADE80" />
       <SolidColorBrush x:Key="AvioraWarningBrush" Color="#FBBF24" />
       <SolidColorBrush x:Key="AvioraDangerBrush" Color="#F87171" />
       <SolidColorBrush x:Key="AvioraSurfaceBrush" Color="#111827" />

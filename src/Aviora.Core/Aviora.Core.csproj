@@ -11,7 +11,7 @@
     <PackageIcon>aviora.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <VersionPrefix>0.3.2</VersionPrefix>
+    <VersionPrefix>0.3.3</VersionPrefix>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>

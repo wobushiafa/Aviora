@@ -25,9 +25,10 @@ public partial class App : Application
             var drawerService = new DrawerService();
             var dialogService = new DialogService();
             var loadingService = new LoadingService();
-            desktop.MainWindow = new MainWindow(drawerService, dialogService, loadingService)
+            var toastService = new ToastService();
+            desktop.MainWindow = new MainWindow(drawerService, dialogService, loadingService, toastService)
             {
-                DataContext = new MainWindowViewModel(drawerService, dialogService, loadingService),
+                DataContext = new MainWindowViewModel(drawerService, dialogService, loadingService, toastService),
             };
         }
 

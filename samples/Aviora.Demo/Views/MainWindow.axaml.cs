@@ -13,11 +13,13 @@ public partial class MainWindow : Window
     public MainWindow(
         IDrawerHostService drawerService,
         IDialogHostService dialogService,
-        ILoadingHostService loadingService)
+        ILoadingHostService loadingService,
+        IToastHostService toastService)
         : this()
     {
         DrawerHost.Service = drawerService;
         DialogHost.Service = dialogService;
         LoadingHost.Service = loadingService;
+        ToastHost.Service = toastService;
     }
 }

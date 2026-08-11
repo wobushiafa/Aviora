@@ -351,4 +351,132 @@
       </ControlTemplate>
     </Setter>
   </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type controls:Toast}"
+                TargetType="controls:Toast">
+    <Setter Property="Background" Value="{DynamicResource AvioraSurfaceRaisedBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AvioraBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Padding" Value="14,12" />
+    <Setter Property="MinWidth" Value="280" />
+    <Setter Property="MaxWidth" Value="420" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource AvioraTextBrush}" />
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="AutomationProperties.LiveSetting" Value="Polite" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                BoxShadow="0 8 24 0 #26000000"
+                CornerRadius="6"
+                Padding="{TemplateBinding Padding}">
+          <Grid ColumnDefinitions="4,*,Auto" ColumnSpacing="12">
+            <Border Name="PART_SeverityIndicator"
+                    Background="{DynamicResource AvioraInfoBrush}"
+                    CornerRadius="2" />
+
+            <StackPanel Grid.Column="1" Spacing="4">
+              <TextBlock Name="PART_Title"
+                         FontSize="14"
+                         FontWeight="SemiBold"
+                         Text="{TemplateBinding Title}"
+                         TextWrapping="Wrap" />
+              <ContentPresenter Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+              <Button Name="PART_Action"
+                      Margin="0,4,0,0"
+                      MinHeight="32"
+                      Padding="10,4"
+                      HorizontalAlignment="Left"
+                      Command="{TemplateBinding ActionCommand}"
+                      CommandParameter="{TemplateBinding ActionCommandParameter}"
+                      Content="{TemplateBinding ActionText}"
+                      IsVisible="False" />
+            </StackPanel>
+
+            <Button Name="PART_Close"
+                    Grid.Column="2"
+                    Width="36"
+                    Height="36"
+                    Padding="8"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    AutomationProperties.Name="Dismiss notification"
+                    Command="{Binding CloseCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                    IsVisible="False"
+                    ToolTip.Tip="Dismiss notification">
+              <PathIcon Width="14"
+                        Height="14"
+                        Data="M 3 3 L 13 13 M 13 3 L 3 13" />
+            </Button>
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:success /template/ #PART_SeverityIndicator" x:SetterTargetType="Border">
+      <Setter Property="Background" Value="{DynamicResource AvioraSuccessBrush}" />
+    </Style>
+    <Style Selector="^:warning /template/ #PART_SeverityIndicator" x:SetterTargetType="Border">
+      <Setter Property="Background" Value="{DynamicResource AvioraWarningBrush}" />
+    </Style>
+    <Style Selector="^:error /template/ #PART_SeverityIndicator" x:SetterTargetType="Border">
+      <Setter Property="Background" Value="{DynamicResource AvioraDangerBrush}" />
+    </Style>
+    <Style Selector="^:untitled /template/ #PART_Title" x:SetterTargetType="TextBlock">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="^:actionable /template/ #PART_Action" x:SetterTargetType="Button">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="^:dismissible /template/ #PART_Close" x:SetterTargetType="Button">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type controls:ToastHost}"
+                TargetType="controls:ToastHost">
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Grid ClipToBounds="False">
+          <ContentPresenter Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+
+          <StackPanel Name="PART_TopLeftToasts"
+                      Margin="{TemplateBinding ToastMargin}"
+                      HorizontalAlignment="Left"
+                      VerticalAlignment="Top" />
+          <StackPanel Name="PART_TopCenterToasts"
+                      Margin="{TemplateBinding ToastMargin}"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Top" />
+          <StackPanel Name="PART_TopRightToasts"
+                      Margin="{TemplateBinding ToastMargin}"
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Top" />
+          <StackPanel Name="PART_BottomLeftToasts"
+                      Margin="{TemplateBinding ToastMargin}"
+                      HorizontalAlignment="Left"
+                      VerticalAlignment="Bottom" />
+          <StackPanel Name="PART_BottomCenterToasts"
+                      Margin="{TemplateBinding ToastMargin}"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Bottom" />
+          <StackPanel Name="PART_BottomRightToasts"
+                      Margin="{TemplateBinding ToastMargin}"
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Bottom" />
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
 </ResourceDictionary>

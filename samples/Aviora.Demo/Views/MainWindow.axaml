@@ -104,6 +104,7 @@
         </DataTemplate>
     </Window.DataTemplates>
 
+    <aviora:ToastHost x:Name="ToastHost">
     <aviora:LoadingOverlay x:Name="LoadingHost"
                            ShowDelay="0:0:0.1"
                            CloseDelay="0:0:0.2"
@@ -164,4 +165,5 @@
     </aviora:Drawer>
     </aviora:Dialog>
     </aviora:LoadingOverlay>
+    </aviora:ToastHost>
 </Window>
