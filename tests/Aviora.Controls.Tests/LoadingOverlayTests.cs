@@ -1,6 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Aviora.Presentation.Loadings;
 
 namespace Aviora.Controls.Tests;
@@ -19,6 +21,27 @@ public class LoadingOverlayTests
         Assert.Equal(TimeSpan.Zero, overlay.ShowDelay);
         Assert.Equal(TimeSpan.Zero, overlay.MinimumShowDuration);
         Assert.Equal(TimeSpan.Zero, overlay.CloseDelay);
+    }
+
+    [AvaloniaFact]
+    public async Task Loading_content_container_uses_the_ambient_foreground()
+    {
+        var overlay = new LoadingOverlay { IsOpen = true };
+        var window = new Window { Content = overlay };
+
+        try
+        {
+            window.Show();
+            await FlushDispatcherAsync();
+
+            StackPanel contentContainer = Assert.Single(overlay.GetVisualDescendants().OfType<StackPanel>());
+
+            Assert.Equal(Brushes.Black, contentContainer.GetValue(Avalonia.Controls.Documents.TextElement.ForegroundProperty));
+        }
+        finally
+        {
+            window.Close();
+        }
     }
 
     [AvaloniaFact]

@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
@@ -27,8 +28,78 @@ public class DrawerTests
         Assert.True(drawer.IsEscapeKeyEnabled);
         Assert.True(drawer.IsOverlayVisible);
         Assert.True(drawer.IsAnimationEnabled);
+        Assert.Equal(default, drawer.SurfaceCornerRadius);
+        Assert.Equal(default, drawer.SurfaceBoxShadow);
+        Assert.Equal(default, drawer.SurfacePadding);
+        Assert.Equal(default, drawer.SurfaceMargin);
         Assert.Equal(TimeSpan.FromMilliseconds(260), drawer.PaneAnimationDuration);
         Assert.Equal(TimeSpan.FromMilliseconds(180), drawer.OverlayAnimationDuration);
+    }
+
+    [AvaloniaFact]
+    public async Task Drawer_pane_defaults_to_white_and_can_be_made_transparent()
+    {
+        var drawer = new Drawer
+        {
+            IsOpen = true,
+            IsAnimationEnabled = false,
+            SurfaceBackground = Brushes.Transparent,
+            SurfaceBorderBrush = Brushes.Navy,
+            SurfaceBorderThickness = new Thickness(2),
+            SurfacePadding = new Thickness(12),
+            SurfaceMargin = new Thickness(16),
+            SurfaceCornerRadius = new CornerRadius(6),
+            SurfaceBoxShadow = new BoxShadows(new BoxShadow { Blur = 8 }),
+        };
+        var window = new Window { Content = drawer };
+
+        try
+        {
+            window.Show();
+            await FlushDispatcherAsync();
+
+            var pane = drawer.GetVisualDescendants()
+                .OfType<Border>()
+                .Single(control => control.Name == "PART_PaneSurface");
+            var presenter = drawer.GetVisualDescendants()
+                .OfType<ContentControl>()
+                .Single(control => control.Name == "PART_Pane");
+
+            Assert.Equal(Brushes.Transparent, pane.Background);
+            Assert.Equal(Brushes.Navy, pane.BorderBrush);
+            Assert.Equal(new Thickness(2), pane.BorderThickness);
+            Assert.Equal(new CornerRadius(6), pane.CornerRadius);
+            Assert.Equal(new BoxShadows(new BoxShadow { Blur = 8 }), pane.BoxShadow);
+            Assert.Equal(new Thickness(16), pane.Margin);
+            Assert.Equal(new Thickness(12), presenter.Padding);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task Drawer_pane_defaults_to_white()
+    {
+        var drawer = new Drawer { IsOpen = true, IsAnimationEnabled = false };
+        var window = new Window { Content = drawer };
+
+        try
+        {
+            window.Show();
+            await FlushDispatcherAsync();
+
+            var pane = drawer.GetVisualDescendants()
+                .OfType<Border>()
+                .Single(control => control.Name == "PART_PaneSurface");
+
+            Assert.Equal(Brushes.White, pane.Background);
+        }
+        finally
+        {
+            window.Close();
+        }
     }
 
     [Fact]
@@ -185,7 +256,7 @@ public class DrawerTests
             IsAnimationEnabled = true,
             PaneAnimationDuration = TimeSpan.FromMilliseconds(111),
             OverlayAnimationDuration = TimeSpan.FromMilliseconds(88),
-            PaneCornerRadius = new Avalonia.CornerRadius(7),
+            SurfaceCornerRadius = new Avalonia.CornerRadius(7),
         };
         var window = new Window { Content = drawer };
 
@@ -208,7 +279,7 @@ public class DrawerTests
             Assert.Equal(420, drawer.DrawerSize);
             Assert.False(drawer.IsAnimationEnabled);
             Assert.Equal(TimeSpan.FromMilliseconds(5), drawer.PaneAnimationDuration);
-            Assert.Equal(new Avalonia.CornerRadius(7), drawer.PaneCornerRadius);
+            Assert.Equal(new Avalonia.CornerRadius(7), drawer.SurfaceCornerRadius);
             drawer.TryClose();
             await result;
 
@@ -219,7 +290,7 @@ public class DrawerTests
             Assert.True(drawer.IsAnimationEnabled);
             Assert.Equal(TimeSpan.FromMilliseconds(111), drawer.PaneAnimationDuration);
             Assert.Equal(TimeSpan.FromMilliseconds(88), drawer.OverlayAnimationDuration);
-            Assert.Equal(new Avalonia.CornerRadius(7), drawer.PaneCornerRadius);
+            Assert.Equal(new Avalonia.CornerRadius(7), drawer.SurfaceCornerRadius);
         }
         finally
         {

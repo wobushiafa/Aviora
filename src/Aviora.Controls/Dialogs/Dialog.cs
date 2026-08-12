@@ -51,11 +51,11 @@ public class Dialog : ContentControl, IDialogHost
 
     /// <summary>Defines the <see cref="MinDialogWidth"/> property.</summary>
     public static readonly StyledProperty<double> MinDialogWidthProperty =
-        AvaloniaProperty.Register<Dialog, double>(nameof(MinDialogWidth), 280, validate: value => value >= 0);
+        AvaloniaProperty.Register<Dialog, double>(nameof(MinDialogWidth), 0, validate: value => value >= 0);
 
     /// <summary>Defines the <see cref="MaxDialogWidth"/> property.</summary>
     public static readonly StyledProperty<double> MaxDialogWidthProperty =
-        AvaloniaProperty.Register<Dialog, double>(nameof(MaxDialogWidth), 720, validate: value => value >= 0);
+        AvaloniaProperty.Register<Dialog, double>(nameof(MaxDialogWidth), double.PositiveInfinity, validate: value => value >= 0);
 
     /// <summary>Defines the <see cref="MinDialogHeight"/> property.</summary>
     public static readonly StyledProperty<double> MinDialogHeightProperty =
@@ -83,6 +83,26 @@ public class Dialog : ContentControl, IDialogHost
             nameof(OverlayBrush),
             new ImmutableSolidColorBrush(Color.FromArgb(112, 0, 0, 0)));
 
+    /// <summary>Defines the <see cref="SurfaceBackground"/> property.</summary>
+    public static readonly StyledProperty<IBrush?> SurfaceBackgroundProperty =
+        AvaloniaProperty.Register<Dialog, IBrush?>(nameof(SurfaceBackground));
+
+    /// <summary>Defines the <see cref="SurfaceBorderBrush"/> property.</summary>
+    public static readonly StyledProperty<IBrush?> SurfaceBorderBrushProperty =
+        AvaloniaProperty.Register<Dialog, IBrush?>(nameof(SurfaceBorderBrush));
+
+    /// <summary>Defines the <see cref="SurfaceBorderThickness"/> property.</summary>
+    public static readonly StyledProperty<Thickness> SurfaceBorderThicknessProperty =
+        AvaloniaProperty.Register<Dialog, Thickness>(nameof(SurfaceBorderThickness));
+
+    /// <summary>Defines the <see cref="SurfacePadding"/> property.</summary>
+    public static readonly StyledProperty<Thickness> SurfacePaddingProperty =
+        AvaloniaProperty.Register<Dialog, Thickness>(nameof(SurfacePadding));
+
+    /// <summary>Defines the <see cref="SurfaceMargin"/> property.</summary>
+    public static readonly StyledProperty<Thickness> SurfaceMarginProperty =
+        AvaloniaProperty.Register<Dialog, Thickness>(nameof(SurfaceMargin));
+
     /// <summary>Defines the <see cref="Service"/> property.</summary>
     public static readonly StyledProperty<IDialogHostService?> ServiceProperty =
         AvaloniaProperty.Register<Dialog, IDialogHostService?>(nameof(Service));
@@ -109,18 +129,13 @@ public class Dialog : ContentControl, IDialogHost
     public static readonly StyledProperty<Easing> DialogEasingProperty =
         AvaloniaProperty.Register<Dialog, Easing>(nameof(DialogEasing), new CubicEaseOut());
 
-    /// <summary>Defines the <see cref="DialogCornerRadius"/> property.</summary>
-    public static readonly StyledProperty<CornerRadius> DialogCornerRadiusProperty =
-        AvaloniaProperty.Register<Dialog, CornerRadius>(nameof(DialogCornerRadius), new CornerRadius(8));
+    /// <summary>Defines the <see cref="SurfaceCornerRadius"/> property.</summary>
+    public static readonly StyledProperty<CornerRadius> SurfaceCornerRadiusProperty =
+        AvaloniaProperty.Register<Dialog, CornerRadius>(nameof(SurfaceCornerRadius));
 
-    /// <summary>Defines the <see cref="DialogBoxShadow"/> property.</summary>
-    public static readonly StyledProperty<BoxShadows> DialogBoxShadowProperty =
-        AvaloniaProperty.Register<Dialog, BoxShadows>(nameof(DialogBoxShadow), new BoxShadows(new BoxShadow
-        {
-            Blur = 32,
-            OffsetY = 12,
-            Color = Color.FromArgb(64, 0, 0, 0),
-        }));
+    /// <summary>Defines the <see cref="SurfaceBoxShadow"/> property.</summary>
+    public static readonly StyledProperty<BoxShadows> SurfaceBoxShadowProperty =
+        AvaloniaProperty.Register<Dialog, BoxShadows>(nameof(SurfaceBoxShadow));
 
     private readonly CloseDialogCommand _closeCommand;
     private readonly List<Dialog> _nestedDialogs = [];
@@ -189,6 +204,21 @@ public class Dialog : ContentControl, IDialogHost
     /// <summary>Gets or sets the brush used to dim primary content.</summary>
     public IBrush? OverlayBrush { get => GetValue(OverlayBrushProperty); set => SetValue(OverlayBrushProperty, value); }
 
+    /// <summary>Gets or sets the background of the dialog surface.</summary>
+    public IBrush? SurfaceBackground { get => GetValue(SurfaceBackgroundProperty); set => SetValue(SurfaceBackgroundProperty, value); }
+
+    /// <summary>Gets or sets the border brush of the dialog surface.</summary>
+    public IBrush? SurfaceBorderBrush { get => GetValue(SurfaceBorderBrushProperty); set => SetValue(SurfaceBorderBrushProperty, value); }
+
+    /// <summary>Gets or sets the border thickness of the dialog surface.</summary>
+    public Thickness SurfaceBorderThickness { get => GetValue(SurfaceBorderThicknessProperty); set => SetValue(SurfaceBorderThicknessProperty, value); }
+
+    /// <summary>Gets or sets the padding inside the dialog surface.</summary>
+    public Thickness SurfacePadding { get => GetValue(SurfacePaddingProperty); set => SetValue(SurfacePaddingProperty, value); }
+
+    /// <summary>Gets or sets the space around the dialog surface.</summary>
+    public Thickness SurfaceMargin { get => GetValue(SurfaceMarginProperty); set => SetValue(SurfaceMarginProperty, value); }
+
     /// <summary>Gets or sets the service whose requests this dialog hosts.</summary>
     public IDialogHostService? Service { get => GetValue(ServiceProperty); set => SetValue(ServiceProperty, value); }
 
@@ -204,11 +234,11 @@ public class Dialog : ContentControl, IDialogHost
     /// <summary>Gets or sets the easing function used by dialog transitions.</summary>
     public Easing DialogEasing { get => GetValue(DialogEasingProperty); set => SetValue(DialogEasingProperty, value); }
 
-    /// <summary>Gets or sets the dialog corner radius.</summary>
-    public CornerRadius DialogCornerRadius { get => GetValue(DialogCornerRadiusProperty); set => SetValue(DialogCornerRadiusProperty, value); }
+    /// <summary>Gets or sets the corner radius of the dialog surface.</summary>
+    public CornerRadius SurfaceCornerRadius { get => GetValue(SurfaceCornerRadiusProperty); set => SetValue(SurfaceCornerRadiusProperty, value); }
 
-    /// <summary>Gets or sets the dialog shadow.</summary>
-    public BoxShadows DialogBoxShadow { get => GetValue(DialogBoxShadowProperty); set => SetValue(DialogBoxShadowProperty, value); }
+    /// <summary>Gets or sets the shadow of the dialog surface.</summary>
+    public BoxShadows SurfaceBoxShadow { get => GetValue(SurfaceBoxShadowProperty); set => SetValue(SurfaceBoxShadowProperty, value); }
 
     /// <summary>Gets a command that closes the dialog and uses its parameter as the result.</summary>
     public ICommand CloseCommand { get; }
@@ -394,14 +424,15 @@ public class Dialog : ContentControl, IDialogHost
         {
             HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch,
-            Background = Background,
-            BorderBrush = BorderBrush,
-            BorderThickness = BorderThickness,
-            Padding = Padding,
             OverlayBrush = OverlayBrush,
+            SurfaceBackground = SurfaceBackground,
+            SurfaceBorderBrush = SurfaceBorderBrush,
+            SurfaceBorderThickness = SurfaceBorderThickness,
+            SurfacePadding = SurfacePadding,
+            SurfaceMargin = SurfaceMargin,
             DialogContentTemplate = DialogContentTemplate,
-            DialogCornerRadius = DialogCornerRadius,
-            DialogBoxShadow = DialogBoxShadow,
+            SurfaceCornerRadius = SurfaceCornerRadius,
+            SurfaceBoxShadow = SurfaceBoxShadow,
             IsAnimationEnabled = IsAnimationEnabled,
             AnimationDuration = AnimationDuration,
             DialogEasing = DialogEasing,

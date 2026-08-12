@@ -248,6 +248,80 @@
                             </StackPanel>
                         </controls:AvioraCard>
 
+                        <controls:AvioraCard HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="12">
+                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="Y-axis glyph alignment" />
+                                <TextBlock Opacity="0.65"
+                                           Text="The visible center of every label should sit on its grid line at 10, 16, and 24 px font sizes"
+                                           TextWrapping="Wrap" />
+                                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="14">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="10 px" />
+                                        <controls:LineChart Height="230"
+                                                            Values="{Binding WeeklyValues}"
+                                                            AutoRange="False"
+                                                            MinValue="0"
+                                                            MaxValue="60"
+                                                            GridLineCount="7"
+                                                            YAxisFontSize="10"
+                                                            YAxisWidth="48"
+                                                            ShowXAxis="False"
+                                                            ShowYAxis="True"
+                                                            ShowGridLines="True"
+                                                            ShowPoints="False"
+                                                            IsToolTipEnabled="False"
+                                                            IsAnimationEnabled="False"
+                                                            LineBrush="#0F766E"
+                                                            LineThickness="2"
+                                                            GridLineBrush="#64748B"
+                                                            YAxisTextBrush="#0F172A" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Spacing="6">
+                                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="16 px" />
+                                        <controls:LineChart Height="230"
+                                                            Values="{Binding WeeklyValues}"
+                                                            AutoRange="False"
+                                                            MinValue="0"
+                                                            MaxValue="60"
+                                                            GridLineCount="7"
+                                                            YAxisFontSize="16"
+                                                            YAxisWidth="58"
+                                                            ShowXAxis="False"
+                                                            ShowYAxis="True"
+                                                            ShowGridLines="True"
+                                                            ShowPoints="False"
+                                                            IsToolTipEnabled="False"
+                                                            IsAnimationEnabled="False"
+                                                            LineBrush="#2563EB"
+                                                            LineThickness="2"
+                                                            GridLineBrush="#64748B"
+                                                            YAxisTextBrush="#0F172A" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Spacing="6">
+                                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="24 px" />
+                                        <controls:LineChart Height="230"
+                                                            Values="{Binding WeeklyValues}"
+                                                            AutoRange="False"
+                                                            MinValue="0"
+                                                            MaxValue="60"
+                                                            GridLineCount="7"
+                                                            YAxisFontSize="24"
+                                                            YAxisWidth="72"
+                                                            ShowXAxis="False"
+                                                            ShowYAxis="True"
+                                                            ShowGridLines="True"
+                                                            ShowPoints="False"
+                                                            IsToolTipEnabled="False"
+                                                            IsAnimationEnabled="False"
+                                                            LineBrush="#B45309"
+                                                            LineThickness="2"
+                                                            GridLineBrush="#64748B"
+                                                            YAxisTextBrush="#0F172A" />
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </controls:AvioraCard>
+
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="18">
                             <controls:AvioraCard HorizontalAlignment="Stretch">
                                 <StackPanel Spacing="10">

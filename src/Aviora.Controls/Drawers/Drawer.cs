@@ -76,6 +76,26 @@ public class Drawer : ContentControl, IDrawerHost
     public static readonly StyledProperty<IBrush?> OverlayBrushProperty =
         AvaloniaProperty.Register<Drawer, IBrush?>(nameof(OverlayBrush), new ImmutableSolidColorBrush(Color.FromArgb(112, 0, 0, 0)));
 
+    /// <summary>Defines the <see cref="SurfaceBackground"/> property.</summary>
+    public static readonly StyledProperty<IBrush?> SurfaceBackgroundProperty =
+        AvaloniaProperty.Register<Drawer, IBrush?>(nameof(SurfaceBackground));
+
+    /// <summary>Defines the <see cref="SurfaceBorderBrush"/> property.</summary>
+    public static readonly StyledProperty<IBrush?> SurfaceBorderBrushProperty =
+        AvaloniaProperty.Register<Drawer, IBrush?>(nameof(SurfaceBorderBrush));
+
+    /// <summary>Defines the <see cref="SurfaceBorderThickness"/> property.</summary>
+    public static readonly StyledProperty<Thickness> SurfaceBorderThicknessProperty =
+        AvaloniaProperty.Register<Drawer, Thickness>(nameof(SurfaceBorderThickness));
+
+    /// <summary>Defines the <see cref="SurfacePadding"/> property.</summary>
+    public static readonly StyledProperty<Thickness> SurfacePaddingProperty =
+        AvaloniaProperty.Register<Drawer, Thickness>(nameof(SurfacePadding));
+
+    /// <summary>Defines the <see cref="SurfaceMargin"/> property.</summary>
+    public static readonly StyledProperty<Thickness> SurfaceMarginProperty =
+        AvaloniaProperty.Register<Drawer, Thickness>(nameof(SurfaceMargin));
+
     /// <summary>Defines the <see cref="Service"/> property.</summary>
     public static readonly StyledProperty<IDrawerHostService?> ServiceProperty =
         AvaloniaProperty.Register<Drawer, IDrawerHostService?>(nameof(Service));
@@ -106,19 +126,13 @@ public class Drawer : ContentControl, IDrawerHost
     public static readonly StyledProperty<Easing> OverlayEasingProperty =
         AvaloniaProperty.Register<Drawer, Easing>(nameof(OverlayEasing), new CubicEaseOut());
 
-    /// <summary>Defines the <see cref="PaneCornerRadius"/> property.</summary>
-    public static readonly StyledProperty<CornerRadius> PaneCornerRadiusProperty =
-        AvaloniaProperty.Register<Drawer, CornerRadius>(nameof(PaneCornerRadius));
+    /// <summary>Defines the <see cref="SurfaceCornerRadius"/> property.</summary>
+    public static readonly StyledProperty<CornerRadius> SurfaceCornerRadiusProperty =
+        AvaloniaProperty.Register<Drawer, CornerRadius>(nameof(SurfaceCornerRadius));
 
-    /// <summary>Defines the <see cref="PaneBoxShadow"/> property.</summary>
-    public static readonly StyledProperty<BoxShadows> PaneBoxShadowProperty =
-        AvaloniaProperty.Register<Drawer, BoxShadows>(nameof(PaneBoxShadow), new BoxShadows(new BoxShadow
-        {
-            Blur = 24,
-            OffsetX = 0,
-            OffsetY = 8,
-            Color = Color.FromArgb(48, 0, 0, 0),
-        }));
+    /// <summary>Defines the <see cref="SurfaceBoxShadow"/> property.</summary>
+    public static readonly StyledProperty<BoxShadows> SurfaceBoxShadowProperty =
+        AvaloniaProperty.Register<Drawer, BoxShadows>(nameof(SurfaceBoxShadow));
 
     private Border? _overlay;
     private Grid? _root;
@@ -196,6 +210,21 @@ public class Drawer : ContentControl, IDrawerHost
     /// <summary>Gets or sets the brush used to dim primary content.</summary>
     public IBrush? OverlayBrush { get => GetValue(OverlayBrushProperty); set => SetValue(OverlayBrushProperty, value); }
 
+    /// <summary>Gets or sets the background of the drawer surface.</summary>
+    public IBrush? SurfaceBackground { get => GetValue(SurfaceBackgroundProperty); set => SetValue(SurfaceBackgroundProperty, value); }
+
+    /// <summary>Gets or sets the border brush of the drawer surface.</summary>
+    public IBrush? SurfaceBorderBrush { get => GetValue(SurfaceBorderBrushProperty); set => SetValue(SurfaceBorderBrushProperty, value); }
+
+    /// <summary>Gets or sets the border thickness of the drawer surface.</summary>
+    public Thickness SurfaceBorderThickness { get => GetValue(SurfaceBorderThicknessProperty); set => SetValue(SurfaceBorderThicknessProperty, value); }
+
+    /// <summary>Gets or sets the padding inside the drawer surface.</summary>
+    public Thickness SurfacePadding { get => GetValue(SurfacePaddingProperty); set => SetValue(SurfacePaddingProperty, value); }
+
+    /// <summary>Gets or sets the space around the drawer surface.</summary>
+    public Thickness SurfaceMargin { get => GetValue(SurfaceMarginProperty); set => SetValue(SurfaceMarginProperty, value); }
+
     /// <summary>Gets or sets the service whose requests this drawer hosts.</summary>
     public IDrawerHostService? Service { get => GetValue(ServiceProperty); set => SetValue(ServiceProperty, value); }
 
@@ -217,11 +246,11 @@ public class Drawer : ContentControl, IDrawerHost
     /// <summary>Gets or sets the easing function used by the overlay transition.</summary>
     public Easing OverlayEasing { get => GetValue(OverlayEasingProperty); set => SetValue(OverlayEasingProperty, value); }
 
-    /// <summary>Gets or sets the pane's corner radius.</summary>
-    public CornerRadius PaneCornerRadius { get => GetValue(PaneCornerRadiusProperty); set => SetValue(PaneCornerRadiusProperty, value); }
+    /// <summary>Gets or sets the corner radius of the drawer surface.</summary>
+    public CornerRadius SurfaceCornerRadius { get => GetValue(SurfaceCornerRadiusProperty); set => SetValue(SurfaceCornerRadiusProperty, value); }
 
-    /// <summary>Gets or sets the pane's shadow.</summary>
-    public BoxShadows PaneBoxShadow { get => GetValue(PaneBoxShadowProperty); set => SetValue(PaneBoxShadowProperty, value); }
+    /// <summary>Gets or sets the shadow of the drawer surface.</summary>
+    public BoxShadows SurfaceBoxShadow { get => GetValue(SurfaceBoxShadowProperty); set => SetValue(SurfaceBoxShadowProperty, value); }
 
     /// <summary>
     /// Gets a command that closes the drawer and uses its parameter as the result.

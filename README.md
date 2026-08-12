@@ -210,7 +210,7 @@ using ILoadingSession loading = loadingService.Show(
 await SynchronizeAsync();
 ```
 
-多个会话可以重叠；任一会话结束只关闭自身，最后一个会话结束后遮罩才消失。`HostId` 可用于多窗口路由，`LoadingContentTemplate` 可展示自定义消息 ViewModel。`ShowDelay` 用于过滤短任务，`MinimumShowDuration` 保证遮罩一旦出现后的最短展示时间，`CloseDelay` 则让最后一个任务结束后延迟关闭；等待关闭期间出现新任务时，旧关闭计时会自动取消。
+多个会话可以重叠；任一会话结束只关闭自身，最后一个会话结束后遮罩才消失。`HostId` 可用于多窗口路由，`LoadingContentTemplate` 可展示自定义消息 ViewModel，且内容的字体、颜色、间距完全由该模板或内容控件决定。`ShowDelay` 用于过滤短任务，`MinimumShowDuration` 保证遮罩一旦出现后的最短展示时间，`CloseDelay` 则让最后一个任务结束后延迟关闭；等待关闭期间出现新任务时，旧关闭计时会自动取消。
 
 ### Drawer
 
@@ -226,7 +226,7 @@ await SynchronizeAsync();
 </aviora:Drawer>
 ```
 
-未设置 `DrawerSize` 时，Drawer 会按内容在弹出方向的期望尺寸自动测量；左右方向测量宽度，上下方向测量高度。设置具体数值时保持固定尺寸。
+未设置 `DrawerSize` 时，Drawer 会按内容在弹出方向的期望尺寸自动测量；左右方向测量宽度，上下方向测量高度。设置具体数值时保持固定尺寸。遮罩使用 `OverlayBrush`；抽屉承载面使用统一的 `SurfaceBackground`、`SurfaceBorderBrush`、`SurfaceBorderThickness`、`SurfaceCornerRadius`、`SurfaceBoxShadow`、`SurfacePadding` 和 `SurfaceMargin`。`SurfaceBackground` 默认白色，也可设置为任意画刷或 `Transparent`。
 
 在应用组合根创建 Avalonia 实现，把宿主接口交给 View，并把客户端接口注入 ViewModel：
 
@@ -274,7 +274,7 @@ DialogHost.Service = dialogService;
 DataContext = new MainWindowViewModel(dialogService);
 ```
 
-以上也是内建默认值；单次 `DialogRequest` 仍可按需覆盖这些全局设置。
+以上也是内建默认值；单次 `DialogRequest` 仍可按需覆盖这些全局设置。遮罩使用 `OverlayBrush`；对话框承载面使用统一的 `SurfaceBackground`、`SurfaceBorderBrush`、`SurfaceBorderThickness`、`SurfaceCornerRadius`、`SurfaceBoxShadow`、`SurfacePadding` 和 `SurfaceMargin`。`SurfaceBackground` 默认白色，也可设置为任意画刷或 `Transparent`。
 
 ViewModel 可以直接展示内容；需要从内容内部关闭并返回结果时使用会话工厂：
 

@@ -18,6 +18,7 @@
 
     <Window.DataTemplates>
         <DataTemplate DataType="vm:DrawerDemoViewModel" x:DataType="vm:DrawerDemoViewModel">
+            <Border Background="White" Padding="24">
             <Grid RowDefinitions="Auto,*,Auto" RowSpacing="24">
                 <StackPanel Spacing="6">
                     <TextBlock FontSize="20" FontWeight="SemiBold" Text="Profile settings" />
@@ -39,9 +40,11 @@
                     <Button Command="{Binding SaveCommand}" Content="Save" />
                 </StackPanel>
             </Grid>
+            </Border>
         </DataTemplate>
 
         <DataTemplate DataType="vm:ProfileDialogViewModel" x:DataType="vm:ProfileDialogViewModel">
+            <Border Background="White" Padding="24">
             <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="20">
                 <StackPanel Spacing="5">
                     <TextBlock FontSize="20" FontWeight="SemiBold" Text="Edit profile" />
@@ -85,9 +88,11 @@
                     <Button Command="{Binding SaveCommand}" Content="Save" />
                 </StackPanel>
             </Grid>
+            </Border>
         </DataTemplate>
 
         <DataTemplate DataType="vm:ConfirmationDialogViewModel" x:DataType="vm:ConfirmationDialogViewModel">
+            <Border Background="White" Padding="24">
             <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="18" Width="360">
                 <TextBlock FontSize="20" FontWeight="SemiBold" Text="Confirm action" />
                 <TextBlock Grid.Row="1"
@@ -101,6 +106,7 @@
                     <Button Command="{Binding ConfirmCommand}" Content="Confirm" />
                 </StackPanel>
             </Grid>
+            </Border>
         </DataTemplate>
     </Window.DataTemplates>
 
@@ -111,10 +117,10 @@
                            MinimumShowDuration="0:0:0.35">
     <aviora:Dialog x:Name="DialogHost">
     <aviora:Drawer x:Name="DrawerHost"
-                     Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
-                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                     BorderThickness="1,0,0,0"
-                     Padding="24">
+                     SurfaceBackground="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                     SurfaceBorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                     SurfaceBorderThickness="1,0,0,0"
+                     SurfacePadding="24">
     <Grid ColumnDefinitions="216,*">
         <Border Padding="20,24"
                 Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"

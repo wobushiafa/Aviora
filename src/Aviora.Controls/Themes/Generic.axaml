@@ -96,8 +96,7 @@
                   IsVisible="{TemplateBinding IsOpen}">
             <StackPanel HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Spacing="16"
-                        TextElement.Foreground="White">
+                        Spacing="16">
               <controls:Loading Width="{TemplateBinding IndicatorSize}"
                                 Height="{TemplateBinding IndicatorSize}"
                                 HorizontalAlignment="Center"
@@ -157,9 +156,7 @@
 
   <ControlTheme x:Key="{x:Type controls:Drawer}"
                 TargetType="controls:Drawer">
-    <Setter Property="Background" Value="{DynamicResource AvioraSurfaceBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource AvioraBorderBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="SurfaceBackground" Value="White" />
     <Setter Property="OverlayBrush" Value="{DynamicResource AvioraOverlayBrush}" />
     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
     <Setter Property="VerticalContentAlignment" Value="Stretch" />
@@ -191,18 +188,19 @@
           <Border Name="PART_PaneSurface"
                   Grid.Column="1"
                   Grid.RowSpan="2"
+                  Margin="{TemplateBinding SurfaceMargin}"
                   Width="{TemplateBinding DrawerSize}"
                   MinWidth="{TemplateBinding MinDrawerSize}"
                   MaxWidth="{TemplateBinding MaxDrawerSize}"
-                  Background="{TemplateBinding Background}"
-                  BorderBrush="{TemplateBinding BorderBrush}"
-                  BorderThickness="{TemplateBinding BorderThickness}"
-                  CornerRadius="{TemplateBinding PaneCornerRadius}"
-                  BoxShadow="{TemplateBinding PaneBoxShadow}"
+                  Background="{TemplateBinding SurfaceBackground}"
+                  BorderBrush="{TemplateBinding SurfaceBorderBrush}"
+                  BorderThickness="{TemplateBinding SurfaceBorderThickness}"
+                  CornerRadius="{TemplateBinding SurfaceCornerRadius}"
+                  BoxShadow="{TemplateBinding SurfaceBoxShadow}"
                   IsHitTestVisible="False"
                   IsVisible="False">
             <ContentControl Name="PART_Pane"
-                            Padding="{TemplateBinding Padding}"
+                            Padding="{TemplateBinding SurfacePadding}"
                             Content="{TemplateBinding DrawerContent}"
                             ContentTemplate="{TemplateBinding DrawerContentTemplate}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
@@ -295,11 +293,8 @@
 
   <ControlTheme x:Key="{x:Type controls:Dialog}"
                 TargetType="controls:Dialog">
-    <Setter Property="Background" Value="{DynamicResource AvioraSurfaceBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource AvioraBorderBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="SurfaceBackground" Value="White" />
     <Setter Property="OverlayBrush" Value="{DynamicResource AvioraOverlayBrush}" />
-    <Setter Property="Padding" Value="24" />
     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
     <Setter Property="VerticalContentAlignment" Value="Stretch" />
     <Setter Property="Focusable" Value="True" />
@@ -320,7 +315,7 @@
                   AutomationProperties.Name="Close dialog" />
 
           <Border Name="PART_DialogSurface"
-                  Margin="24"
+                  Margin="{TemplateBinding SurfaceMargin}"
                   Width="{TemplateBinding DialogWidth}"
                   Height="{TemplateBinding DialogHeight}"
                   MinWidth="{TemplateBinding MinDialogWidth}"
@@ -329,17 +324,17 @@
                   MaxHeight="{TemplateBinding MaxDialogHeight}"
                   HorizontalAlignment="Center"
                   VerticalAlignment="Center"
-                  Background="{TemplateBinding Background}"
-                  BorderBrush="{TemplateBinding BorderBrush}"
-                  BorderThickness="{TemplateBinding BorderThickness}"
-                  BoxShadow="{TemplateBinding DialogBoxShadow}"
-                  CornerRadius="{TemplateBinding DialogCornerRadius}"
+                  Background="{TemplateBinding SurfaceBackground}"
+                  BorderBrush="{TemplateBinding SurfaceBorderBrush}"
+                  BorderThickness="{TemplateBinding SurfaceBorderThickness}"
+                  BoxShadow="{TemplateBinding SurfaceBoxShadow}"
+                  CornerRadius="{TemplateBinding SurfaceCornerRadius}"
                   IsHitTestVisible="False"
                   IsVisible="False"
                   KeyboardNavigation.TabNavigation="Cycle"
                   Opacity="0">
             <ContentControl Name="PART_DialogPresenter"
-                            Padding="{TemplateBinding Padding}"
+                            Padding="{TemplateBinding SurfacePadding}"
                             Content="{TemplateBinding DialogContent}"
                             ContentTemplate="{TemplateBinding DialogContentTemplate}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"

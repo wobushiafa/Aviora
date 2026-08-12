@@ -1,5 +1,7 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Aviora.Presentation.Dialogs;
@@ -16,8 +18,12 @@ public class DialogTests
         Assert.False(dialog.IsOpen);
         Assert.True(double.IsNaN(dialog.DialogWidth));
         Assert.True(double.IsNaN(dialog.DialogHeight));
-        Assert.Equal(280, dialog.MinDialogWidth);
-        Assert.Equal(720, dialog.MaxDialogWidth);
+        Assert.Equal(0, dialog.MinDialogWidth);
+        Assert.True(double.IsPositiveInfinity(dialog.MaxDialogWidth));
+        Assert.Equal(default, dialog.SurfaceCornerRadius);
+        Assert.Equal(default, dialog.SurfaceBoxShadow);
+        Assert.Equal(default, dialog.SurfacePadding);
+        Assert.Equal(default, dialog.SurfaceMargin);
         Assert.False(dialog.IsLightDismissEnabled);
         Assert.False(dialog.IsEscapeKeyEnabled);
         Assert.True(dialog.IsOverlayVisible);
@@ -43,6 +49,72 @@ public class DialogTests
         {
             AnimationDuration = TimeSpan.FromMilliseconds(-1),
         });
+    }
+
+    [AvaloniaFact]
+    public async Task Dialog_surface_defaults_to_white_and_can_be_made_transparent()
+    {
+        var dialog = new Dialog
+        {
+            IsOpen = true,
+            IsAnimationEnabled = false,
+            SurfaceBackground = Brushes.Transparent,
+            SurfaceBorderBrush = Brushes.Navy,
+            SurfaceBorderThickness = new Thickness(2),
+            SurfacePadding = new Thickness(12),
+            SurfaceMargin = new Thickness(16),
+            SurfaceCornerRadius = new CornerRadius(6),
+            SurfaceBoxShadow = new BoxShadows(new BoxShadow { Blur = 8 }),
+        };
+        var window = new Window { Content = dialog };
+
+        try
+        {
+            window.Show();
+            await FlushDispatcherAsync();
+
+            var surface = dialog.GetVisualDescendants()
+                .OfType<Border>()
+                .Single(control => control.Name == "PART_DialogSurface");
+            var presenter = dialog.GetVisualDescendants()
+                .OfType<ContentControl>()
+                .Single(control => control.Name == "PART_DialogPresenter");
+
+            Assert.Equal(Brushes.Transparent, surface.Background);
+            Assert.Equal(Brushes.Navy, surface.BorderBrush);
+            Assert.Equal(new Thickness(2), surface.BorderThickness);
+            Assert.Equal(new CornerRadius(6), surface.CornerRadius);
+            Assert.Equal(new BoxShadows(new BoxShadow { Blur = 8 }), surface.BoxShadow);
+            Assert.Equal(new Thickness(16), surface.Margin);
+            Assert.Equal(new Thickness(12), presenter.Padding);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task Dialog_surface_defaults_to_white()
+    {
+        var dialog = new Dialog { IsOpen = true, IsAnimationEnabled = false };
+        var window = new Window { Content = dialog };
+
+        try
+        {
+            window.Show();
+            await FlushDispatcherAsync();
+
+            var surface = dialog.GetVisualDescendants()
+                .OfType<Border>()
+                .Single(control => control.Name == "PART_DialogSurface");
+
+            Assert.Equal(Brushes.White, surface.Background);
+        }
+        finally
+        {
+            window.Close();
+        }
     }
 
     [Fact]
