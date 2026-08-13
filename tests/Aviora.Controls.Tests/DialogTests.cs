@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
@@ -28,12 +29,18 @@ public class DialogTests
         Assert.False(dialog.IsEscapeKeyEnabled);
         Assert.True(dialog.IsOverlayVisible);
         Assert.True(dialog.IsAnimationEnabled);
+        Assert.Equal(TimeSpan.FromMilliseconds(180), dialog.AnimationDuration);
+        Assert.NotNull(dialog.AnimationEasing);
+        Assert.Null(dialog.Title);
+        Assert.Null(dialog.Description);
+        Assert.Null(dialog.InitialFocus);
+        Assert.Null(dialog.RestoreFocusTarget);
     }
 
     [Fact]
-    public void Dialog_options_have_safe_defaults()
+    public void Dialog_service_options_have_safe_defaults()
     {
-        var options = new DialogOptions();
+        var options = new DialogServiceOptions();
 
         Assert.False(options.IsLightDismissEnabled);
         Assert.False(options.IsEscapeKeyEnabled);
@@ -43,12 +50,26 @@ public class DialogTests
     }
 
     [Fact]
-    public void Dialog_options_reject_a_negative_animation_duration()
+    public void Dialog_service_options_reject_a_negative_animation_duration()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => new DialogOptions
+        Assert.Throws<ArgumentOutOfRangeException>(() => new DialogServiceOptions
         {
             AnimationDuration = TimeSpan.FromMilliseconds(-1),
         });
+    }
+
+    [Fact]
+    public void Legacy_dialog_api_aliases_forward_to_the_canonical_api()
+    {
+        var easing = new Avalonia.Animation.Easings.SineEaseOut();
+#pragma warning disable CS0618
+        var legacyOptions = new DialogOptions();
+        var dialog = new Dialog { DialogEasing = easing };
+        var service = new DialogService(legacyOptions);
+#pragma warning restore CS0618
+
+        Assert.Same(easing, dialog.AnimationEasing);
+        Assert.NotNull(service);
     }
 
     [AvaloniaFact]
@@ -140,6 +161,147 @@ public class DialogTests
         Assert.NotNull(closed);
         Assert.Equal("saved", closed.Result);
         Assert.Equal(DialogCloseReason.Command, closed.Reason);
+    }
+
+    [AvaloniaFact]
+    public async Task Dialog_exposes_title_and_description_to_automation()
+    {
+        var dialog = new Dialog
+        {
+            IsOpen = true,
+            IsAnimationEnabled = false,
+            Title = "Edit profile",
+            Description = "Update your account details.",
+        };
+        var window = new Window { Content = dialog };
+
+        try
+        {
+            window.Show();
+            await FlushDispatcherAsync();
+
+            var surface = dialog.GetVisualDescendants()
+                .OfType<Border>()
+                .Single(control => control.Name == "PART_DialogSurface");
+
+            Assert.Equal("Edit profile", AutomationProperties.GetName(surface));
+            Assert.Equal("Update your account details.", AutomationProperties.GetHelpText(surface));
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task Dialog_prefers_the_specified_initial_and_restore_focus_targets()
+    {
+        var opener = new Button { Content = "Open" };
+        var initial = new TextBox();
+        var restoreTarget = new Button { Content = "Other" };
+        var dialog = new Dialog
+        {
+            IsAnimationEnabled = false,
+            InitialFocus = initial,
+            RestoreFocusTarget = restoreTarget,
+            DialogContent = new StackPanel
+            {
+                Children = { initial, new Button { Content = "Save" } },
+            },
+        };
+        var window = new Window
+        {
+            Content = new StackPanel { Children = { opener, restoreTarget, dialog } },
+        };
+
+        try
+        {
+            window.Show();
+            opener.Focus();
+            dialog.IsOpen = true;
+            await FlushDispatcherAsync();
+
+            Assert.Same(initial, window.FocusManager?.GetFocusedElement());
+
+            Assert.True(dialog.TryClose());
+            await FlushDispatcherAsync();
+
+            Assert.Same(restoreTarget, window.FocusManager?.GetFocusedElement());
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task Service_request_applies_dialog_automation_metadata()
+    {
+        var service = new DialogService();
+        var dialog = new Dialog { Service = service, IsAnimationEnabled = false };
+        var window = new Window { Content = dialog };
+
+        try
+        {
+            window.Show();
+            Task<DialogResult> result = service.ShowAsync(new DialogRequest("content")
+            {
+                Title = "Confirm deletion",
+                Description = "This action cannot be undone.",
+            });
+            await FlushDispatcherAsync();
+
+            Assert.Equal("Confirm deletion", dialog.Title);
+            Assert.Equal("This action cannot be undone.", dialog.Description);
+
+            dialog.TryClose();
+            await result;
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task Navigate_request_does_not_inherit_automation_metadata()
+    {
+        var service = new DialogService();
+        var dialog = new Dialog { Service = service, IsAnimationEnabled = false };
+        var window = new Window { Content = dialog };
+
+        try
+        {
+            window.Show();
+            Task<DialogResult> parent = service.ShowAsync(new DialogRequest("parent"));
+            await FlushDispatcherAsync();
+
+            Task<DialogResult> child = service.ShowAsync(new DialogRequest("child")
+            {
+                Title = "Child dialog",
+                Description = "Child description.",
+                PresentationMode = DialogPresentationMode.Navigate,
+            });
+            await FlushDispatcherAsync();
+
+            Assert.Equal("Child dialog", dialog.Title);
+            Assert.Equal("Child description.", dialog.Description);
+
+            Assert.True(service.Close());
+            await FlushDispatcherAsync();
+            await child;
+
+            Assert.Null(dialog.Title);
+            Assert.Null(dialog.Description);
+
+            dialog.TryClose();
+            await FlushDispatcherAsync();
+            await parent;
+        }
+        finally
+        {
+            window.Close();
+        }
     }
 
     [AvaloniaFact]
@@ -327,7 +489,7 @@ public class DialogTests
     [AvaloniaFact]
     public async Task Global_options_apply_and_request_options_take_precedence()
     {
-        var service = new DialogService(new DialogOptions
+        var service = new DialogService(new DialogServiceOptions
         {
             IsLightDismissEnabled = true,
             IsEscapeKeyEnabled = true,
@@ -494,11 +656,12 @@ public class DialogTests
     }
 
     [AvaloniaFact]
-    public async Task Active_cancellation_completes_even_when_closing_is_declined()
+    public async Task Active_cancellation_respects_a_declined_close()
     {
         var service = new DialogService();
         var dialog = new Dialog { Service = service, IsAnimationEnabled = false };
-        dialog.Closing += (_, args) => args.Cancel = true;
+        EventHandler<DialogClosingEventArgs> rejectClose = (_, args) => args.Cancel = true;
+        dialog.Closing += rejectClose;
         var window = new Window { Content = dialog };
         using var cancellation = new CancellationTokenSource();
 
@@ -511,8 +674,12 @@ public class DialogTests
             cancellation.Cancel();
             await FlushDispatcherAsync();
 
-            Assert.True((await result).IsCanceled);
-            Assert.False(dialog.IsOpen);
+            Assert.False(result.IsCompleted);
+            Assert.True(dialog.IsOpen);
+
+            dialog.Closing -= rejectClose;
+            Assert.True(dialog.TryClose());
+            Assert.Equal(DialogCloseReason.Programmatic, (await result).Reason);
         }
         finally
         {

@@ -41,6 +41,22 @@ public class Dialog : ContentControl, IDialogHost
     public static readonly StyledProperty<bool> IsOpenProperty =
         AvaloniaProperty.Register<Dialog, bool>(nameof(IsOpen), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
+    /// <summary>Defines the <see cref="Title"/> property.</summary>
+    public static readonly StyledProperty<string?> TitleProperty =
+        AvaloniaProperty.Register<Dialog, string?>(nameof(Title));
+
+    /// <summary>Defines the <see cref="Description"/> property.</summary>
+    public static readonly StyledProperty<string?> DescriptionProperty =
+        AvaloniaProperty.Register<Dialog, string?>(nameof(Description));
+
+    /// <summary>Defines the <see cref="InitialFocus"/> property.</summary>
+    public static readonly StyledProperty<IInputElement?> InitialFocusProperty =
+        AvaloniaProperty.Register<Dialog, IInputElement?>(nameof(InitialFocus));
+
+    /// <summary>Defines the <see cref="RestoreFocusTarget"/> property.</summary>
+    public static readonly StyledProperty<IInputElement?> RestoreFocusTargetProperty =
+        AvaloniaProperty.Register<Dialog, IInputElement?>(nameof(RestoreFocusTarget));
+
     /// <summary>Defines the <see cref="DialogWidth"/> property.</summary>
     public static readonly StyledProperty<double> DialogWidthProperty =
         AvaloniaProperty.Register<Dialog, double>(nameof(DialogWidth), double.NaN, validate: IsValidSize);
@@ -125,9 +141,13 @@ public class Dialog : ContentControl, IDialogHost
             TimeSpan.FromMilliseconds(180),
             validate: value => value >= TimeSpan.Zero);
 
-    /// <summary>Defines the <see cref="DialogEasing"/> property.</summary>
-    public static readonly StyledProperty<Easing> DialogEasingProperty =
-        AvaloniaProperty.Register<Dialog, Easing>(nameof(DialogEasing), new CubicEaseOut());
+    /// <summary>Defines the <see cref="AnimationEasing"/> property.</summary>
+    public static readonly StyledProperty<Easing> AnimationEasingProperty =
+        AvaloniaProperty.Register<Dialog, Easing>(nameof(AnimationEasing), new CubicEaseOut());
+
+    /// <summary>Provides compatibility for the former <c>DialogEasing</c> styled property.</summary>
+    [Obsolete("Use AnimationEasingProperty instead.")]
+    public static readonly StyledProperty<Easing> DialogEasingProperty = AnimationEasingProperty;
 
     /// <summary>Defines the <see cref="SurfaceCornerRadius"/> property.</summary>
     public static readonly StyledProperty<CornerRadius> SurfaceCornerRadiusProperty =
@@ -160,7 +180,7 @@ public class Dialog : ContentControl, IDialogHost
         HostIdProperty.Changed.AddClassHandler<Dialog>((dialog, _) => dialog.UpdateServiceRegistration());
         IsAnimationEnabledProperty.Changed.AddClassHandler<Dialog>((dialog, _) => dialog.ConfigureTransitions());
         AnimationDurationProperty.Changed.AddClassHandler<Dialog>((dialog, _) => dialog.ConfigureTransitions());
-        DialogEasingProperty.Changed.AddClassHandler<Dialog>((dialog, _) => dialog.ConfigureTransitions());
+        AnimationEasingProperty.Changed.AddClassHandler<Dialog>((dialog, _) => dialog.ConfigureTransitions());
         IsOverlayVisibleProperty.Changed.AddClassHandler<Dialog>((dialog, _) => dialog.ApplyVisualState(dialog.IsOpen));
         IsLightDismissEnabledProperty.Changed.AddClassHandler<Dialog>((dialog, _) => dialog.ApplyVisualState(dialog.IsOpen));
     }
@@ -173,6 +193,18 @@ public class Dialog : ContentControl, IDialogHost
 
     /// <summary>Gets or sets whether the dialog is open.</summary>
     public bool IsOpen { get => GetValue(IsOpenProperty); set => SetValue(IsOpenProperty, value); }
+
+    /// <summary>Gets or sets the title announced to assistive technologies.</summary>
+    public string? Title { get => GetValue(TitleProperty); set => SetValue(TitleProperty, value); }
+
+    /// <summary>Gets or sets the description announced to assistive technologies.</summary>
+    public string? Description { get => GetValue(DescriptionProperty); set => SetValue(DescriptionProperty, value); }
+
+    /// <summary>Gets or sets the control focused when the dialog opens.</summary>
+    public IInputElement? InitialFocus { get => GetValue(InitialFocusProperty); set => SetValue(InitialFocusProperty, value); }
+
+    /// <summary>Gets or sets the control focused after the dialog closes.</summary>
+    public IInputElement? RestoreFocusTarget { get => GetValue(RestoreFocusTargetProperty); set => SetValue(RestoreFocusTargetProperty, value); }
 
     /// <summary>Gets or sets the dialog width, or NaN for automatic sizing.</summary>
     public double DialogWidth { get => GetValue(DialogWidthProperty); set => SetValue(DialogWidthProperty, value); }
@@ -232,7 +264,11 @@ public class Dialog : ContentControl, IDialogHost
     public TimeSpan AnimationDuration { get => GetValue(AnimationDurationProperty); set => SetValue(AnimationDurationProperty, value); }
 
     /// <summary>Gets or sets the easing function used by dialog transitions.</summary>
-    public Easing DialogEasing { get => GetValue(DialogEasingProperty); set => SetValue(DialogEasingProperty, value); }
+    public Easing AnimationEasing { get => GetValue(AnimationEasingProperty); set => SetValue(AnimationEasingProperty, value); }
+
+    /// <summary>Gets or sets the easing function used by dialog transitions.</summary>
+    [Obsolete("Use AnimationEasing instead.")]
+    public Easing DialogEasing { get => AnimationEasing; set => AnimationEasing = value; }
 
     /// <summary>Gets or sets the corner radius of the dialog surface.</summary>
     public CornerRadius SurfaceCornerRadius { get => GetValue(SurfaceCornerRadiusProperty); set => SetValue(SurfaceCornerRadiusProperty, value); }
@@ -277,7 +313,7 @@ public class Dialog : ContentControl, IDialogHost
 
         var args = new DialogClosingEventArgs(reason, result);
         Closing?.Invoke(this, args);
-        if (args.Cancel && reason != DialogCloseReason.Canceled)
+        if (args.Cancel)
         {
             return false;
         }
@@ -368,6 +404,8 @@ public class Dialog : ContentControl, IDialogHost
             _hostOptions = new HostOptions(
                 DialogWidth,
                 DialogHeight,
+                Title,
+                Description,
                 IsLightDismissEnabled,
                 IsEscapeKeyEnabled,
                 IsOverlayVisible,
@@ -376,6 +414,8 @@ public class Dialog : ContentControl, IDialogHost
         }
         _activeRequest = request;
         DialogContent = content;
+        Title = request.Title;
+        Description = request.Description;
 
         if (request.Width is { } width)
         {
@@ -435,7 +475,7 @@ public class Dialog : ContentControl, IDialogHost
             SurfaceBoxShadow = SurfaceBoxShadow,
             IsAnimationEnabled = IsAnimationEnabled,
             AnimationDuration = AnimationDuration,
-            DialogEasing = DialogEasing,
+            AnimationEasing = AnimationEasing,
         };
         nested.Closed += OnNestedDialogClosed;
         _nestedDialogs.Add(nested);
@@ -570,10 +610,7 @@ public class Dialog : ContentControl, IDialogHost
         }
 
         _activeRequest = null;
-        if (_previousFocus is { Focusable: true } previous)
-        {
-            previous.Focus();
-        }
+        RestoreFocus();
 
         _previousFocus = null;
     }
@@ -582,13 +619,35 @@ public class Dialog : ContentControl, IDialogHost
     {
         Dispatcher.UIThread.Post(() =>
         {
-            var focusTarget = _presenter?
+            var focusTarget = IsFocusableDialogContent(InitialFocus)
+                ? InitialFocus
+                : _presenter?
                 .GetVisualDescendants()
                 .OfType<Control>()
-                .FirstOrDefault(control => control.Focusable && control.IsEffectivelyEnabled && control.IsVisible);
-            (focusTarget ?? _presenter)?.Focus();
+                .FirstOrDefault(IsFocusable);
+            (focusTarget ?? _presenter ?? this).Focus();
         }, DispatcherPriority.Input);
     }
+
+    private bool IsFocusableDialogContent(IInputElement? target) =>
+        IsFocusable(target) &&
+        target is Visual visual &&
+        (ReferenceEquals(visual, _presenter) || visual.GetVisualAncestors().Any(ancestor => ReferenceEquals(ancestor, _presenter)));
+
+    private void RestoreFocus()
+    {
+        if (RestoreFocusTarget is { } restoreTarget && IsFocusable(restoreTarget))
+        {
+            restoreTarget.Focus();
+        }
+        else if (_previousFocus is { } previousFocus && IsFocusable(previousFocus))
+        {
+            previousFocus.Focus();
+        }
+    }
+
+    private static bool IsFocusable(IInputElement? target) =>
+        target is Control { Focusable: true, IsEffectivelyEnabled: true, IsVisible: true };
 
     private void OnOverlayPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
@@ -636,7 +695,7 @@ public class Dialog : ContentControl, IDialogHost
             {
                 Property = Visual.OpacityProperty,
                 Duration = duration,
-                Easing = DialogEasing,
+                Easing = AnimationEasing,
             },
         };
         _surface.Transitions = new Transitions
@@ -645,7 +704,7 @@ public class Dialog : ContentControl, IDialogHost
             {
                 Property = Visual.OpacityProperty,
                 Duration = duration,
-                Easing = DialogEasing,
+                Easing = AnimationEasing,
             },
         };
         _scaleTransform.Transitions = new Transitions
@@ -654,13 +713,13 @@ public class Dialog : ContentControl, IDialogHost
             {
                 Property = ScaleTransform.ScaleXProperty,
                 Duration = duration,
-                Easing = DialogEasing,
+                Easing = AnimationEasing,
             },
             new DoubleTransition
             {
                 Property = ScaleTransform.ScaleYProperty,
                 Duration = duration,
-                Easing = DialogEasing,
+                Easing = AnimationEasing,
             },
         };
     }
@@ -718,6 +777,8 @@ public class Dialog : ContentControl, IDialogHost
 
         DialogWidth = options.Width;
         DialogHeight = options.Height;
+        Title = options.Title;
+        Description = options.Description;
         IsLightDismissEnabled = options.IsLightDismissEnabled;
         IsEscapeKeyEnabled = options.IsEscapeKeyEnabled;
         IsOverlayVisible = options.IsOverlayVisible;
@@ -740,6 +801,8 @@ public class Dialog : ContentControl, IDialogHost
     private sealed record HostOptions(
         double Width,
         double Height,
+        string? Title,
+        string? Description,
         bool IsLightDismissEnabled,
         bool IsEscapeKeyEnabled,
         bool IsOverlayVisible,

@@ -1,5 +1,6 @@
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Headless.XUnit;
@@ -23,12 +24,42 @@ public class ToastTests
         Assert.True(host.IsClickDismissEnabled);
         Assert.True(host.PauseOnPointerOver);
         Assert.True(host.IsAnimationEnabled);
-        Assert.Equal(TimeSpan.FromMilliseconds(220), host.AnimationDuration);
+        Assert.Equal(TimeSpan.FromMilliseconds(220), host.EntryAnimationDuration);
         Assert.Equal(TimeSpan.FromMilliseconds(150), host.ExitAnimationDuration);
         Assert.Equal(TimeSpan.FromMilliseconds(180), host.ReflowAnimationDuration);
+        Assert.NotNull(host.EntryAnimationEasing);
+        Assert.NotNull(host.ExitAnimationEasing);
         Assert.Equal(12, host.SlideDistance);
         Assert.Equal(8, host.ToastSpacing);
         Assert.Equal(new Thickness(16), host.ToastMargin);
+    }
+
+    [Fact]
+    public void Toast_exposes_a_dismiss_command()
+    {
+        var toast = new Toast();
+
+        Assert.NotNull(toast.DismissCommand);
+    }
+
+    [Fact]
+    public void Legacy_toast_api_aliases_forward_to_the_canonical_api()
+    {
+        var host = new ToastHost();
+        var entryEasing = new SineEaseOut();
+        var exitEasing = new SineEaseIn();
+        var toast = new Toast();
+#pragma warning disable CS0618
+        host.AnimationDuration = TimeSpan.FromMilliseconds(321);
+        host.EntryEasing = entryEasing;
+        host.ExitEasing = exitEasing;
+        ICommand legacyCloseCommand = toast.CloseCommand;
+#pragma warning restore CS0618
+
+        Assert.Equal(TimeSpan.FromMilliseconds(321), host.EntryAnimationDuration);
+        Assert.Same(entryEasing, host.EntryAnimationEasing);
+        Assert.Same(exitEasing, host.ExitAnimationEasing);
+        Assert.Same(toast.DismissCommand, legacyCloseCommand);
     }
 
     [AvaloniaFact]

@@ -30,6 +30,12 @@ public sealed class DialogRequest
     /// <summary>Gets how this request is scheduled when the target host is already active.</summary>
     public DialogPresentationMode PresentationMode { get; init; }
 
+    /// <summary>Gets an optional title announced for this dialog.</summary>
+    public string? Title { get; init; }
+
+    /// <summary>Gets an optional description announced for this dialog.</summary>
+    public string? Description { get; init; }
+
     /// <summary>Gets an optional dialog width override.</summary>
     public double? Width { get; init; }
 

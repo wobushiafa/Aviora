@@ -77,12 +77,16 @@ public class ToastHost : ContentControl, IToastHost
     public static readonly StyledProperty<bool> IsAnimationEnabledProperty =
         AvaloniaProperty.Register<ToastHost, bool>(nameof(IsAnimationEnabled), true);
 
-    /// <summary>Defines the <see cref="AnimationDuration"/> property.</summary>
-    public static readonly StyledProperty<TimeSpan> AnimationDurationProperty =
+    /// <summary>Defines the <see cref="EntryAnimationDuration"/> property.</summary>
+    public static readonly StyledProperty<TimeSpan> EntryAnimationDurationProperty =
         AvaloniaProperty.Register<ToastHost, TimeSpan>(
-            nameof(AnimationDuration),
+            nameof(EntryAnimationDuration),
             TimeSpan.FromMilliseconds(220),
             validate: value => value >= TimeSpan.Zero);
+
+    /// <summary>Provides compatibility for the former <c>AnimationDuration</c> styled property.</summary>
+    [Obsolete("Use EntryAnimationDurationProperty instead.")]
+    public static readonly StyledProperty<TimeSpan> AnimationDurationProperty = EntryAnimationDurationProperty;
 
     /// <summary>Defines the <see cref="ExitAnimationDuration"/> property.</summary>
     public static readonly StyledProperty<TimeSpan> ExitAnimationDurationProperty =
@@ -98,13 +102,21 @@ public class ToastHost : ContentControl, IToastHost
             TimeSpan.FromMilliseconds(180),
             validate: value => value >= TimeSpan.Zero);
 
-    /// <summary>Defines the <see cref="EntryEasing"/> property.</summary>
-    public static readonly StyledProperty<Easing> EntryEasingProperty =
-        AvaloniaProperty.Register<ToastHost, Easing>(nameof(EntryEasing), new SineEaseOut());
+    /// <summary>Defines the <see cref="EntryAnimationEasing"/> property.</summary>
+    public static readonly StyledProperty<Easing> EntryAnimationEasingProperty =
+        AvaloniaProperty.Register<ToastHost, Easing>(nameof(EntryAnimationEasing), new SineEaseOut());
 
-    /// <summary>Defines the <see cref="ExitEasing"/> property.</summary>
-    public static readonly StyledProperty<Easing> ExitEasingProperty =
-        AvaloniaProperty.Register<ToastHost, Easing>(nameof(ExitEasing), new SineEaseIn());
+    /// <summary>Provides compatibility for the former <c>EntryEasing</c> styled property.</summary>
+    [Obsolete("Use EntryAnimationEasingProperty instead.")]
+    public static readonly StyledProperty<Easing> EntryEasingProperty = EntryAnimationEasingProperty;
+
+    /// <summary>Defines the <see cref="ExitAnimationEasing"/> property.</summary>
+    public static readonly StyledProperty<Easing> ExitAnimationEasingProperty =
+        AvaloniaProperty.Register<ToastHost, Easing>(nameof(ExitAnimationEasing), new SineEaseIn());
+
+    /// <summary>Provides compatibility for the former <c>ExitEasing</c> styled property.</summary>
+    [Obsolete("Use ExitAnimationEasingProperty instead.")]
+    public static readonly StyledProperty<Easing> ExitEasingProperty = ExitAnimationEasingProperty;
 
     /// <summary>Defines the <see cref="SlideDistance"/> property.</summary>
     public static readonly StyledProperty<double> SlideDistanceProperty =
@@ -192,10 +204,18 @@ public class ToastHost : ContentControl, IToastHost
     }
 
     /// <summary>Gets or sets the entry transition duration.</summary>
+    public TimeSpan EntryAnimationDuration
+    {
+        get => GetValue(EntryAnimationDurationProperty);
+        set => SetValue(EntryAnimationDurationProperty, value);
+    }
+
+    /// <summary>Gets or sets the entry transition duration.</summary>
+    [Obsolete("Use EntryAnimationDuration instead.")]
     public TimeSpan AnimationDuration
     {
-        get => GetValue(AnimationDurationProperty);
-        set => SetValue(AnimationDurationProperty, value);
+        get => EntryAnimationDuration;
+        set => EntryAnimationDuration = value;
     }
 
     /// <summary>Gets or sets the exit transition duration.</summary>
@@ -213,10 +233,18 @@ public class ToastHost : ContentControl, IToastHost
     }
 
     /// <summary>Gets or sets the easing used when a toast enters.</summary>
-    public Easing EntryEasing { get => GetValue(EntryEasingProperty); set => SetValue(EntryEasingProperty, value); }
+    public Easing EntryAnimationEasing { get => GetValue(EntryAnimationEasingProperty); set => SetValue(EntryAnimationEasingProperty, value); }
+
+    /// <summary>Gets or sets the easing used when a toast enters.</summary>
+    [Obsolete("Use EntryAnimationEasing instead.")]
+    public Easing EntryEasing { get => EntryAnimationEasing; set => EntryAnimationEasing = value; }
 
     /// <summary>Gets or sets the easing used when a toast exits.</summary>
-    public Easing ExitEasing { get => GetValue(ExitEasingProperty); set => SetValue(ExitEasingProperty, value); }
+    public Easing ExitAnimationEasing { get => GetValue(ExitAnimationEasingProperty); set => SetValue(ExitAnimationEasingProperty, value); }
+
+    /// <summary>Gets or sets the easing used when a toast exits.</summary>
+    [Obsolete("Use ExitAnimationEasing instead.")]
+    public Easing ExitEasing { get => ExitAnimationEasing; set => ExitAnimationEasing = value; }
 
     /// <summary>Gets or sets the entry and exit translation distance.</summary>
     public double SlideDistance { get => GetValue(SlideDistanceProperty); set => SetValue(SlideDistanceProperty, value); }
@@ -399,7 +427,7 @@ public class ToastHost : ContentControl, IToastHost
         control.DismissRequested += OnToastDismissRequested;
         control.PointerEntered += OnToastPointerEntered;
         control.PointerExited += OnToastPointerExited;
-        ConfigureTransitions(entry, EntryEasing, GetEntryAnimationDuration());
+        ConfigureTransitions(entry, EntryAnimationEasing, GetEntryAnimationDuration());
         ConfigureReflowTransition(entry);
         ApplyOffset(entry);
         Dictionary<ToastEntry, double> previousPositions = CapturePanelPositions(placement);
@@ -439,7 +467,7 @@ public class ToastHost : ContentControl, IToastHost
         entry.IsClosing = true;
         StopLifetime(entry, preserveRemaining: false);
         TimeSpan duration = GetExitAnimationDuration();
-        ConfigureTransitions(entry, ExitEasing, duration);
+        ConfigureTransitions(entry, ExitAnimationEasing, duration);
         entry.Control.Opacity = 0;
         ApplyOffset(entry);
         if (duration == TimeSpan.Zero)
@@ -601,7 +629,7 @@ public class ToastHost : ContentControl, IToastHost
             {
                 Property = TranslateTransform.YProperty,
                 Duration = GetReflowAnimationDuration(),
-                Easing = EntryEasing,
+                Easing = EntryAnimationEasing,
             },
         };
     }
@@ -623,7 +651,7 @@ public class ToastHost : ContentControl, IToastHost
     }
 
     private TimeSpan GetEntryAnimationDuration() =>
-        IsAnimationEnabled ? AnimationDuration : TimeSpan.Zero;
+        IsAnimationEnabled ? EntryAnimationDuration : TimeSpan.Zero;
 
     private TimeSpan GetExitAnimationDuration() =>
         IsAnimationEnabled ? ExitAnimationDuration : TimeSpan.Zero;

@@ -66,12 +66,16 @@ public class LoadingOverlay : ContentControl, ILoadingHost
     public static readonly StyledProperty<double> StrokeThicknessProperty =
         AvaloniaProperty.Register<LoadingOverlay, double>(nameof(StrokeThickness), 4, validate: value => value > 0);
 
-    /// <summary>Defines the <see cref="AnimationDuration"/> property.</summary>
-    public static readonly StyledProperty<TimeSpan> AnimationDurationProperty =
+    /// <summary>Defines the <see cref="IndicatorAnimationDuration"/> property.</summary>
+    public static readonly StyledProperty<TimeSpan> IndicatorAnimationDurationProperty =
         AvaloniaProperty.Register<LoadingOverlay, TimeSpan>(
-            nameof(AnimationDuration),
+            nameof(IndicatorAnimationDuration),
             TimeSpan.FromMilliseconds(900),
             validate: value => value > TimeSpan.Zero);
+
+    /// <summary>Provides compatibility for the former <c>AnimationDuration</c> styled property.</summary>
+    [Obsolete("Use IndicatorAnimationDurationProperty instead.")]
+    public static readonly StyledProperty<TimeSpan> AnimationDurationProperty = IndicatorAnimationDurationProperty;
 
     /// <summary>Defines the <see cref="ShowDelay"/> property.</summary>
     public static readonly StyledProperty<TimeSpan> ShowDelayProperty =
@@ -149,10 +153,18 @@ public class LoadingOverlay : ContentControl, ILoadingHost
     public double StrokeThickness { get => GetValue(StrokeThicknessProperty); set => SetValue(StrokeThicknessProperty, value); }
 
     /// <summary>Gets or sets the time required for one indicator animation cycle.</summary>
+    public TimeSpan IndicatorAnimationDuration
+    {
+        get => GetValue(IndicatorAnimationDurationProperty);
+        set => SetValue(IndicatorAnimationDurationProperty, value);
+    }
+
+    /// <summary>Gets or sets the time required for one indicator animation cycle.</summary>
+    [Obsolete("Use IndicatorAnimationDuration instead.")]
     public TimeSpan AnimationDuration
     {
-        get => GetValue(AnimationDurationProperty);
-        set => SetValue(AnimationDurationProperty, value);
+        get => IndicatorAnimationDuration;
+        set => IndicatorAnimationDuration = value;
     }
 
     /// <summary>Gets or sets how long a service request must remain active before the overlay opens.</summary>

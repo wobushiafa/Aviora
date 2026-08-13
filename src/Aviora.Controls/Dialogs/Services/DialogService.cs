@@ -8,7 +8,7 @@ public sealed class DialogService : IDialogHostService
 {
     private readonly object _syncRoot = new();
     private readonly Dictionary<string, HostState> _hosts = new(StringComparer.Ordinal);
-    private readonly DialogOptions? _options;
+    private readonly DialogServiceOptions? _options;
 
     /// <summary>Initializes a dialog service that uses each host's configured defaults.</summary>
     public DialogService()
@@ -16,9 +16,16 @@ public sealed class DialogService : IDialogHostService
     }
 
     /// <summary>Initializes a dialog service with application-wide presentation defaults.</summary>
-    public DialogService(DialogOptions options)
+    public DialogService(DialogServiceOptions options)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
+    }
+
+    /// <summary>Initializes a dialog service with application-wide presentation defaults.</summary>
+    [Obsolete("Use the DialogServiceOptions constructor overload instead.")]
+    public DialogService(DialogOptions options)
+        : this((DialogServiceOptions)options)
+    {
     }
 
     /// <inheritdoc />
@@ -84,6 +91,8 @@ public sealed class DialogService : IDialogHostService
             ContentFactory = request.ContentFactory,
             HostId = request.HostId,
             PresentationMode = request.PresentationMode,
+            Title = request.Title,
+            Description = request.Description,
             Width = request.Width,
             Height = request.Height,
             IsLightDismissEnabled = request.IsLightDismissEnabled ?? _options.IsLightDismissEnabled,
@@ -218,13 +227,7 @@ public sealed class DialogService : IDialogHostService
         }
         else if (host is not null)
         {
-            Dispatcher.UIThread.Post(() =>
-            {
-                if (!host.TryClose(DialogCloseReason.Canceled))
-                {
-                    Complete(host, operation.Request.HostId, null, DialogCloseReason.Canceled);
-                }
-            });
+            Dispatcher.UIThread.Post(() => host.TryClose(DialogCloseReason.Canceled));
         }
     }
 

@@ -118,13 +118,21 @@ public class Drawer : ContentControl, IDrawerHost
         AvaloniaProperty.Register<Drawer, TimeSpan>(nameof(OverlayAnimationDuration), TimeSpan.FromMilliseconds(180),
             validate: value => value >= TimeSpan.Zero);
 
-    /// <summary>Defines the <see cref="PaneEasing"/> property.</summary>
-    public static readonly StyledProperty<Easing> PaneEasingProperty =
-        AvaloniaProperty.Register<Drawer, Easing>(nameof(PaneEasing), new CubicEaseOut());
+    /// <summary>Defines the <see cref="PaneAnimationEasing"/> property.</summary>
+    public static readonly StyledProperty<Easing> PaneAnimationEasingProperty =
+        AvaloniaProperty.Register<Drawer, Easing>(nameof(PaneAnimationEasing), new CubicEaseOut());
 
-    /// <summary>Defines the <see cref="OverlayEasing"/> property.</summary>
-    public static readonly StyledProperty<Easing> OverlayEasingProperty =
-        AvaloniaProperty.Register<Drawer, Easing>(nameof(OverlayEasing), new CubicEaseOut());
+    /// <summary>Provides compatibility for the former <c>PaneEasing</c> styled property.</summary>
+    [Obsolete("Use PaneAnimationEasingProperty instead.")]
+    public static readonly StyledProperty<Easing> PaneEasingProperty = PaneAnimationEasingProperty;
+
+    /// <summary>Defines the <see cref="OverlayAnimationEasing"/> property.</summary>
+    public static readonly StyledProperty<Easing> OverlayAnimationEasingProperty =
+        AvaloniaProperty.Register<Drawer, Easing>(nameof(OverlayAnimationEasing), new CubicEaseOut());
+
+    /// <summary>Provides compatibility for the former <c>OverlayEasing</c> styled property.</summary>
+    [Obsolete("Use OverlayAnimationEasingProperty instead.")]
+    public static readonly StyledProperty<Easing> OverlayEasingProperty = OverlayAnimationEasingProperty;
 
     /// <summary>Defines the <see cref="SurfaceCornerRadius"/> property.</summary>
     public static readonly StyledProperty<CornerRadius> SurfaceCornerRadiusProperty =
@@ -163,8 +171,8 @@ public class Drawer : ContentControl, IDrawerHost
         IsAnimationEnabledProperty.Changed.AddClassHandler<Drawer>((drawer, _) => drawer.ConfigureTransitions());
         PaneAnimationDurationProperty.Changed.AddClassHandler<Drawer>((drawer, _) => drawer.ConfigureTransitions());
         OverlayAnimationDurationProperty.Changed.AddClassHandler<Drawer>((drawer, _) => drawer.ConfigureTransitions());
-        PaneEasingProperty.Changed.AddClassHandler<Drawer>((drawer, _) => drawer.ConfigureTransitions());
-        OverlayEasingProperty.Changed.AddClassHandler<Drawer>((drawer, _) => drawer.ConfigureTransitions());
+        PaneAnimationEasingProperty.Changed.AddClassHandler<Drawer>((drawer, _) => drawer.ConfigureTransitions());
+        OverlayAnimationEasingProperty.Changed.AddClassHandler<Drawer>((drawer, _) => drawer.ConfigureTransitions());
         DrawerSizeProperty.Changed.AddClassHandler<Drawer>((drawer, _) => drawer.UpdatePaneOffset(drawer._isVisualOpen));
         BoundsProperty.Changed.AddClassHandler<Drawer>((drawer, _) => drawer.UpdatePaneOffset(drawer._isVisualOpen));
         ServiceProperty.Changed.AddClassHandler<Drawer>((drawer, _) => drawer.UpdateServiceRegistration());
@@ -241,10 +249,18 @@ public class Drawer : ContentControl, IDrawerHost
     public TimeSpan OverlayAnimationDuration { get => GetValue(OverlayAnimationDurationProperty); set => SetValue(OverlayAnimationDurationProperty, value); }
 
     /// <summary>Gets or sets the easing function used by the pane transition.</summary>
-    public Easing PaneEasing { get => GetValue(PaneEasingProperty); set => SetValue(PaneEasingProperty, value); }
+    public Easing PaneAnimationEasing { get => GetValue(PaneAnimationEasingProperty); set => SetValue(PaneAnimationEasingProperty, value); }
+
+    /// <summary>Gets or sets the easing function used by the pane transition.</summary>
+    [Obsolete("Use PaneAnimationEasing instead.")]
+    public Easing PaneEasing { get => PaneAnimationEasing; set => PaneAnimationEasing = value; }
 
     /// <summary>Gets or sets the easing function used by the overlay transition.</summary>
-    public Easing OverlayEasing { get => GetValue(OverlayEasingProperty); set => SetValue(OverlayEasingProperty, value); }
+    public Easing OverlayAnimationEasing { get => GetValue(OverlayAnimationEasingProperty); set => SetValue(OverlayAnimationEasingProperty, value); }
+
+    /// <summary>Gets or sets the easing function used by the overlay transition.</summary>
+    [Obsolete("Use OverlayAnimationEasing instead.")]
+    public Easing OverlayEasing { get => OverlayAnimationEasing; set => OverlayAnimationEasing = value; }
 
     /// <summary>Gets or sets the corner radius of the drawer surface.</summary>
     public CornerRadius SurfaceCornerRadius { get => GetValue(SurfaceCornerRadiusProperty); set => SetValue(SurfaceCornerRadiusProperty, value); }
@@ -649,13 +665,13 @@ public class Drawer : ContentControl, IDrawerHost
             {
                 Property = TranslateTransform.XProperty,
                 Duration = paneDuration,
-                Easing = PaneEasing,
+                Easing = PaneAnimationEasing,
             },
             new DoubleTransition
             {
                 Property = TranslateTransform.YProperty,
                 Duration = paneDuration,
-                Easing = PaneEasing,
+                Easing = PaneAnimationEasing,
             },
         };
         _overlay.Transitions = new Transitions
@@ -664,7 +680,7 @@ public class Drawer : ContentControl, IDrawerHost
             {
                 Property = Visual.OpacityProperty,
                 Duration = overlayDuration,
-                Easing = OverlayEasing,
+                Easing = OverlayAnimationEasing,
             },
         };
     }

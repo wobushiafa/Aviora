@@ -44,7 +44,7 @@ public class Toast : ContentControl
     public static readonly StyledProperty<object?> ActionCommandParameterProperty =
         AvaloniaProperty.Register<Toast, object?>(nameof(ActionCommandParameter));
 
-    private readonly DismissCommand _dismissCommand;
+    private readonly DismissToastCommand _dismissCommand;
 
     static Toast()
     {
@@ -59,8 +59,8 @@ public class Toast : ContentControl
     /// <summary>Initializes a toast notification.</summary>
     public Toast()
     {
-        _dismissCommand = new DismissCommand(this);
-        CloseCommand = _dismissCommand;
+        _dismissCommand = new DismissToastCommand(this);
+        DismissCommand = _dismissCommand;
         UpdatePseudoClasses();
     }
 
@@ -97,9 +97,13 @@ public class Toast : ContentControl
     }
 
     /// <summary>Gets the command that requests user dismissal.</summary>
-    public ICommand CloseCommand { get; }
+    public ICommand DismissCommand { get; }
 
-    /// <summary>Occurs when the user invokes <see cref="CloseCommand"/>.</summary>
+    /// <summary>Gets the command that requests user dismissal.</summary>
+    [Obsolete("Use DismissCommand instead.")]
+    public ICommand CloseCommand => DismissCommand;
+
+    /// <summary>Occurs when the user invokes <see cref="DismissCommand"/>.</summary>
     public event EventHandler? DismissRequested;
 
     /// <inheritdoc />
@@ -142,7 +146,7 @@ public class Toast : ContentControl
         return false;
     }
 
-    private sealed class DismissCommand(Toast owner) : ICommand
+    private sealed class DismissToastCommand(Toast owner) : ICommand
     {
         public event EventHandler? CanExecuteChanged;
 

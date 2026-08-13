@@ -34,6 +34,23 @@ public class DrawerTests
         Assert.Equal(default, drawer.SurfaceMargin);
         Assert.Equal(TimeSpan.FromMilliseconds(260), drawer.PaneAnimationDuration);
         Assert.Equal(TimeSpan.FromMilliseconds(180), drawer.OverlayAnimationDuration);
+        Assert.NotNull(drawer.PaneAnimationEasing);
+        Assert.NotNull(drawer.OverlayAnimationEasing);
+    }
+
+    [Fact]
+    public void Legacy_drawer_easing_aliases_forward_to_the_canonical_api()
+    {
+        var paneEasing = new QuadraticEaseOut();
+        var overlayEasing = new SineEaseOut();
+        var drawer = new Drawer();
+#pragma warning disable CS0618
+        drawer.PaneEasing = paneEasing;
+        drawer.OverlayEasing = overlayEasing;
+#pragma warning restore CS0618
+
+        Assert.Same(paneEasing, drawer.PaneAnimationEasing);
+        Assert.Same(overlayEasing, drawer.OverlayAnimationEasing);
     }
 
     [AvaloniaFact]
@@ -443,8 +460,8 @@ public class DrawerTests
             DrawerContent = "pane",
             PaneAnimationDuration = TimeSpan.FromMilliseconds(321),
             OverlayAnimationDuration = TimeSpan.FromMilliseconds(123),
-            PaneEasing = paneEasing,
-            OverlayEasing = overlayEasing,
+            PaneAnimationEasing = paneEasing,
+            OverlayAnimationEasing = overlayEasing,
         };
         var window = new Window { Content = drawer };
 

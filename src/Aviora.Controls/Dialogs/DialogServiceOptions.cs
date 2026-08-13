@@ -1,7 +1,7 @@
 namespace Aviora.Controls;
 
-/// <summary>Defines the default behavior applied to dialog presentations.</summary>
-public sealed class DialogOptions
+/// <summary>Defines the application-wide defaults applied by <see cref="DialogService"/>.</summary>
+public class DialogServiceOptions
 {
     private TimeSpan _animationDuration = TimeSpan.FromMilliseconds(180);
 
@@ -31,4 +31,10 @@ public sealed class DialogOptions
             _animationDuration = value;
         }
     }
+}
+
+/// <summary>Provides compatibility for the former dialog service options type.</summary>
+[Obsolete("Use DialogServiceOptions instead.")]
+public sealed class DialogOptions : DialogServiceOptions
+{
 }

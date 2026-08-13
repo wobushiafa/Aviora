@@ -18,9 +18,21 @@ public class LoadingOverlayTests
         Assert.Equal(LoadingHost.DefaultId, overlay.HostId);
         Assert.Equal(LoadingIndicatorStyle.Ring, overlay.IndicatorStyle);
         Assert.Equal(48, overlay.IndicatorSize);
+        Assert.Equal(TimeSpan.FromMilliseconds(900), overlay.IndicatorAnimationDuration);
         Assert.Equal(TimeSpan.Zero, overlay.ShowDelay);
         Assert.Equal(TimeSpan.Zero, overlay.MinimumShowDuration);
         Assert.Equal(TimeSpan.Zero, overlay.CloseDelay);
+    }
+
+    [Fact]
+    public void Legacy_animation_duration_alias_forwards_to_the_indicator_duration()
+    {
+        var overlay = new LoadingOverlay();
+#pragma warning disable CS0618
+        overlay.AnimationDuration = TimeSpan.FromMilliseconds(321);
+#pragma warning restore CS0618
+
+        Assert.Equal(TimeSpan.FromMilliseconds(321), overlay.IndicatorAnimationDuration);
     }
 
     [AvaloniaFact]
