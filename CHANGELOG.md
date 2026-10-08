@@ -6,6 +6,20 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-08
+
+### Added
+
+- Added `BackdropBlur` for blurring previously rendered page content beneath a tinted surface, with DIP blur radius, asymmetric corners, and standard border styling.
+- Added configurable `RenderScale` (0.25–1, default 1), an interactive Demo page, rendering regression tests, and a desktop GPU performance probe.
+- Added BackdropBlur usage documentation and measured performance reports.
+
+### Changed
+
+- Optimized backdrop rendering with native Skia backdrop layers, visible-region sampling with blur halos, reference-counted render resources, and work texture capacity reuse during size changes.
+- Standardized overlay animation APIs and dialog service options, including compatibility aliases for previous API names.
+- Improved dialog accessibility metadata, initial/restored focus handling, and cancellable closing behavior.
+
 ## [0.3.2] - 2026-07-27
 
 ### Changed

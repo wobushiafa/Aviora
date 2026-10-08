@@ -22,6 +22,7 @@ public partial class MainWindowViewModel : ViewModelBase
             new ChartsPageViewModel(),
             new DialGaugePageViewModel(),
             new ThermometerPageViewModel(),
+            new BackdropBlurPageViewModel(),
             new LoadingPageViewModel(loadingService),
             new ProgressPageViewModel(),
             new DrawerPageViewModel(drawerService),

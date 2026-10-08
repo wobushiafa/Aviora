@@ -7,6 +7,7 @@ accessibility behavior, and a minimal XAML example.
 
 ## Contents
 
+- [BackdropBlur](backdrop-blur.md)
 - [ColumnChart](column-chart.md)
 - [LineChart](line-chart.md)
 - [Chart tooltips](chart-tooltips.md)
