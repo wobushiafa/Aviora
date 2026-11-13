@@ -19,157 +19,245 @@
     <Window.DataTemplates>
         <DataTemplate DataType="vm:DrawerDemoViewModel" x:DataType="vm:DrawerDemoViewModel">
             <Border Background="White" Padding="24">
-            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="24">
-                <StackPanel Spacing="6">
-                    <TextBlock FontSize="20" FontWeight="SemiBold" Text="Profile settings" />
-                    <TextBlock Opacity="0.65" Text="Presented by IDrawerService" />
-                </StackPanel>
-                <StackPanel Grid.Row="1" Spacing="16">
+                <Grid RowDefinitions="Auto,*,Auto" RowSpacing="24">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Display name" />
-                        <TextBox Text="{Binding DisplayName}" />
+                        <TextBlock FontSize="20" FontWeight="SemiBold" Text="Profile settings" />
+                        <TextBlock Opacity="0.65" Text="Presented by IDrawerService" />
                     </StackPanel>
-                    <CheckBox Content="Enable notifications" IsChecked="{Binding NotificationsEnabled}" />
-                </StackPanel>
-                <StackPanel Grid.Row="2"
-                            HorizontalAlignment="Right"
-                            IsVisible="{Binding ShowFooterActions}"
-                            Orientation="Horizontal"
-                            Spacing="8">
-                    <Button Command="{Binding CancelCommand}" Content="Cancel" />
-                    <Button Command="{Binding SaveCommand}" Content="Save" />
-                </StackPanel>
-            </Grid>
+                    <StackPanel Grid.Row="1" Spacing="16">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Display name" />
+                            <TextBox Text="{Binding DisplayName}" />
+                        </StackPanel>
+                        <CheckBox Content="Enable notifications" IsChecked="{Binding NotificationsEnabled}" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="2"
+                                HorizontalAlignment="Right"
+                                IsVisible="{Binding ShowFooterActions}"
+                                Orientation="Horizontal"
+                                Spacing="8">
+                        <Button Command="{Binding CancelCommand}" Content="Cancel" />
+                        <Button Command="{Binding SaveCommand}" Content="Save" />
+                    </StackPanel>
+                </Grid>
             </Border>
         </DataTemplate>
 
         <DataTemplate DataType="vm:ProfileDialogViewModel" x:DataType="vm:ProfileDialogViewModel">
             <Border Background="White" Padding="24">
-            <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="20">
-                <StackPanel Spacing="5">
-                    <TextBlock FontSize="20" FontWeight="SemiBold" Text="Edit profile" />
-                    <TextBlock Opacity="0.65" Text="Update the account details below." />
-                </StackPanel>
-                <StackPanel Grid.Row="1" Spacing="14">
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="Display name" />
-                        <TextBox Text="{Binding DisplayName}" />
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="20">
+                    <StackPanel Spacing="5">
+                        <TextBlock FontSize="20" FontWeight="SemiBold" Text="Edit profile" />
+                        <TextBlock Opacity="0.65" Text="Update the account details below." />
                     </StackPanel>
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="Email" />
-                        <TextBox Text="{Binding Email}" />
-                    </StackPanel>
-                </StackPanel>
-                <Border Grid.Row="2"
-                        Padding="12"
-                        Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                        CornerRadius="4">
-                    <StackPanel Spacing="8">
-                        <TextBlock FontWeight="SemiBold" Text="Nested dialog" />
-                        <TextBlock FontSize="12"
-                                   Opacity="0.7"
-                                   Text="Open a child dialog above this profile dialog, then return here." />
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button Command="{Binding OpenNavigatedChildDialogCommand}"
-                                    Content="Single-layer child" />
-                            <Button Command="{Binding OpenStackedChildDialogCommand}"
-                                    Content="Stacked child" />
+                    <StackPanel Grid.Row="1" Spacing="14">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Display name" />
+                            <TextBox Text="{Binding DisplayName}" />
                         </StackPanel>
-                        <TextBlock FontSize="12"
-                                   Opacity="0.7"
-                                   Text="{Binding NestedDialogStatus}" />
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Email" />
+                            <TextBox Text="{Binding Email}" />
+                        </StackPanel>
                     </StackPanel>
-                </Border>
-                <StackPanel Grid.Row="3"
-                             HorizontalAlignment="Right"
-                            Orientation="Horizontal"
-                            Spacing="8">
-                    <Button Command="{Binding CancelCommand}" Content="Cancel" />
-                    <Button Command="{Binding SaveCommand}" Content="Save" />
-                </StackPanel>
-            </Grid>
+                    <Border Grid.Row="2"
+                            Padding="12"
+                            Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                            CornerRadius="4">
+                        <StackPanel Spacing="8">
+                            <TextBlock FontWeight="SemiBold" Text="Nested dialog" />
+                            <TextBlock FontSize="12"
+                                       Opacity="0.7"
+                                       Text="Open a child dialog above this profile dialog, then return here." />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Command="{Binding OpenNavigatedChildDialogCommand}"
+                                        Content="Single-layer child" />
+                                <Button Command="{Binding OpenStackedChildDialogCommand}"
+                                        Content="Stacked child" />
+                            </StackPanel>
+                            <TextBlock FontSize="12"
+                                       Opacity="0.7"
+                                       Text="{Binding NestedDialogStatus}" />
+                        </StackPanel>
+                    </Border>
+                    <StackPanel Grid.Row="3"
+                                HorizontalAlignment="Right"
+                                Orientation="Horizontal"
+                                Spacing="8">
+                        <Button Command="{Binding CancelCommand}" Content="Cancel" />
+                        <Button Command="{Binding SaveCommand}" Content="Save" />
+                    </StackPanel>
+                </Grid>
             </Border>
         </DataTemplate>
 
         <DataTemplate DataType="vm:ConfirmationDialogViewModel" x:DataType="vm:ConfirmationDialogViewModel">
             <Border Background="White" Padding="24">
-            <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="18" Width="360">
-                <TextBlock FontSize="20" FontWeight="SemiBold" Text="Confirm action" />
-                <TextBlock Grid.Row="1"
-                           Text="Continue with this operation?"
-                           TextWrapping="Wrap" />
-                <StackPanel Grid.Row="2"
-                            HorizontalAlignment="Right"
-                            Orientation="Horizontal"
-                            Spacing="8">
-                    <Button Command="{Binding CancelCommand}" Content="Cancel" />
-                    <Button Command="{Binding ConfirmCommand}" Content="Confirm" />
-                </StackPanel>
-            </Grid>
+                <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="18" Width="360">
+                    <TextBlock FontSize="20" FontWeight="SemiBold" Text="Confirm action" />
+                    <TextBlock Grid.Row="1"
+                               Text="Continue with this operation?"
+                               TextWrapping="Wrap" />
+                    <StackPanel Grid.Row="2"
+                                HorizontalAlignment="Right"
+                                Orientation="Horizontal"
+                                Spacing="8">
+                        <Button Command="{Binding CancelCommand}" Content="Cancel" />
+                        <Button Command="{Binding ConfirmCommand}" Content="Confirm" />
+                    </StackPanel>
+                </Grid>
             </Border>
         </DataTemplate>
     </Window.DataTemplates>
 
     <aviora:ToastHost x:Name="ToastHost">
-    <aviora:LoadingOverlay x:Name="LoadingHost"
-                           ShowDelay="0:0:0.1"
-                           CloseDelay="0:0:0.2"
-                           MinimumShowDuration="0:0:0.35">
-    <aviora:Dialog x:Name="DialogHost">
-    <aviora:Drawer x:Name="DrawerHost"
-                     SurfaceBackground="{DynamicResource SolidBackgroundFillColorBaseBrush}"
-                     SurfaceBorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                     SurfaceBorderThickness="1,0,0,0"
-                     SurfacePadding="24">
-    <Grid ColumnDefinitions="216,*">
-        <Border Padding="20,24"
-                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                BorderThickness="0,0,1,0">
-            <Grid RowDefinitions="Auto,Auto,*,Auto">
-                <StackPanel Spacing="3">
-                    <TextBlock FontSize="22" FontWeight="SemiBold" Text="Aviora" />
-                    <TextBlock FontSize="12" Opacity="0.62" Text="Control Gallery" />
-                </StackPanel>
+        <aviora:LoadingOverlay x:Name="LoadingHost"
+                               ShowDelay="0:0:0.1"
+                               CloseDelay="0:0:0.2"
+                               MinimumShowDuration="0:0:0.35">
+            <aviora:Dialog x:Name="DialogHost">
+                <aviora:Drawer x:Name="DrawerHost"
+                               SurfaceBackground="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                               SurfaceBorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                               SurfaceBorderThickness="1,0,0,0"
+                               SurfacePadding="24">
+                    <aviora:HeroHost Duration="{Binding HeroPage.FlightDuration}"
+                                     FlightMode="{Binding HeroPage.SelectedFlightMode}"
+                                     IsAnimationEnabled="{Binding HeroPage.IsAnimationEnabled}">
+                        <Grid>
+                            <Grid ColumnDefinitions="216,*">
+                                <Border Padding="20,24"
+                                        Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                                        BorderThickness="0,0,1,0">
+                                    <Grid RowDefinitions="Auto,Auto,*,Auto">
+                                        <StackPanel Spacing="3">
+                                            <TextBlock FontSize="22" FontWeight="SemiBold" Text="Aviora" />
+                                            <TextBlock FontSize="12" Opacity="0.62" Text="Control Gallery" />
+                                        </StackPanel>
 
-                <TextBlock Grid.Row="1"
-                           Margin="4,32,0,8"
-                           FontSize="11"
-                           FontWeight="SemiBold"
-                           Opacity="0.55"
-                           Text="CONTROLS" />
+                                        <TextBlock Grid.Row="1"
+                                                   Margin="4,32,0,8"
+                                                   FontSize="11"
+                                                   FontWeight="SemiBold"
+                                                   Opacity="0.55"
+                                                   Text="CONTROLS" />
 
-                <ListBox Grid.Row="2"
-                         ItemsSource="{Binding Pages}"
-                         SelectedItem="{Binding SelectedPage}">
-                    <ListBox.Styles>
-                        <Style Selector="ListBoxItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                            <Setter Property="Padding" Value="12,10" />
-                            <Setter Property="Margin" Value="0,2" />
-                        </Style>
-                    </ListBox.Styles>
-                    <ListBox.ItemTemplate>
-                        <DataTemplate x:DataType="vm:DemoPageViewModel">
-                            <TextBlock Text="{Binding Title}" />
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
+                                        <ListBox Grid.Row="2"
+                                                 ItemsSource="{Binding Pages}"
+                                                 SelectedItem="{Binding SelectedPage}">
+                                            <ListBox.Styles>
+                                                <Style Selector="ListBoxItem">
+                                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                                    <Setter Property="Padding" Value="12,10" />
+                                                    <Setter Property="Margin" Value="0,2" />
+                                                </Style>
+                                            </ListBox.Styles>
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:DemoPageViewModel">
+                                                    <TextBlock Text="{Binding Title}" />
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
 
-                <TextBlock Grid.Row="3"
-                           Margin="4,16,0,0"
-                           FontSize="11"
-                           Opacity="0.48"
-                           Text="Aviora.Controls" />
-            </Grid>
-        </Border>
+                                        <TextBlock Grid.Row="3"
+                                                   Margin="4,16,0,0"
+                                                   FontSize="11"
+                                                   Opacity="0.48"
+                                                   Text="Aviora.Controls" />
+                                    </Grid>
+                                </Border>
 
-        <Grid Grid.Column="1" Margin="28,24,28,0">
-            <ContentControl Content="{Binding SelectedPage}" />
-        </Grid>
-    </Grid>
-    </aviora:Drawer>
-    </aviora:Dialog>
-    </aviora:LoadingOverlay>
+                                <Grid Grid.Column="1" Margin="28,24,28,0">
+                                    <ContentControl Content="{Binding SelectedPage}" />
+                                </Grid>
+                            </Grid>
+
+                            <aviora:HeroOverlay IsOpen="{Binding HeroPage.IsFullscreenOpen, Mode=TwoWay}"
+                                                IsAnimationEnabled="{Binding HeroPage.IsAnimationEnabled}"
+                                                TransitionDuration="{Binding HeroPage.FlightDuration}">
+                                <Grid Margin="40">
+                                    <aviora:Hero Tag="{Binding HeroPage.FullscreenItem.Id}"
+                                                 CornerRadius="20">
+                                        <Border Padding="36"
+                                                Background="{Binding HeroPage.FullscreenItem.AccentHex}"
+                                                CornerRadius="20">
+                                            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="24">
+                                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+                                                    <Border Width="56"
+                                                            Height="56"
+                                                            Background="#33FFFFFF"
+                                                            CornerRadius="28">
+                                                        <TextBlock HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"
+                                                                   FontSize="20"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="White"
+                                                                   Text="{Binding HeroPage.FullscreenItem.BadgeText}" />
+                                                    </Border>
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                                                        <TextBlock FontSize="13"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="#CCFFFFFF"
+                                                                   Text="{Binding HeroPage.FullscreenItem.Category}" />
+                                                        <TextBlock FontSize="14"
+                                                                   Foreground="#E6FFFFFF"
+                                                                   Text="{Binding HeroPage.FullscreenItem.Subtitle}" />
+                                                    </StackPanel>
+                                                    <Button Grid.Column="2"
+                                                            Command="{Binding HeroPage.CloseFullscreenCommand}"
+                                                            Content="Close fullscreen"
+                                                            Padding="16,10"
+                                                            Background="#26FFFFFF"
+                                                            Foreground="White"
+                                                            CornerRadius="10"
+                                                            VerticalAlignment="Center" />
+                                                </Grid>
+
+                                                <StackPanel Grid.Row="1"
+                                                            VerticalAlignment="Center"
+                                                            Spacing="16"
+                                                            MaxWidth="640">
+                                                    <TextBlock FontSize="40"
+                                                               FontWeight="Bold"
+                                                               Foreground="White"
+                                                               Text="{Binding HeroPage.FullscreenItem.Title}" />
+                                                    <TextBlock FontSize="16"
+                                                               LineHeight="26"
+                                                               Foreground="#E6FFFFFF"
+                                                               Text="{Binding HeroPage.FullscreenItem.Description}"
+                                                               TextWrapping="Wrap" />
+                                                </StackPanel>
+
+                                                <Grid Grid.Row="2" ColumnDefinitions="Auto,*" ColumnSpacing="16">
+                                                    <Border Padding="20,14"
+                                                            Background="#26FFFFFF"
+                                                            CornerRadius="12">
+                                                        <StackPanel Spacing="2">
+                                                            <TextBlock FontSize="24"
+                                                                       FontWeight="Bold"
+                                                                       Foreground="White"
+                                                                       Text="{Binding HeroPage.FullscreenItem.MetricValue}" />
+                                                            <TextBlock FontSize="12"
+                                                                       Foreground="#CCFFFFFF"
+                                                                       Text="{Binding HeroPage.FullscreenItem.MetricLabel}" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <TextBlock Grid.Column="1"
+                                                               VerticalAlignment="Center"
+                                                               FontSize="13"
+                                                               Foreground="#B3FFFFFF"
+                                                               Text="Tip: Press Escape or click outside the card to dismiss with a reverse Hero flight." />
+                                                </Grid>
+                                            </Grid>
+                                        </Border>
+                                    </aviora:Hero>
+                                </Grid>
+                            </aviora:HeroOverlay>
+                        </Grid>
+                    </aviora:HeroHost>
+                </aviora:Drawer>
+            </aviora:Dialog>
+        </aviora:LoadingOverlay>
     </aviora:ToastHost>
 </Window>

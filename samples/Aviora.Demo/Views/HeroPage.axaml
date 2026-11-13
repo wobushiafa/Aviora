@@ -1,0 +1,373 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="https://github.com/wobushiafa/Aviora"
+             xmlns:vm="using:Aviora.Demo.ViewModels"
+             x:Class="Aviora.Demo.Views.HeroPage"
+             x:DataType="vm:HeroPageViewModel"
+             mc:Ignorable="d"
+             d:DesignWidth="900"
+             d:DesignHeight="640">
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="vm:HeroGalleryStateViewModel" x:DataType="vm:HeroGalleryStateViewModel">
+      <ItemsControl ItemsSource="{Binding Owner.Items}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel Orientation="Horizontal" ItemWidth="250" ItemHeight="156" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:HeroGalleryItem">
+            <Button Margin="0,0,12,12"
+                    Padding="0"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch"
+                    VerticalContentAlignment="Stretch"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    CornerRadius="12"
+                    Command="{Binding $parent[UserControl].((vm:HeroPageViewModel)DataContext).SelectItemCommand}"
+                    CommandParameter="{Binding}">
+              <controls:Hero Tag="{Binding Id}" CornerRadius="12">
+                <Border Padding="16"
+                        Background="{Binding AccentHex}"
+                        CornerRadius="12">
+                  <Grid RowDefinitions="Auto,*,Auto">
+                    <Grid ColumnDefinitions="Auto,*">
+                      <Border Width="38"
+                              Height="38"
+                              Background="#33FFFFFF"
+                              CornerRadius="19">
+                        <TextBlock HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontSize="13"
+                                   FontWeight="Bold"
+                                   Foreground="White"
+                                   Text="{Binding BadgeText}" />
+                      </Border>
+                      <TextBlock Grid.Column="1"
+                                 Margin="10,0,0,0"
+                                 VerticalAlignment="Center"
+                                 FontSize="11"
+                                 FontWeight="SemiBold"
+                                 Foreground="#CCFFFFFF"
+                                 Text="{Binding Category}" />
+                    </Grid>
+
+                    <StackPanel Grid.Row="2" Spacing="2">
+                      <TextBlock FontSize="17"
+                                 FontWeight="SemiBold"
+                                 Foreground="White"
+                                 Text="{Binding Title}" />
+                      <TextBlock FontSize="12"
+                                 Foreground="#CCFFFFFF"
+                                 Text="{Binding Subtitle}"
+                                 TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </controls:Hero>
+            </Button>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </DataTemplate>
+
+    <DataTemplate DataType="vm:HeroDetailStateViewModel" x:DataType="vm:HeroDetailStateViewModel">
+      <Grid RowDefinitions="Auto,Auto" RowSpacing="16">
+        <controls:Hero Tag="{Binding Item.Id}"
+                       CornerRadius="16"
+                       Height="180">
+          <Border Padding="24"
+                  Background="{Binding Item.AccentHex}"
+                  CornerRadius="16">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="20">
+              <Border Width="72"
+                      Height="72"
+                      VerticalAlignment="Center"
+                      Background="#33FFFFFF"
+                      CornerRadius="36">
+                <TextBlock HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="White"
+                           Text="{Binding Item.BadgeText}" />
+              </Border>
+
+              <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="6">
+                <TextBlock FontSize="12"
+                           FontWeight="SemiBold"
+                           Foreground="#CCFFFFFF"
+                           Text="{Binding Item.Category}" />
+                <TextBlock FontSize="26"
+                           FontWeight="Bold"
+                           Foreground="White"
+                           Text="{Binding Item.Title}" />
+                <TextBlock FontSize="14"
+                           Foreground="#E6FFFFFF"
+                           Text="{Binding Item.Subtitle}" />
+              </StackPanel>
+
+              <Border Grid.Column="2"
+                      Padding="16,12"
+                      VerticalAlignment="Center"
+                      Background="#26FFFFFF"
+                      CornerRadius="10">
+                <StackPanel HorizontalAlignment="Center" Spacing="2">
+                  <TextBlock HorizontalAlignment="Center"
+                             FontSize="20"
+                             FontWeight="Bold"
+                             Foreground="White"
+                             Text="{Binding Item.MetricValue}" />
+                  <TextBlock HorizontalAlignment="Center"
+                             FontSize="11"
+                             Foreground="#CCFFFFFF"
+                             Text="{Binding Item.MetricLabel}" />
+                </StackPanel>
+              </Border>
+            </Grid>
+          </Border>
+        </controls:Hero>
+
+        <TextBlock Grid.Row="1"
+                   FontSize="14"
+                   Opacity="0.8"
+                   Text="{Binding Item.Description}"
+                   TextWrapping="Wrap" />
+      </Grid>
+    </DataTemplate>
+
+    <DataTemplate DataType="vm:HeroCompactProfileStateViewModel" x:DataType="vm:HeroCompactProfileStateViewModel">
+      <StackPanel Orientation="Horizontal" Spacing="14">
+        <Button Padding="0"
+                Background="Transparent"
+                BorderThickness="0"
+                CornerRadius="28"
+                Command="{Binding Owner.ToggleProfileCommand}">
+          <controls:Hero Tag="profile-avatar"
+                         Width="56"
+                         Height="56"
+                         CornerRadius="28">
+            <Border Background="#0F766E" CornerRadius="28">
+              <TextBlock HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         FontSize="18"
+                         FontWeight="Bold"
+                         Foreground="White"
+                         Text="AV" />
+            </Border>
+          </controls:Hero>
+        </Button>
+        <StackPanel VerticalAlignment="Center" Spacing="2">
+          <TextBlock FontSize="15" FontWeight="SemiBold" Text="Aviora Studio" />
+          <TextBlock FontSize="12" Opacity="0.65" Text="Click avatar or button to expand" />
+        </StackPanel>
+      </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate DataType="vm:HeroExpandedProfileStateViewModel" x:DataType="vm:HeroExpandedProfileStateViewModel">
+      <Border Padding="16"
+              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+              CornerRadius="12">
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="18">
+          <controls:Hero Tag="profile-avatar"
+                         Width="112"
+                         Height="96"
+                         CornerRadius="12">
+            <Border Background="#0F766E" CornerRadius="12">
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4">
+                <TextBlock HorizontalAlignment="Center"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="White"
+                           Text="AV" />
+                <TextBlock HorizontalAlignment="Center"
+                           FontSize="11"
+                           Foreground="#CCFFFFFF"
+                           Text="PRO" />
+              </StackPanel>
+            </Border>
+          </controls:Hero>
+
+          <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+            <TextBlock FontSize="18" FontWeight="SemiBold" Text="Aviora Studio" />
+            <TextBlock Opacity="0.7"
+                       Text="The circular avatar smoothly morphs its bounds, corner radius (28 -> 12), and content snapshot into the expanded card."
+                       TextWrapping="Wrap" />
+          </StackPanel>
+
+          <Button Grid.Column="2"
+                  VerticalAlignment="Center"
+                  Command="{Binding Owner.ToggleProfileCommand}"
+                  Content="Collapse" />
+        </Grid>
+      </Border>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+
+  <Grid RowDefinitions="Auto,*" RowSpacing="20">
+    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+      <StackPanel Spacing="4">
+        <TextBlock FontSize="24" FontWeight="SemiBold" Text="Hero" />
+        <TextBlock Opacity="0.65" Text="Shared-element transitions with smooth enter/exit content &amp; fullscreen overlay fades" />
+      </StackPanel>
+
+      <StackPanel Grid.Column="1"
+                  VerticalAlignment="Center"
+                  Orientation="Horizontal"
+                  Spacing="12">
+        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+          <TextBlock VerticalAlignment="Center" FontSize="12" Opacity="0.7" Text="Mode" />
+          <ComboBox ItemsSource="{Binding FlightModes}"
+                    SelectedItem="{Binding SelectedFlightMode}"
+                    MinWidth="96" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <TextBlock VerticalAlignment="Center" FontSize="12" Opacity="0.7" Text="Duration" />
+          <Slider Width="110"
+                  Minimum="150"
+                  Maximum="1000"
+                  TickFrequency="50"
+                  IsSnapToTickEnabled="True"
+                  Value="{Binding DurationMs}" />
+          <TextBlock VerticalAlignment="Center"
+                     Width="52"
+                     FontSize="12"
+                     FontWeight="SemiBold"
+                     Text="{Binding DurationLabel}" />
+        </StackPanel>
+
+        <CheckBox Content="Animate"
+                  IsChecked="{Binding IsAnimationEnabled}"
+                  VerticalAlignment="Center" />
+      </StackPanel>
+    </Grid>
+
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="4,4,4,24" Spacing="18">
+        <!-- Scenario 1: Fullscreen HeroOverlay -->
+        <controls:AvioraCard>
+          <StackPanel Spacing="16">
+            <StackPanel Spacing="3">
+              <TextBlock FontSize="18" FontWeight="SemiBold" Text="Fullscreen enter &amp; exit" />
+              <TextBlock Opacity="0.65" Text="Click any card to expand across the entire window with HeroOverlay; press Escape, click outside, or click Close to fly back." />
+            </StackPanel>
+
+            <ItemsControl ItemsSource="{Binding FullscreenItems}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel Orientation="Horizontal" ItemWidth="250" ItemHeight="132" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:HeroGalleryItem">
+                  <Button Margin="0,0,12,12"
+                          Padding="0"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          HorizontalContentAlignment="Stretch"
+                          VerticalContentAlignment="Stretch"
+                          Background="Transparent"
+                          BorderThickness="0"
+                          CornerRadius="12"
+                          Command="{Binding $parent[UserControl].((vm:HeroPageViewModel)DataContext).OpenFullscreenCommand}"
+                          CommandParameter="{Binding}">
+                    <controls:Hero Tag="{Binding Id}" CornerRadius="12">
+                      <Border Padding="16"
+                              Background="{Binding AccentHex}"
+                              CornerRadius="12">
+                        <Grid RowDefinitions="Auto,*,Auto">
+                          <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Border Width="34"
+                                    Height="34"
+                                    Background="#33FFFFFF"
+                                    CornerRadius="17">
+                              <TextBlock HorizontalAlignment="Center"
+                                         VerticalAlignment="Center"
+                                         FontSize="12"
+                                         FontWeight="Bold"
+                                         Foreground="White"
+                                         Text="{Binding BadgeText}" />
+                            </Border>
+                            <Border Grid.Column="2"
+                                    Padding="8,3"
+                                    VerticalAlignment="Center"
+                                    Background="#26FFFFFF"
+                                    CornerRadius="6">
+                              <TextBlock FontSize="10"
+                                         FontWeight="SemiBold"
+                                         Foreground="White"
+                                         Text="FULLSCREEN" />
+                            </Border>
+                          </Grid>
+
+                          <StackPanel Grid.Row="2" Spacing="2">
+                            <TextBlock FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="White"
+                                       Text="{Binding Title}" />
+                            <TextBlock FontSize="12"
+                                       Foreground="#CCFFFFFF"
+                                       Text="{Binding Subtitle}"
+                                       TextTrimming="CharacterEllipsis" />
+                          </StackPanel>
+                        </Grid>
+                      </Border>
+                    </controls:Hero>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </controls:AvioraCard>
+
+        <!-- Scenario 2: Gallery <-> Detail with HeroTransitionControl -->
+        <controls:AvioraCard>
+          <StackPanel Spacing="16">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Spacing="3">
+                <TextBlock FontSize="18" FontWeight="SemiBold" Text="Gallery to detail" />
+                <TextBlock Opacity="0.65" Text="Uses HeroTransitionControl so surrounding content cross-fades smoothly on both enter and exit." />
+              </StackPanel>
+              <Button Grid.Column="1"
+                      Command="{Binding ClearSelectionCommand}"
+                      Content="Back to gallery"
+                      IsVisible="{Binding SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}"
+                      VerticalAlignment="Center" />
+            </Grid>
+
+            <controls:HeroTransitionControl Content="{Binding ActiveGalleryView}"
+                                            IsAnimationEnabled="{Binding IsAnimationEnabled}"
+                                            TransitionDuration="0:0:0.18"
+                                            TransitionMode="Fade" />
+          </StackPanel>
+        </controls:AvioraCard>
+
+        <!-- Scenario 3: Shape & CornerRadius morphing -->
+        <controls:AvioraCard>
+          <StackPanel Spacing="16">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Spacing="3">
+                <TextBlock FontSize="18" FontWeight="SemiBold" Text="Shape &amp; corner radius morphing" />
+                <TextBlock Opacity="0.65" Text="Toggle between a circular avatar badge (CornerRadius 28) and an expanded profile card (CornerRadius 12)." />
+              </StackPanel>
+              <Button Grid.Column="1"
+                      Command="{Binding ToggleProfileCommand}"
+                      Content="Toggle layout"
+                      VerticalAlignment="Center" />
+            </Grid>
+
+            <controls:HeroTransitionControl Content="{Binding ActiveProfileView}"
+                                            IsAnimationEnabled="{Binding IsAnimationEnabled}"
+                                            TransitionDuration="0:0:0.18"
+                                            TransitionMode="Fade" />
+          </StackPanel>
+        </controls:AvioraCard>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

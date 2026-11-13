@@ -17,6 +17,7 @@ public partial class MainWindowViewModel : ViewModelBase
         ILoadingService loadingService,
         IToastService toastService)
     {
+        HeroPage = new HeroPageViewModel();
         Pages =
         [
             new ChartsPageViewModel(),
@@ -25,12 +26,15 @@ public partial class MainWindowViewModel : ViewModelBase
             new BackdropBlurPageViewModel(),
             new LoadingPageViewModel(loadingService),
             new ProgressPageViewModel(),
+            HeroPage,
             new DrawerPageViewModel(drawerService),
             new DialogPageViewModel(dialogService),
             new ToastPageViewModel(toastService),
         ];
         _selectedPage = Pages[0];
     }
+
+    public HeroPageViewModel HeroPage { get; }
 
     public IReadOnlyList<DemoPageViewModel> Pages { get; }
 }
