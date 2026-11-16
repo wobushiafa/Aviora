@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Avalonia.Media;
 using Aviora.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -10,7 +11,7 @@ public partial class ChartsPageViewModel : DemoPageViewModel
     private int _updateVersion;
 
     [ObservableProperty]
-    private IReadOnlyList<IChartDataPoint> _animatedTrend;
+    private ObservableCollection<IChartDataPoint> _animatedTrend;
 
     [ObservableProperty]
     private bool _isAnimationEnabled = true;
@@ -39,7 +40,7 @@ public partial class ChartsPageViewModel : DemoPageViewModel
     public ChartsPageViewModel()
         : base("Charts")
     {
-        _animatedTrend = CreateTrend(0);
+        _animatedTrend = [];
     }
 
     public IReadOnlyList<IChartDataPoint> MonthlySales { get; } =
@@ -134,7 +135,21 @@ public partial class ChartsPageViewModel : DemoPageViewModel
     private void UpdateTrend()
     {
         _updateVersion++;
-        AnimatedTrend = CreateTrend(_updateVersion);
+        AnimatedTrend = new ObservableCollection<IChartDataPoint>(CreateTrend(_updateVersion));
+    }
+
+    [RelayCommand]
+    private void AddRandomTrendPoint()
+    {
+        int pointNumber = AnimatedTrend.Count + 1;
+        double value = Random.Shared.Next(25, 91) + Random.Shared.NextDouble();
+        AnimatedTrend.Add(new ChartDataPoint
+        {
+            Key = $"Q{pointNumber}",
+            Label = $"Q{pointNumber}",
+            Value = value,
+            ToolTip = $"Randomly added point: {value:0.0}",
+        });
     }
 
     [RelayCommand]

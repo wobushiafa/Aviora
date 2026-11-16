@@ -24,6 +24,7 @@ Aviora 是一个面向 [Avalonia](https://avaloniaui.net/) 的现代化、跨平
 - `Drawer`：支持多方向、遮罩、Push/Overlay 模式及异步服务调用的抽屉。
 - `Dialog`：支持异步结果、会话关闭、请求排队、多宿主路由和自定义内容的模态对话框。
 - `ToastHost`：支持并发堆叠、六方位显示、超时/动作/取消关闭、动画和外部模板的全局通知宿主。
+- `HeroHost` / `Hero` / `HeroOverlay` / `HeroTransitionControl`：支持共享元素跨视图飞行过渡（直线与弧线轨迹、圆角插值、自定义穿梭模板）及全屏进退场遮罩动画。
 
 ## 安装
 

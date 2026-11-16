@@ -24,6 +24,7 @@ Aviora is a modern, cross-platform open-source control library for [Avalonia](ht
 - `Drawer`: multiple placements, overlay and push modes, dismissal, and an asynchronous presentation service.
 - `Dialog`: modal custom content with asynchronous results, presentation sessions, request queues, and multi-host routing.
 - `ToastHost`: global notifications with concurrent stacking, six placements, timeout/action/cancellation dismissal, animation, and external templates.
+- `HeroHost` / `Hero` / `HeroOverlay` / `HeroTransitionControl`: shared-element transitions with linear and arc flight trajectories, corner-radius interpolation, custom shuttle templates, and coordinated fullscreen enter/exit overlays.
 
 ## Installation
 

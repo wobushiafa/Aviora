@@ -125,10 +125,15 @@
                                                    Text="Smooth interpolation, area fill, point styling, selected point, and custom Tooltip template"
                                                    TextWrapping="Wrap" />
                                     </StackPanel>
-                                    <Button Grid.Column="1"
-                                            VerticalAlignment="Center"
-                                            Command="{Binding UpdateTrendCommand}"
-                                            Content="Update data" />
+                                    <StackPanel Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal"
+                                                Spacing="8">
+                                        <Button Command="{Binding UpdateTrendCommand}"
+                                                Content="Update data" />
+                                        <Button Command="{Binding AddRandomTrendPointCommand}"
+                                                Content="Add random point" />
+                                    </StackPanel>
                                 </Grid>
                                 <controls:LineChart Height="310"
                                                     ItemsSource="{Binding AnimatedTrend}"

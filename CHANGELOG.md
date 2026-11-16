@@ -6,6 +6,18 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-16
+
+### Added
+
+- Added `HeroHost` and `Hero` for Flutter-style shared-element transitions with `Arc` and `Linear` flight modes, corner-radius interpolation, mid-flight interruption handling, custom `ShuttleTemplate` support, and `RenderTargetBitmap` cross-fade shuttles.
+- Added `HeroTransitionControl` and `HeroOverlay` for smooth content cross-fades and fullscreen modal enter/exit transitions coordinated with `HeroHost`.
+- Added an interactive Hero demo page in `Aviora.Demo` showcasing fullscreen enter/exit, gallery-to-detail transitions, and circular-to-card morphing, plus `HeroTests` regression coverage.
+
+### Changed
+
+- Updated `LineChart` demo in `Aviora.Demo` to support incremental random point additions via `ObservableCollection`.
+
 ## [0.5.0] - 2026-10-08
 
 ### Added
