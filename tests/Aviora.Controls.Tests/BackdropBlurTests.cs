@@ -297,6 +297,123 @@ public class BackdropBlurTests
         finally { window.Close(); }
     }
 
+    [AvaloniaTheory]
+    [InlineData(1)]
+    [InlineData(.75)]
+    [InlineData(.5)]
+    public void Foreground_slider_updates_do_not_corrupt_backdrop_blur(double scale)
+    {
+        static Grid BuildScene(double renderScale, out Slider slider)
+        {
+            var scene = new Grid { Background = Brushes.White };
+            scene.Children.Add(new Border
+            {
+                Background = Brushes.Black, Width = 80, Height = 160,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
+            });
+            scene.Children.Add(new BackdropBlur
+            {
+                BlurRadius = 12,
+                RenderScale = renderScale,
+                Background = new SolidColorBrush(Color.FromArgb(160, 255, 255, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(200, 255, 255, 255)),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(16),
+                Width = 120,
+                Height = 100,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+            });
+            slider = CreateTestSlider();
+            scene.Children.Add(slider);
+            return scene;
+        }
+
+        var incrementalScene = BuildScene(scale, out var slider);
+        var incrementalWindow = new Window { Width = Size, Height = Size, Content = incrementalScene };
+        var sliderReferenceWindow = new Window { Width = Size, Height = Size, Content = BuildScene(scale, out var sliderRef) };
+        var referenceScene = BuildScene(scale, out var refSlider);
+        var referenceWindow = new Window { Width = Size, Height = Size, Content = referenceScene };
+        try
+        {
+            static void AssertMatches(byte[] actual, byte[] expected)
+            {
+                int maxDiff = 0;
+                int diffPixels = 0;
+                for (int i = 0; i < actual.Length; i += 4)
+                {
+                    int d = Math.Max(Math.Max(Math.Abs(actual[i] - expected[i]), Math.Abs(actual[i + 1] - expected[i + 1])),
+                        Math.Abs(actual[i + 2] - expected[i + 2]));
+                    if (d > 2) diffPixels++;
+                    if (d > maxDiff) maxDiff = d;
+                }
+                Assert.True(maxDiff <= 2 && diffPixels == 0, $"maxDiff={maxDiff}, diffPixels={diffPixels}");
+            }
+
+            incrementalWindow.Show();
+            Capture(incrementalWindow);
+            for (int v = 25; v <= 55; v += 5)
+            {
+                slider.Value = v;
+                Capture(incrementalWindow);
+            }
+            byte[] afterSliderOnly = Capture(incrementalWindow);
+            sliderRef.Value = 55;
+            sliderReferenceWindow.Show();
+            AssertMatches(afterSliderOnly, Capture(sliderReferenceWindow));
+
+            // Simulate a video frame / background refresh followed by more Slider ticks.
+            incrementalScene.Background = Brushes.CornflowerBlue;
+            Capture(incrementalWindow);
+            slider.Value = 65;
+            Capture(incrementalWindow);
+            slider.Value = 75;
+            byte[] actual = Capture(incrementalWindow);
+
+            referenceScene.Background = Brushes.CornflowerBlue;
+            refSlider.Value = 75;
+            referenceWindow.Show();
+            AssertMatches(actual, Capture(referenceWindow));
+        }
+        finally
+        {
+            incrementalWindow.Close();
+            sliderReferenceWindow.Close();
+            referenceWindow.Close();
+        }
+    }
+
+    private static Slider CreateTestSlider() => new()
+    {
+        Minimum = 0,
+        Maximum = 100,
+        Value = 20,
+        Width = 100,
+        Height = 20,
+        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+        VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+        Template = new Avalonia.Controls.Templates.FuncControlTemplate<Slider>((_, scope) =>
+        {
+            var decrease = new Button { Name = "PART_DecreaseButton", Background = Brushes.DodgerBlue, Height = 4 };
+            var increase = new Button { Name = "PART_IncreaseButton", Background = Brushes.Gray, Height = 4 };
+            var thumb = new Avalonia.Controls.Primitives.Thumb { Width = 12, Height = 12, Background = Brushes.White };
+            var track = new Avalonia.Controls.Primitives.Track
+            {
+                Name = "PART_Track",
+                DecreaseButton = decrease,
+                IncreaseButton = increase,
+                Thumb = thumb,
+            };
+            track.Bind(Avalonia.Controls.Primitives.Track.MinimumProperty, new Avalonia.Data.Binding(nameof(Slider.Minimum)) { RelativeSource = new Avalonia.Data.RelativeSource(Avalonia.Data.RelativeSourceMode.TemplatedParent) });
+            track.Bind(Avalonia.Controls.Primitives.Track.MaximumProperty, new Avalonia.Data.Binding(nameof(Slider.Maximum)) { RelativeSource = new Avalonia.Data.RelativeSource(Avalonia.Data.RelativeSourceMode.TemplatedParent) });
+            track.Bind(Avalonia.Controls.Primitives.Track.ValueProperty, new Avalonia.Data.Binding(nameof(Slider.Value)) { RelativeSource = new Avalonia.Data.RelativeSource(Avalonia.Data.RelativeSourceMode.TemplatedParent) });
+            scope.Register("PART_Track", track);
+            scope.Register("PART_DecreaseButton", decrease);
+            scope.Register("PART_IncreaseButton", increase);
+            return track;
+        }),
+    };
+
     private static Grid CreateScene(BackdropBlur blur)
     {
         var scene = new Grid { Background = Brushes.White };

@@ -126,6 +126,7 @@ public sealed class BackdropBlur : TemplatedControl
     {
         private int _references = 1;
         private SKPaint? _paint;
+        private SKPaint? _copyPaint;
         private SKPaint? _compositePaint;
         private SKRoundRect? _clip;
         private Rect _clipBounds;
@@ -140,7 +141,15 @@ public sealed class BackdropBlur : TemplatedControl
         private WeakReference<GRContext>? _workContext;
         private SKImageInfo _workInfo;
         private IntPtr _workColorSpaceHandle;
+        private SKSurface? _cleanBackdrop;
+        private WeakReference<SKSurface>? _cleanSourceSurface;
+        private WeakReference<GRContext>? _cleanContext;
+        private SKImageInfo _cleanInfo;
+        private IntPtr _cleanColorSpaceHandle;
+        private SKRectI _cleanRect;
+        private SKRect _cleanDeviceRect;
         private static readonly SKSamplingOptions LinearSampling = new(SKFilterMode.Linear);
+        private static readonly SKSamplingOptions NearestSampling = new(SKFilterMode.Nearest);
 
         public bool TryRetain()
         {
@@ -160,12 +169,15 @@ public sealed class BackdropBlur : TemplatedControl
             lock (this)
             {
                 _paint?.Dispose();
+                _copyPaint?.Dispose();
                 _compositePaint?.Dispose();
                 _blur?.Dispose();
                 _previousBlur?.Dispose();
                 _clip?.Dispose();
                 DisposeWorkSurfaces();
+                DisposeCleanBackdrop();
                 _paint = null;
+                _copyPaint = null;
                 _compositePaint = null;
                 _blur = null;
                 _previousBlur = null;
@@ -204,15 +216,56 @@ public sealed class BackdropBlur : TemplatedControl
                 // Output may be clipped by a scrolling viewport. Input still includes
                 // the full halo beyond that clip, bounded only by the source surface.
                 captureRect.Inflate(3 * sigmaX, 3 * sigmaY);
-                var capture = default(SKRectI);
-                var sampleRect = default(SKRect);
-                using var image = renderScale < 1 && lease.SkSurface is { } surface
-                    ? CaptureBackdrop(surface, lease.GrContext, captureRect, sigmaX, sigmaY, renderScale, out capture, out sampleRect)
-                    : null;
-                if (image is null)
+
+                using var snapshot = lease.SkSurface?.Snapshot();
+                var gpu = lease.GrContext;
+                if (snapshot is null || (snapshot.IsTextureBacked && gpu is null))
                 {
                     if (renderScale == 1 && _blurSurface is not null) DisposeWorkSurfaces();
                     RenderNativeBackdrop(canvas, deviceRect, sigmaX, sigmaY, lease.CurrentOpacity);
+                    return;
+                }
+
+                // Partial dirty-rect redraws (e.g. a foreground Slider updating above the blur)
+                // only clear the dirty rect on the target surface; outside it, the surface still
+                // holds the previous frame's blur, tint, and foreground. Maintain an uncontaminated
+                // backdrop copy and patch only the newly redrawn dirty rect into it.
+                if (!EnsureAndPatchCleanBackdrop(lease.SkSurface!, snapshot, gpu, deviceRect, sigmaX, sigmaY, visible, captureRect, out bool fullCleanVisible, out var renderCapture))
+                {
+                    if (renderScale == 1 && _blurSurface is not null) DisposeWorkSurfaces();
+                    RenderNativeBackdrop(canvas, deviceRect, sigmaX, sigmaY, lease.CurrentOpacity);
+                    return;
+                }
+
+                if (renderScale == 1)
+                {
+                    if (_blurSurface is not null) DisposeWorkSurfaces();
+                    if (fullCleanVisible)
+                    {
+                        RenderNativeBackdrop(canvas, deviceRect, sigmaX, sigmaY, lease.CurrentOpacity);
+                        return;
+                    }
+
+                    using var cleanImage = _cleanBackdrop!.Snapshot();
+                    if (cleanImage is null)
+                    {
+                        RenderNativeBackdrop(canvas, deviceRect, sigmaX, sigmaY, lease.CurrentOpacity);
+                        return;
+                    }
+                    RenderCleanBackdrop(canvas, cleanImage, _cleanRect, sigmaX, sigmaY, lease.CurrentOpacity);
+                    return;
+                }
+
+                using var downsampledSource = fullCleanVisible ? null : _cleanBackdrop!.Snapshot();
+                var sourceImage = downsampledSource ?? snapshot;
+                var sourceOffset = fullCleanVisible ? default : new SKPoint(_cleanRect.Left, _cleanRect.Top);
+                using var image = CaptureBackdrop(sourceImage, sourceOffset, gpu, renderCapture, sigmaX, sigmaY, renderScale, out var sampleRect);
+                if (image is null)
+                {
+                    if (fullCleanVisible)
+                        RenderNativeBackdrop(canvas, deviceRect, sigmaX, sigmaY, lease.CurrentOpacity);
+                    else if (downsampledSource is not null)
+                        RenderCleanBackdrop(canvas, downsampledSource, _cleanRect, sigmaX, sigmaY, lease.CurrentOpacity);
                     return;
                 }
                 _compositePaint ??= new SKPaint();
@@ -222,7 +275,7 @@ public sealed class BackdropBlur : TemplatedControl
                 {
                     canvas.ClipRoundRect(_clip!, SKClipOperation.Intersect, antialias: true);
                     canvas.ResetMatrix();
-                    var destination = new SKRect(capture.Left, capture.Top, capture.Right, capture.Bottom);
+                    var destination = new SKRect(renderCapture.Left, renderCapture.Top, renderCapture.Right, renderCapture.Bottom);
                     if (sampleRect.Width == image.Width && sampleRect.Height == image.Height)
                         canvas.DrawImage(image, destination, LinearSampling, _compositePaint);
                     else
@@ -266,6 +319,30 @@ public sealed class BackdropBlur : TemplatedControl
             finally { canvas.RestoreToCount(saveCount); }
         }
 
+        private void RenderCleanBackdrop(SKCanvas canvas, SKImage cleanImage, SKRectI cleanRect, float sigmaX, float sigmaY, double opacity)
+        {
+            UpdateFilter(sigmaX, sigmaY);
+            _paint ??= new SKPaint { BlendMode = SKBlendMode.Src, Color = SKColors.White };
+            var previousBlend = _paint.BlendMode;
+            var previousColor = _paint.Color;
+            _paint.BlendMode = SKBlendMode.SrcOver;
+            _paint.Color = SKColors.White.WithAlpha((byte)Math.Clamp(opacity * 255, 0, 255));
+            _paint.ImageFilter = _blur;
+            canvas.Save();
+            try
+            {
+                canvas.ClipRoundRect(_clip!, SKClipOperation.Intersect, antialias: true);
+                canvas.ResetMatrix();
+                canvas.DrawImage(cleanImage, cleanRect.Left, cleanRect.Top, _paint);
+            }
+            finally
+            {
+                canvas.Restore();
+                _paint.BlendMode = previousBlend;
+                _paint.Color = previousColor;
+            }
+        }
+
         private void UpdateFilter(float sigmaX, float sigmaY)
         {
             if (_blur is not null && _sigmaX == sigmaX && _sigmaY == sigmaY) return;
@@ -288,32 +365,129 @@ public sealed class BackdropBlur : TemplatedControl
             if (_paint is not null) _paint.ImageFilter = _blur;
         }
 
-        private SKImage? CaptureBackdrop(SKSurface surface, GRContext? gpu, SKRect deviceRect,
-            float sigmaX, float sigmaY, double renderScale, out SKRectI capture, out SKRect sampleRect)
+        private static SKRectI ClampToSnapshot(SKRect rect, int width, int height) => new(
+            (int)Math.Clamp(MathF.Floor(rect.Left), 0, width),
+            (int)Math.Clamp(MathF.Floor(rect.Top), 0, height),
+            (int)Math.Clamp(MathF.Ceiling(rect.Right), 0, width),
+            (int)Math.Clamp(MathF.Ceiling(rect.Bottom), 0, height));
+
+        private static SKSurface? CreateSurface(SKImageInfo info, GRContext? gpu) =>
+            gpu is null ? SKSurface.Create(info) : SKSurface.Create(gpu, true, info);
+
+        private void CopySnapshotRegion(SKImage source, SKRectI sourceRect, SKSurface target, SKRectI targetOrigin)
         {
-            capture = default;
+            var dst = new SKRect(sourceRect.Left - targetOrigin.Left, sourceRect.Top - targetOrigin.Top,
+                sourceRect.Right - targetOrigin.Left, sourceRect.Bottom - targetOrigin.Top);
+            target.Canvas.DrawImage(source,
+                new SKRect(sourceRect.Left, sourceRect.Top, sourceRect.Right, sourceRect.Bottom),
+                dst, NearestSampling, _copyPaint);
+        }
+
+        private bool EnsureAndPatchCleanBackdrop(SKSurface sourceSurface, SKImage snapshot, GRContext? gpu,
+            SKRect deviceRect, float sigmaX, float sigmaY, SKRectI visible, SKRect neededRectF,
+            out bool fullCleanVisible, out SKRectI renderCapture)
+        {
+            fullCleanVisible = false;
+            renderCapture = default;
+            var needed = ClampToSnapshot(neededRectF, snapshot.Width, snapshot.Height);
+            if (needed.Width <= 0 || needed.Height <= 0) return false;
+
+            var maxRectF = deviceRect;
+            maxRectF.Inflate(3 * sigmaX, 3 * sigmaY);
+            var maxRect = ClampToSnapshot(maxRectF, snapshot.Width, snapshot.Height);
+
+            var effectiveGpu = snapshot.IsTextureBacked ? gpu : null;
+            using var colorSpace = snapshot.ColorSpace;
+            var colorSpaceHandle = colorSpace?.Handle ?? IntPtr.Zero;
+            bool sameSource = _cleanSourceSurface is not null && _cleanSourceSurface.TryGetTarget(out var previousSource)
+                && ReferenceEquals(previousSource, sourceSurface);
+            bool sameContext = effectiveGpu is null ? _cleanContext is null
+                : _cleanContext is not null && _cleanContext.TryGetTarget(out var previousGpu) && ReferenceEquals(previousGpu, effectiveGpu);
+            bool compatible = _cleanBackdrop is not null && sameSource && sameContext
+                && _cleanInfo.ColorType == snapshot.ColorType && _cleanColorSpaceHandle == colorSpaceHandle;
+
+            _copyPaint ??= new SKPaint { BlendMode = SKBlendMode.Src, Color = SKColors.White };
+            var clampedDevice = ClampToSnapshot(deviceRect, snapshot.Width, snapshot.Height);
+            fullCleanVisible = clampedDevice.Width > 0 && clampedDevice.Height > 0
+                && visible.Left <= clampedDevice.Left && visible.Top <= clampedDevice.Top
+                && visible.Right >= clampedDevice.Right && visible.Bottom >= clampedDevice.Bottom;
+
+            if (!fullCleanVisible && compatible && _cleanDeviceRect == deviceRect)
+            {
+                if (!_cleanRect.Contains(needed))
+                {
+                    var expanded = SKRectI.Union(_cleanRect, needed);
+                    expanded.Intersect(maxRect);
+                    if (expanded.Width <= 0 || expanded.Height <= 0) return false;
+
+                    var info = new SKImageInfo(expanded.Width, expanded.Height, snapshot.ColorType, SKAlphaType.Premul, colorSpace);
+                    var grown = CreateSurface(info, effectiveGpu);
+                    if (grown is null) return false;
+
+                    CopySnapshotRegion(snapshot, expanded, grown, expanded);
+                    using (var previousImage = _cleanBackdrop!.Snapshot())
+                    {
+                        if (previousImage is not null)
+                        {
+                            var oldDst = new SKRect(
+                                _cleanRect.Left - expanded.Left, _cleanRect.Top - expanded.Top,
+                                _cleanRect.Right - expanded.Left, _cleanRect.Bottom - expanded.Top);
+                            grown.Canvas.DrawImage(previousImage, oldDst, NearestSampling, _copyPaint);
+                        }
+                    }
+                    _cleanBackdrop.Dispose();
+                    _cleanBackdrop = grown;
+                    _cleanInfo = new SKImageInfo(info.Width, info.Height, info.ColorType, info.AlphaType);
+                    _cleanRect = expanded;
+                }
+
+                var patch = SKRectI.Intersect(visible, _cleanRect);
+                if (patch.Width > 0 && patch.Height > 0)
+                    CopySnapshotRegion(snapshot, patch, _cleanBackdrop!, _cleanRect);
+            }
+            else
+            {
+                var initial = fullCleanVisible ? maxRect : needed;
+                var info = new SKImageInfo(initial.Width, initial.Height, snapshot.ColorType, SKAlphaType.Premul, colorSpace);
+                if (!compatible || _cleanInfo.Width != info.Width || _cleanInfo.Height != info.Height)
+                {
+                    DisposeCleanBackdrop();
+                    _cleanBackdrop = CreateSurface(info, effectiveGpu);
+                    if (_cleanBackdrop is null) return false;
+                    _cleanInfo = new SKImageInfo(info.Width, info.Height, info.ColorType, info.AlphaType);
+                    _cleanColorSpaceHandle = colorSpaceHandle;
+                    _cleanContext = effectiveGpu is null ? null : new WeakReference<GRContext>(effectiveGpu);
+                    _cleanSourceSurface = new WeakReference<SKSurface>(sourceSurface);
+                }
+
+                _cleanRect = initial;
+                _cleanDeviceRect = deviceRect;
+                CopySnapshotRegion(snapshot, initial, _cleanBackdrop!, initial);
+            }
+
+            renderCapture = fullCleanVisible ? needed : SKRectI.Intersect(maxRect, _cleanRect);
+            return renderCapture.Width > 0 && renderCapture.Height > 0;
+        }
+
+        private SKImage? CaptureBackdrop(SKImage source, SKPoint sourceOrigin, GRContext? gpu, SKRectI capture,
+            float sigmaX, float sigmaY, double renderScale, out SKRect sampleRect)
+        {
             sampleRect = default;
-            using var snapshot = surface.Snapshot();
-            if (snapshot is null || (snapshot.IsTextureBacked && gpu is null)) return null;
-            capture = new SKRectI(
-                (int)Math.Clamp(MathF.Floor(deviceRect.Left), 0, snapshot.Width),
-                (int)Math.Clamp(MathF.Floor(deviceRect.Top), 0, snapshot.Height),
-                (int)Math.Clamp(MathF.Ceiling(deviceRect.Right), 0, snapshot.Width),
-                (int)Math.Clamp(MathF.Ceiling(deviceRect.Bottom), 0, snapshot.Height));
             if (capture.Width <= 0 || capture.Height <= 0) return null;
             int width = Math.Max(1, (int)Math.Ceiling(capture.Width * renderScale));
             int height = Math.Max(1, (int)Math.Ceiling(capture.Height * renderScale));
             sampleRect = new SKRect(0, 0, width, height);
-            using var colorSpace = snapshot.ColorSpace;
-            var info = new SKImageInfo(width, height, snapshot.ColorType, SKAlphaType.Premul, colorSpace);
-            if (!EnsureWorkSurfaces(info, snapshot.IsTextureBacked ? gpu : null)) return null;
+            using var colorSpace = source.ColorSpace;
+            var info = new SKImageInfo(width, height, source.ColorType, SKAlphaType.Premul, colorSpace);
+            if (!EnsureWorkSurfaces(info, source.IsTextureBacked ? gpu : null)) return null;
 
             _paint ??= new SKPaint { BlendMode = SKBlendMode.Src, Color = SKColors.White };
             UpdateFilter(sigmaX * width / capture.Width, sigmaY * height / capture.Height);
             _paint.ImageFilter = _blur;
             _blurSurface!.Canvas.Clear(SKColors.Transparent);
-            _blurSurface.Canvas.DrawImage(snapshot,
-                new SKRect(capture.Left, capture.Top, capture.Right, capture.Bottom),
+            _blurSurface.Canvas.DrawImage(source,
+                new SKRect(capture.Left - sourceOrigin.X, capture.Top - sourceOrigin.Y,
+                    capture.Right - sourceOrigin.X, capture.Bottom - sourceOrigin.Y),
                 sampleRect, LinearSampling, _paint);
             return _blurSurface.Snapshot();
         }
@@ -348,6 +522,16 @@ public sealed class BackdropBlur : TemplatedControl
             _blurSurface?.Dispose();
             _blurSurface = null;
             _workContext = null;
+        }
+
+        private void DisposeCleanBackdrop()
+        {
+            _cleanBackdrop?.Dispose();
+            _cleanBackdrop = null;
+            _cleanContext = null;
+            _cleanSourceSurface = null;
+            _cleanRect = default;
+            _cleanDeviceRect = default;
         }
     }
 }
