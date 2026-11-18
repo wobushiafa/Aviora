@@ -6,6 +6,9 @@ using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Rendering.Composition;
+using Avalonia.Rendering.Composition.Animations;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 
 namespace Aviora.Controls;
@@ -48,6 +51,7 @@ public class HeroTransitionControl : ContentControl
     private readonly TranslateTransform _outTranslate = new(0, 0);
     private readonly TranslateTransform _inTranslate = new(0, 0);
     private RenderTargetBitmap? _outgoingBitmap;
+    private DispatcherTimer? _completionTimer;
     private bool _isTransitioning;
     private bool _frameRequested;
     private long _startTimestamp;
@@ -159,16 +163,131 @@ public class HeroTransitionControl : ContentControl
         _outgoingImage.Width = outgoingSize.Width;
         _outgoingImage.Height = outgoingSize.Height;
         _outgoingImage.Source = _outgoingBitmap;
-        _outgoingImage.Opacity = 1;
-        _outgoingImage.RenderTransform = null;
         _outgoingImage.IsVisible = true;
-
-        _presenter.Opacity = newContent is null ? 1 : 0;
-        ApplyTransforms(0);
 
         _isTransitioning = true;
         _startTimestamp = Stopwatch.GetTimestamp();
+
+        CompositionVisual? outgoingVisual = ElementComposition.GetElementVisual(_outgoingImage);
+        CompositionVisual? presenterVisual = ElementComposition.GetElementVisual(_presenter);
+
+        if (outgoingVisual is not null && presenterVisual is not null)
+        {
+            StartCompositionTransition(outgoingVisual, presenterVisual, outgoingSize, newContent is null);
+            return;
+        }
+
+        _outgoingImage.Opacity = 1;
+        _outgoingImage.RenderTransform = null;
+        _presenter.Opacity = newContent is null ? 1 : 0;
+        ApplyTransforms(0);
         RequestNextFrame();
+    }
+
+    private void StartCompositionTransition(
+        CompositionVisual outgoingVisual,
+        CompositionVisual presenterVisual,
+        Size outgoingSize,
+        bool isNewContentNull)
+    {
+        TimeSpan duration = TransitionDuration;
+        Easing easing = TransitionEasing ?? new CubicEaseOut();
+        Compositor compositor = outgoingVisual.Compositor;
+
+        outgoingVisual.StopAnimation("Opacity");
+        outgoingVisual.StopAnimation("Scale");
+        outgoingVisual.StopAnimation("Translation");
+        presenterVisual.StopAnimation("Opacity");
+        presenterVisual.StopAnimation("Translation");
+
+        outgoingVisual.Opacity = 1.0f;
+        ScalarKeyFrameAnimation outFade = compositor.CreateScalarKeyFrameAnimation();
+        outFade.Duration = duration;
+        outFade.StopBehavior = AnimationStopBehavior.SetToFinalValue;
+        outFade.InsertKeyFrame(0.0f, 1.0f);
+        outFade.InsertKeyFrame(1.0f, 0.0f, easing);
+        outgoingVisual.StartAnimation("Opacity", outFade);
+
+        if (!isNewContentNull)
+        {
+            presenterVisual.Opacity = 0.0f;
+            ScalarKeyFrameAnimation inFade = compositor.CreateScalarKeyFrameAnimation();
+            inFade.Duration = duration;
+            inFade.StopBehavior = AnimationStopBehavior.SetToFinalValue;
+            inFade.InsertKeyFrame(0.0f, 0.0f);
+            inFade.InsertKeyFrame(1.0f, 1.0f, easing);
+            presenterVisual.StartAnimation("Opacity", inFade);
+        }
+        else
+        {
+            presenterVisual.Opacity = 1.0f;
+        }
+
+        switch (TransitionMode)
+        {
+            case HeroContentTransitionMode.FadeScale:
+            {
+                outgoingVisual.CenterPoint = new Vector3D(outgoingSize.Width * 0.5, outgoingSize.Height * 0.5, 0);
+                outgoingVisual.Scale = new Vector3D(1, 1, 1);
+                Vector3DKeyFrameAnimation outScale = compositor.CreateVector3DKeyFrameAnimation();
+                outScale.Duration = duration;
+                outScale.StopBehavior = AnimationStopBehavior.SetToFinalValue;
+                outScale.InsertKeyFrame(0.0f, new Vector3D(1, 1, 1));
+                outScale.InsertKeyFrame(1.0f, new Vector3D(0.97, 0.97, 1), easing);
+                outgoingVisual.StartAnimation("Scale", outScale);
+                break;
+            }
+            case HeroContentTransitionMode.SlideVertical:
+            {
+                outgoingVisual.Translation = new Vector3D(0, 0, 0);
+                Vector3DKeyFrameAnimation outSlide = compositor.CreateVector3DKeyFrameAnimation();
+                outSlide.Duration = duration;
+                outSlide.StopBehavior = AnimationStopBehavior.SetToFinalValue;
+                outSlide.InsertKeyFrame(0.0f, new Vector3D(0, 0, 0));
+                outSlide.InsertKeyFrame(1.0f, new Vector3D(0, -14.0, 0), easing);
+                outgoingVisual.StartAnimation("Translation", outSlide);
+
+                presenterVisual.Translation = new Vector3D(0, 18.0, 0);
+                Vector3DKeyFrameAnimation inSlide = compositor.CreateVector3DKeyFrameAnimation();
+                inSlide.Duration = duration;
+                inSlide.StopBehavior = AnimationStopBehavior.SetToFinalValue;
+                inSlide.InsertKeyFrame(0.0f, new Vector3D(0, 18.0, 0));
+                inSlide.InsertKeyFrame(1.0f, new Vector3D(0, 0, 0), easing);
+                presenterVisual.StartAnimation("Translation", inSlide);
+                break;
+            }
+            case HeroContentTransitionMode.SlideHorizontal:
+            {
+                outgoingVisual.Translation = new Vector3D(0, 0, 0);
+                Vector3DKeyFrameAnimation outSlide = compositor.CreateVector3DKeyFrameAnimation();
+                outSlide.Duration = duration;
+                outSlide.StopBehavior = AnimationStopBehavior.SetToFinalValue;
+                outSlide.InsertKeyFrame(0.0f, new Vector3D(0, 0, 0));
+                outSlide.InsertKeyFrame(1.0f, new Vector3D(-20.0, 0, 0), easing);
+                outgoingVisual.StartAnimation("Translation", outSlide);
+
+                presenterVisual.Translation = new Vector3D(24.0, 0, 0);
+                Vector3DKeyFrameAnimation inSlide = compositor.CreateVector3DKeyFrameAnimation();
+                inSlide.Duration = duration;
+                inSlide.StopBehavior = AnimationStopBehavior.SetToFinalValue;
+                inSlide.InsertKeyFrame(0.0f, new Vector3D(24.0, 0, 0));
+                inSlide.InsertKeyFrame(1.0f, new Vector3D(0, 0, 0), easing);
+                presenterVisual.StartAnimation("Translation", inSlide);
+                break;
+            }
+        }
+
+        DispatcherTimer timer = new() { Interval = duration };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            if (ReferenceEquals(_completionTimer, timer))
+            {
+                StopTransition();
+            }
+        };
+        _completionTimer = timer;
+        timer.Start();
     }
 
     private void RequestNextFrame()
@@ -285,15 +404,37 @@ public class HeroTransitionControl : ContentControl
     private void StopTransition()
     {
         _isTransitioning = false;
+        _completionTimer?.Stop();
+        _completionTimer = null;
 
         if (_presenter is not null)
         {
+            CompositionVisual? presenterVisual = ElementComposition.GetElementVisual(_presenter);
+            if (presenterVisual is not null)
+            {
+                presenterVisual.StopAnimation("Opacity");
+                presenterVisual.StopAnimation("Translation");
+                presenterVisual.Opacity = 1.0f;
+                presenterVisual.Translation = new Vector3D(0, 0, 0);
+            }
+
             _presenter.Opacity = 1;
             _presenter.RenderTransform = null;
         }
 
         if (_outgoingImage is not null)
         {
+            CompositionVisual? outgoingVisual = ElementComposition.GetElementVisual(_outgoingImage);
+            if (outgoingVisual is not null)
+            {
+                outgoingVisual.StopAnimation("Opacity");
+                outgoingVisual.StopAnimation("Scale");
+                outgoingVisual.StopAnimation("Translation");
+                outgoingVisual.Opacity = 0.0f;
+                outgoingVisual.Scale = new Vector3D(1, 1, 1);
+                outgoingVisual.Translation = new Vector3D(0, 0, 0);
+            }
+
             _outgoingImage.IsVisible = false;
             _outgoingImage.Opacity = 0;
             _outgoingImage.RenderTransform = null;
@@ -342,7 +483,9 @@ public class HeroTransitionControl : ContentControl
 
     private RenderTargetBitmap? CapturePresenterSnapshot(Control presenter)
     {
-        double scale = TopLevel.GetTopLevel(this)?.RenderScaling ?? 1.0;
+        double area = presenter.Bounds.Width * presenter.Bounds.Height;
+        double rawScale = TopLevel.GetTopLevel(this)?.RenderScaling ?? 1.0;
+        double scale = area > 250_000 ? 1.0 : Math.Min(rawScale, 1.5);
         int pixelWidth = Math.Max(1, (int)Math.Ceiling(presenter.Bounds.Width * scale));
         int pixelHeight = Math.Max(1, (int)Math.Ceiling(presenter.Bounds.Height * scale));
 

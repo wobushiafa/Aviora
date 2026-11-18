@@ -5,6 +5,7 @@ using Avalonia.Controls.Templates;
 using Avalonia.Headless.XUnit;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Rendering.Composition;
 using Avalonia.Threading;
 
 namespace Aviora.Controls.Tests;
@@ -255,6 +256,41 @@ public class HeroTests
         Assert.Equal(2, flights.Count);
         Assert.Equal(new Rect(40, 40, 480, 300), flights[1].SourceBounds);
         Assert.Equal(new Rect(20, 20, 80, 60), flights[1].DestinationBounds);
+
+        host.CancelAllFlights();
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void Large_fullscreen_flight_attaches_composition_visual_without_ui_corner_loop()
+    {
+        Hero sourceHero = CreateSizedHero("fs-comp", 20, 20, 200, 120, Brushes.Teal);
+        Hero overlayHero = CreateSizedHero("fs-comp", 40, 40, 520, 320, Brushes.Teal);
+        overlayHero.CornerRadius = new CornerRadius(20);
+
+        HeroOverlay overlay = new()
+        {
+            TransitionDuration = TimeSpan.FromMilliseconds(220),
+            Content = CreateCanvasWithChild(overlayHero),
+        };
+
+        Grid root = new();
+        root.Children.Add(CreateCanvasWithChild(sourceHero));
+        root.Children.Add(overlay);
+
+        HeroHost host = new() { Content = root };
+        Window window = new() { Width = 600, Height = 400, Content = host };
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        overlay.IsOpen = true;
+        Dispatcher.UIThread.RunJobs();
+
+        Canvas? overlayLayer = host.GetTemplateDescendants().OfType<Canvas>().FirstOrDefault(c => c.Name == HeroHost.OverlayLayerPartName);
+        Assert.NotNull(overlayLayer);
+        Border shuttle = Assert.IsType<Border>(Assert.Single(overlayLayer!.Children));
+        Assert.NotNull(ElementComposition.GetElementVisual(shuttle));
 
         host.CancelAllFlights();
         window.Close();

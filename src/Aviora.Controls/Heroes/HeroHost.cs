@@ -7,6 +7,8 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Rendering.Composition;
+using Avalonia.Rendering.Composition.Animations;
 using Avalonia.Threading;
 
 namespace Aviora.Controls;
@@ -161,8 +163,7 @@ public class HeroHost : ContentControl
         // If this hero was the destination of an active flight, interrupt from mid-air bounds.
         if (_activeFlights.TryGetValue(tag, out ActiveFlight? inFlight) && ReferenceEquals(inFlight.DestinationHero, hero))
         {
-            Rect currentBounds = inFlight.CurrentBounds;
-            CornerRadius currentCornerRadius = inFlight.CurrentCornerRadius;
+            (Rect currentBounds, CornerRadius currentCornerRadius) = inFlight.EvaluateCurrentState(Stopwatch.GetTimestamp());
             RenderTargetBitmap? midAirSnapshot = CaptureSnapshot(inFlight.ShuttleBorder, currentBounds.Size, scaling);
             object? dataContext = hero.DataContext ?? hero.Content;
             IDataTemplate? shuttleTemplate = hero.ShuttleTemplate;
@@ -378,27 +379,80 @@ public class HeroHost : ContentControl
             CompleteFlight(existingFlight);
         }
 
-        double scaling = Math.Min(TopLevel.GetTopLevel(this)?.RenderScaling ?? departure.RenderScaling, 1.5);
+        double hostScaling = TopLevel.GetTopLevel(this)?.RenderScaling ?? departure.RenderScaling;
+        double destArea = destBounds.Width * destBounds.Height;
+        double destScaling = destArea > 250_000 ? 1.0 : Math.Min(hostScaling, 1.5);
+        double sourceArea = departure.BoundsInHost.Width * departure.BoundsInHost.Height;
+        double sourceScaling = sourceArea > 250_000 ? 1.0 : Math.Min(departure.RenderScaling, 1.5);
+
         RenderTargetBitmap? sourceSnapshot = departure.Snapshot ??
-            CaptureSnapshot(departure.SourceHero, departure.BoundsInHost.Size, Math.Min(departure.RenderScaling, 1.5));
-        RenderTargetBitmap? destSnapshot = CaptureSnapshot(destination, destBounds.Size, scaling);
+            CaptureSnapshot(departure.SourceHero, departure.BoundsInHost.Size, sourceScaling);
+        RenderTargetBitmap? destSnapshot = CaptureSnapshot(destination, destBounds.Size, destScaling);
 
         IDataTemplate? shuttleTemplate = destination.ShuttleTemplate ?? departure.ShuttleTemplate ?? DefaultShuttleTemplate;
         object? shuttleData = destination.DataContext ?? destination.Content ?? departure.DataContext;
 
-        (Border shuttleBorder, ScaleTransform scaleTransform, TranslateTransform translateTransform, Image? sourceImage, Image? destImage) = BuildShuttleVisual(
+        (Border shuttleBorder, Image? sourceImage, Image? destImage) = BuildShuttleVisual(
             shuttleTemplate,
             shuttleData,
             sourceSnapshot,
             destSnapshot,
-            departure.BoundsInHost,
             destBounds,
-            departure.CornerRadius);
+            destination.CornerRadius);
 
         destination.BeginFlightPlaceholderHide();
         sourcePeer?.BeginFlightPlaceholderHide();
 
         _overlayLayer.Children.Add(shuttleBorder);
+
+        CompositionVisual? shuttleVisual = ElementComposition.GetElementVisual(shuttleBorder);
+        CompositionVisual? sourceVisual = sourceImage is not null ? ElementComposition.GetElementVisual(sourceImage) : null;
+        CompositionVisual? destVisual = destImage is not null ? ElementComposition.GetElementVisual(destImage) : null;
+
+        bool usesComposition = shuttleVisual is not null;
+        bool needsUiFrameLoop = !usesComposition || ShouldAnimateCornerRadius(departure.CornerRadius, destination.CornerRadius, destBounds);
+
+        ScaleTransform? fallbackScale = null;
+        TranslateTransform? fallbackTranslate = null;
+
+        if (usesComposition)
+        {
+            StartCompositionFlightAnimations(
+                shuttleVisual!,
+                sourceVisual,
+                destVisual,
+                departure.BoundsInHost,
+                destBounds,
+                duration,
+                flightMode,
+                easing);
+
+            if (needsUiFrameLoop)
+            {
+                double baseWidth = Math.Max(1.0, destBounds.Width);
+                double baseHeight = Math.Max(1.0, destBounds.Height);
+                shuttleBorder.CornerRadius = ScaleCornerRadiusForShuttle(
+                    departure.CornerRadius,
+                    departure.BoundsInHost.Width / baseWidth,
+                    departure.BoundsInHost.Height / baseHeight);
+            }
+        }
+        else
+        {
+            double baseWidth = Math.Max(1.0, destBounds.Width);
+            double baseHeight = Math.Max(1.0, destBounds.Height);
+            fallbackScale = new ScaleTransform(departure.BoundsInHost.Width / baseWidth, departure.BoundsInHost.Height / baseHeight);
+            fallbackTranslate = new TranslateTransform(departure.BoundsInHost.X, departure.BoundsInHost.Y);
+            TransformGroup transformGroup = new();
+            transformGroup.Children.Add(fallbackScale);
+            transformGroup.Children.Add(fallbackTranslate);
+            shuttleBorder.RenderTransformOrigin = new RelativePoint(0, 0, RelativeUnit.Relative);
+            shuttleBorder.RenderTransform = transformGroup;
+            shuttleBorder.CornerRadius = ScaleCornerRadiusForShuttle(
+                departure.CornerRadius,
+                fallbackScale.ScaleX,
+                fallbackScale.ScaleY);
+        }
 
         ActiveFlight flight = new(
             tag,
@@ -411,48 +465,129 @@ public class HeroHost : ContentControl
             easing,
             Stopwatch.GetTimestamp(),
             shuttleBorder,
-            scaleTransform,
-            translateTransform,
+            shuttleVisual,
+            sourceVisual,
+            destVisual,
+            fallbackScale,
+            fallbackTranslate,
             sourceImage,
             destImage,
             sourceSnapshot,
             destSnapshot,
             destination,
-            sourcePeer);
+            sourcePeer,
+            needsUiFrameLoop);
+
+        DispatcherTimer completionTimer = new() { Interval = duration };
+        completionTimer.Tick += (_, _) =>
+        {
+            completionTimer.Stop();
+            if (_activeFlights.TryGetValue(tag, out ActiveFlight? current) && ReferenceEquals(current, flight))
+            {
+                CompleteFlight(flight);
+            }
+        };
+        flight.CompletionTimer = completionTimer;
+        completionTimer.Start();
 
         departure.OwnershipTransferred();
         _activeFlights[tag] = flight;
 
         HeroFlightStarted?.Invoke(this, new HeroFlightEventArgs(tag, departure.BoundsInHost, destBounds, duration, flightMode));
-        RequestNextFrame();
+        if (needsUiFrameLoop)
+        {
+            RequestNextFrame();
+        }
     }
 
-    private static (Border Shuttle, ScaleTransform Scale, TranslateTransform Translate, Image? SourceImage, Image? DestImage) BuildShuttleVisual(
+    private static bool ShouldAnimateCornerRadius(CornerRadius from, CornerRadius to, Rect destBounds)
+    {
+        double maxDiff = Math.Max(
+            Math.Max(Math.Abs(from.TopLeft - to.TopLeft), Math.Abs(from.TopRight - to.TopRight)),
+            Math.Max(Math.Abs(from.BottomRight - to.BottomRight), Math.Abs(from.BottomLeft - to.BottomLeft)));
+
+        return maxDiff > 10.0 && (destBounds.Width * destBounds.Height) < 120_000;
+    }
+
+    private static void StartCompositionFlightAnimations(
+        CompositionVisual shuttleVisual,
+        CompositionVisual? sourceVisual,
+        CompositionVisual? destVisual,
+        Rect from,
+        Rect to,
+        TimeSpan duration,
+        HeroFlightMode mode,
+        Easing easing)
+    {
+        Compositor compositor = shuttleVisual.Compositor;
+        double baseWidth = Math.Max(1.0, to.Width);
+        double baseHeight = Math.Max(1.0, to.Height);
+
+        Vector3DKeyFrameAnimation translationAnim = compositor.CreateVector3DKeyFrameAnimation();
+        translationAnim.Duration = duration;
+        translationAnim.StopBehavior = AnimationStopBehavior.SetToFinalValue;
+
+        Vector3DKeyFrameAnimation scaleAnim = compositor.CreateVector3DKeyFrameAnimation();
+        scaleAnim.Duration = duration;
+        scaleAnim.StopBehavior = AnimationStopBehavior.SetToFinalValue;
+
+        const int steps = 20;
+        for (int i = 0; i <= steps; i++)
+        {
+            float key = i / (float)steps;
+            double easedT = Math.Clamp(easing.Ease(key), 0.0, 1.0);
+            Rect rect = InterpolateRect(from, to, easedT, mode);
+            translationAnim.InsertKeyFrame(key, new Vector3D(rect.X, rect.Y, 0));
+            scaleAnim.InsertKeyFrame(key, new Vector3D(rect.Width / baseWidth, rect.Height / baseHeight, 1));
+        }
+
+        shuttleVisual.CenterPoint = new Vector3D(0, 0, 0);
+        shuttleVisual.Translation = new Vector3D(from.X, from.Y, 0);
+        shuttleVisual.Scale = new Vector3D(from.Width / baseWidth, from.Height / baseHeight, 1);
+        shuttleVisual.StartAnimation("Translation", translationAnim);
+        shuttleVisual.StartAnimation("Scale", scaleAnim);
+
+        if (sourceVisual is not null && destVisual is not null)
+        {
+            ScalarKeyFrameAnimation destFade = compositor.CreateScalarKeyFrameAnimation();
+            destFade.Duration = duration;
+            destFade.StopBehavior = AnimationStopBehavior.SetToFinalValue;
+            destFade.InsertKeyFrame(0.0f, 0.0f);
+            destFade.InsertKeyFrame(0.55f, 1.0f, easing);
+            destFade.InsertKeyFrame(1.0f, 1.0f);
+
+            ScalarKeyFrameAnimation sourceFade = compositor.CreateScalarKeyFrameAnimation();
+            sourceFade.Duration = duration;
+            sourceFade.StopBehavior = AnimationStopBehavior.SetToFinalValue;
+            sourceFade.InsertKeyFrame(0.0f, 1.0f);
+            sourceFade.InsertKeyFrame(0.55f, 1.0f);
+            sourceFade.InsertKeyFrame(1.0f, 0.0f);
+
+            destVisual.Opacity = 0.0f;
+            sourceVisual.Opacity = 1.0f;
+            destVisual.StartAnimation("Opacity", destFade);
+            sourceVisual.StartAnimation("Opacity", sourceFade);
+        }
+    }
+
+    private static (Border Shuttle, Image? SourceImage, Image? DestImage) BuildShuttleVisual(
         IDataTemplate? shuttleTemplate,
         object? shuttleData,
         RenderTargetBitmap? sourceSnapshot,
         RenderTargetBitmap? destSnapshot,
-        Rect initialBounds,
         Rect destinationBounds,
-        CornerRadius initialCornerRadius)
+        CornerRadius destinationCornerRadius)
     {
         double baseWidth = Math.Max(1.0, destinationBounds.Width);
         double baseHeight = Math.Max(1.0, destinationBounds.Height);
-        ScaleTransform scaleTransform = new(initialBounds.Width / baseWidth, initialBounds.Height / baseHeight);
-        TranslateTransform translateTransform = new(initialBounds.X, initialBounds.Y);
-        TransformGroup transformGroup = new();
-        transformGroup.Children.Add(scaleTransform);
-        transformGroup.Children.Add(translateTransform);
 
         Border shuttle = new()
         {
             Width = baseWidth,
             Height = baseHeight,
-            CornerRadius = ScaleCornerRadiusForShuttle(initialCornerRadius, scaleTransform.ScaleX, scaleTransform.ScaleY),
+            CornerRadius = destinationCornerRadius,
             ClipToBounds = true,
             IsHitTestVisible = false,
-            RenderTransformOrigin = new RelativePoint(0, 0, RelativeUnit.Relative),
-            RenderTransform = transformGroup,
         };
         Canvas.SetLeft(shuttle, 0);
         Canvas.SetTop(shuttle, 0);
@@ -461,7 +596,7 @@ public class HeroHost : ContentControl
         {
             customContent.DataContext ??= shuttleData;
             shuttle.Child = customContent;
-            return (shuttle, scaleTransform, translateTransform, null, null);
+            return (shuttle, null, null);
         }
 
         Grid grid = new();
@@ -474,7 +609,6 @@ public class HeroHost : ContentControl
             {
                 Source = sourceSnapshot,
                 Stretch = Stretch.Fill,
-                Opacity = 1,
             };
             RenderOptions.SetBitmapInterpolationMode(sourceImage, BitmapInterpolationMode.MediumQuality);
             grid.Children.Add(sourceImage);
@@ -486,19 +620,33 @@ public class HeroHost : ContentControl
             {
                 Source = destSnapshot,
                 Stretch = Stretch.Fill,
-                Opacity = sourceImage is not null ? 0 : 1,
             };
             RenderOptions.SetBitmapInterpolationMode(destImage, BitmapInterpolationMode.MediumQuality);
             grid.Children.Add(destImage);
         }
 
         shuttle.Child = grid;
-        return (shuttle, scaleTransform, translateTransform, sourceImage, destImage);
+        return (shuttle, sourceImage, destImage);
     }
 
     private void RequestNextFrame()
     {
-        if (_animationFrameRequested || _activeFlights.Count == 0)
+        if (_animationFrameRequested)
+        {
+            return;
+        }
+
+        bool hasUiDrivenFlight = false;
+        foreach (ActiveFlight flight in _activeFlights.Values)
+        {
+            if (flight.NeedsUiFrameLoop)
+            {
+                hasUiDrivenFlight = true;
+                break;
+            }
+        }
+
+        if (!hasUiDrivenFlight)
         {
             return;
         }
@@ -527,10 +675,9 @@ public class HeroHost : ContentControl
 
         foreach (ActiveFlight flight in _activeFlights.Values)
         {
-            if (flight.DestinationHero.IsEffectivelyVisible &&
-                flight.DestinationHero.TryGetCurrentBoundsInHost(this, out Rect liveDestBounds))
+            if (!flight.NeedsUiFrameLoop)
             {
-                flight.DestinationBounds = liveDestBounds;
+                continue;
             }
 
             double elapsedMs = (now - flight.StartTimestamp) * 1000.0 / Stopwatch.Frequency;
@@ -541,27 +688,33 @@ public class HeroHost : ContentControl
             Rect rect = InterpolateRect(flight.SourceBounds, flight.DestinationBounds, easedT, flight.FlightMode);
             CornerRadius cornerRadius = InterpolateCornerRadius(flight.SourceCornerRadius, flight.DestinationCornerRadius, easedT);
 
-            flight.CurrentBounds = rect;
-            flight.CurrentCornerRadius = cornerRadius;
-
             double baseWidth = Math.Max(1.0, flight.ShuttleBaseSize.Width);
             double baseHeight = Math.Max(1.0, flight.ShuttleBaseSize.Height);
             double scaleX = rect.Width / baseWidth;
             double scaleY = rect.Height / baseHeight;
 
-            flight.ScaleTransform.ScaleX = scaleX;
-            flight.ScaleTransform.ScaleY = scaleY;
-            flight.TranslateTransform.X = rect.X;
-            flight.TranslateTransform.Y = rect.Y;
-            flight.ShuttleBorder.CornerRadius = ScaleCornerRadiusForShuttle(cornerRadius, scaleX, scaleY);
-
-            if (flight.SourceImage is not null && flight.DestImage is not null)
+            if (flight.ShuttleVisual is null)
             {
-                // Keep at least one snapshot at full opacity across [0, 1] so opaque heroes
-                // never become semi-transparent mid-flight due to SourceOver alpha blending.
-                flight.SourceImage.Opacity = Math.Min(1.0, (1.0 - easedT) * 2.0);
-                flight.DestImage.Opacity = Math.Min(1.0, easedT * 2.0);
+                if (flight.FallbackScale is not null)
+                {
+                    flight.FallbackScale.ScaleX = scaleX;
+                    flight.FallbackScale.ScaleY = scaleY;
+                }
+
+                if (flight.FallbackTranslate is not null)
+                {
+                    flight.FallbackTranslate.X = rect.X;
+                    flight.FallbackTranslate.Y = rect.Y;
+                }
+
+                if (flight.SourceImage is not null && flight.DestImage is not null)
+                {
+                    flight.SourceImage.Opacity = Math.Min(1.0, (1.0 - easedT) * 2.0);
+                    flight.DestImage.Opacity = Math.Min(1.0, easedT * 2.0);
+                }
             }
+
+            flight.ShuttleBorder.CornerRadius = ScaleCornerRadiusForShuttle(cornerRadius, scaleX, scaleY);
 
             if (rawT >= 1.0)
             {
@@ -578,15 +731,17 @@ public class HeroHost : ContentControl
             }
         }
 
-        if (_activeFlights.Count > 0)
-        {
-            RequestNextFrame();
-        }
+        RequestNextFrame();
     }
 
     private void CompleteFlight(ActiveFlight flight)
     {
-        _activeFlights.Remove(flight.Tag);
+        if (!_activeFlights.Remove(flight.Tag))
+        {
+            return;
+        }
+
+        flight.StopAnimations();
         _overlayLayer?.Children.Remove(flight.ShuttleBorder);
         flight.DestinationHero.EndFlightPlaceholderHide();
         flight.SourcePeer?.EndFlightPlaceholderHide();
@@ -775,53 +930,55 @@ public class HeroHost : ContentControl
             Easing easing,
             long startTimestamp,
             Border shuttleBorder,
-            ScaleTransform scaleTransform,
-            TranslateTransform translateTransform,
+            CompositionVisual? shuttleVisual,
+            CompositionVisual? sourceVisual,
+            CompositionVisual? destVisual,
+            ScaleTransform? fallbackScale,
+            TranslateTransform? fallbackTranslate,
             Image? sourceImage,
             Image? destImage,
             RenderTargetBitmap? sourceSnapshot,
             RenderTargetBitmap? destSnapshot,
             Hero destinationHero,
-            Hero? sourcePeer)
+            Hero? sourcePeer,
+            bool needsUiFrameLoop)
         {
             Tag = tag;
             SourceBounds = sourceBounds;
             DestinationBounds = destinationBounds;
             ShuttleBaseSize = new Size(Math.Max(1.0, destinationBounds.Width), Math.Max(1.0, destinationBounds.Height));
-            CurrentBounds = sourceBounds;
             SourceCornerRadius = sourceCornerRadius;
             DestinationCornerRadius = destinationCornerRadius;
-            CurrentCornerRadius = sourceCornerRadius;
             Duration = duration;
             FlightMode = flightMode;
             Easing = easing;
             StartTimestamp = startTimestamp;
             ShuttleBorder = shuttleBorder;
-            ScaleTransform = scaleTransform;
-            TranslateTransform = translateTransform;
+            ShuttleVisual = shuttleVisual;
+            SourceVisual = sourceVisual;
+            DestVisual = destVisual;
+            FallbackScale = fallbackScale;
+            FallbackTranslate = fallbackTranslate;
             SourceImage = sourceImage;
             DestImage = destImage;
             _sourceSnapshot = sourceSnapshot;
             _destSnapshot = destSnapshot;
             DestinationHero = destinationHero;
             SourcePeer = sourcePeer;
+            NeedsUiFrameLoop = needsUiFrameLoop;
         }
 
         public object Tag { get; }
 
         public Rect SourceBounds { get; }
 
-        public Rect DestinationBounds { get; set; }
+        public Rect DestinationBounds { get; }
 
         public Size ShuttleBaseSize { get; }
-
-        public Rect CurrentBounds { get; set; }
 
         public CornerRadius SourceCornerRadius { get; }
 
         public CornerRadius DestinationCornerRadius { get; }
-
-        public CornerRadius CurrentCornerRadius { get; set; }
 
         public TimeSpan Duration { get; }
 
@@ -833,9 +990,15 @@ public class HeroHost : ContentControl
 
         public Border ShuttleBorder { get; }
 
-        public ScaleTransform ScaleTransform { get; }
+        public CompositionVisual? ShuttleVisual { get; }
 
-        public TranslateTransform TranslateTransform { get; }
+        public CompositionVisual? SourceVisual { get; }
+
+        public CompositionVisual? DestVisual { get; }
+
+        public ScaleTransform? FallbackScale { get; }
+
+        public TranslateTransform? FallbackTranslate { get; }
 
         public Image? SourceImage { get; }
 
@@ -844,6 +1007,31 @@ public class HeroHost : ContentControl
         public Hero DestinationHero { get; }
 
         public Hero? SourcePeer { get; }
+
+        public bool NeedsUiFrameLoop { get; }
+
+        public DispatcherTimer? CompletionTimer { get; set; }
+
+        public (Rect Bounds, CornerRadius CornerRadius) EvaluateCurrentState(long timestamp)
+        {
+            double elapsedMs = (timestamp - StartTimestamp) * 1000.0 / Stopwatch.Frequency;
+            double durationMs = Math.Max(1.0, Duration.TotalMilliseconds);
+            double rawT = Math.Clamp(elapsedMs / durationMs, 0.0, 1.0);
+            double easedT = Math.Clamp(Easing.Ease(rawT), 0.0, 1.0);
+            return (
+                InterpolateRect(SourceBounds, DestinationBounds, easedT, FlightMode),
+                InterpolateCornerRadius(SourceCornerRadius, DestinationCornerRadius, easedT));
+        }
+
+        public void StopAnimations()
+        {
+            CompletionTimer?.Stop();
+            CompletionTimer = null;
+            ShuttleVisual?.StopAnimation("Translation");
+            ShuttleVisual?.StopAnimation("Scale");
+            SourceVisual?.StopAnimation("Opacity");
+            DestVisual?.StopAnimation("Opacity");
+        }
 
         public void DisposeSnapshots()
         {

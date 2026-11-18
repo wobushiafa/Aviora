@@ -6,6 +6,13 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-11-18
+
+### Changed
+
+- Moved `HeroHost`, `HeroOverlay`, and `HeroTransitionControl` animations onto Avalonia `CompositionVisual` keyframe animations (`Translation`, `Scale`, and `Opacity`) so hero flights run off the UI thread.
+- Avoided per-frame `CornerRadius` clip geometry rebuilds on large/fullscreen hero shuttles and capped snapshot rasterization scale at `1.0x` for large surfaces to improve smoothness on low-spec devices.
+
 ## [0.6.0] - 2026-11-16
 
 ### Added

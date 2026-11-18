@@ -8,6 +8,9 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
+using Avalonia.Rendering.Composition;
+using Avalonia.Rendering.Composition.Animations;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 
 namespace Aviora.Controls;
@@ -60,6 +63,7 @@ public class HeroOverlay : ContentControl
 
     private Border? _backdrop;
     private ContentControl? _presenter;
+    private DispatcherTimer? _completionTimer;
     private bool _isAnimating;
     private bool _animatingOpen;
     private bool _frameRequested;
@@ -159,6 +163,8 @@ public class HeroOverlay : ContentControl
     {
         _frameRequested = false;
         _isAnimating = false;
+        StopCompletionTimer();
+        StopCompositionAnimations();
         EndOverlayCloseForHeroes();
         base.OnDetachedFromVisualTree(e);
     }
@@ -187,6 +193,13 @@ public class HeroOverlay : ContentControl
             return;
         }
 
+        if (_isAnimating)
+        {
+            _currentProgress = EvaluateCurrentProgress();
+        }
+
+        StopCompletionTimer();
+
         if (open)
         {
             EndOverlayCloseForHeroes();
@@ -203,18 +216,122 @@ public class HeroOverlay : ContentControl
         _fromProgress = _currentProgress;
         _startTimestamp = Stopwatch.GetTimestamp();
         _isAnimating = true;
+
+        CompositionVisual? backdropVisual = _backdrop is not null ? ElementComposition.GetElementVisual(_backdrop) : null;
+        CompositionVisual? presenterVisual = _presenter is not null ? ElementComposition.GetElementVisual(_presenter) : null;
+
+        if (backdropVisual is not null && presenterVisual is not null)
+        {
+            StartCompositionFade(backdropVisual, presenterVisual, open);
+            return;
+        }
+
         ApplyProgress(_currentProgress);
         RequestNextFrame();
+    }
+
+    private void StartCompositionFade(CompositionVisual backdropVisual, CompositionVisual presenterVisual, bool open)
+    {
+        float from = (float)_fromProgress;
+        float to = open ? 1.0f : 0.0f;
+        Easing easing = TransitionEasing ?? new CubicEaseInOut();
+        TimeSpan duration = TransitionDuration;
+        Compositor compositor = backdropVisual.Compositor;
+
+        backdropVisual.StopAnimation("Opacity");
+        presenterVisual.StopAnimation("Opacity");
+        backdropVisual.Opacity = from;
+        presenterVisual.Opacity = from;
+
+        ScalarKeyFrameAnimation backdropAnim = compositor.CreateScalarKeyFrameAnimation();
+        backdropAnim.Duration = duration;
+        backdropAnim.StopBehavior = AnimationStopBehavior.SetToFinalValue;
+        backdropAnim.InsertKeyFrame(0.0f, from);
+        backdropAnim.InsertKeyFrame(1.0f, to, easing);
+
+        ScalarKeyFrameAnimation presenterAnim = compositor.CreateScalarKeyFrameAnimation();
+        presenterAnim.Duration = duration;
+        presenterAnim.StopBehavior = AnimationStopBehavior.SetToFinalValue;
+        presenterAnim.InsertKeyFrame(0.0f, from);
+        presenterAnim.InsertKeyFrame(1.0f, to, easing);
+
+        backdropVisual.StartAnimation("Opacity", backdropAnim);
+        presenterVisual.StartAnimation("Opacity", presenterAnim);
+
+        DispatcherTimer timer = new() { Interval = duration };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            if (!ReferenceEquals(_completionTimer, timer))
+            {
+                return;
+            }
+
+            _completionTimer = null;
+            _isAnimating = false;
+            _currentProgress = to;
+
+            if (!open)
+            {
+                IsVisible = false;
+                EndOverlayCloseForHeroes();
+            }
+        };
+        _completionTimer = timer;
+        timer.Start();
+    }
+
+    private double EvaluateCurrentProgress()
+    {
+        double elapsedMs = (Stopwatch.GetTimestamp() - _startTimestamp) * 1000.0 / Stopwatch.Frequency;
+        double durationMs = Math.Max(1.0, TransitionDuration.TotalMilliseconds);
+        double rawT = Math.Clamp(elapsedMs / durationMs, 0.0, 1.0);
+        Easing easing = TransitionEasing ?? new CubicEaseInOut();
+        double easedT = Math.Clamp(easing.Ease(rawT), 0.0, 1.0);
+        double target = _animatingOpen ? 1.0 : 0.0;
+        return _fromProgress + ((target - _fromProgress) * easedT);
     }
 
     private void SyncImmediateState(bool open)
     {
         _isAnimating = false;
+        _frameRequested = false;
+        StopCompletionTimer();
+        StopCompositionAnimations();
         _currentProgress = open ? 1.0 : 0.0;
         EndOverlayCloseForHeroes();
         ApplyProgress(_currentProgress);
         IsVisible = open;
         IsHitTestVisible = open;
+    }
+
+    private void StopCompletionTimer()
+    {
+        _completionTimer?.Stop();
+        _completionTimer = null;
+    }
+
+    private void StopCompositionAnimations()
+    {
+        if (_backdrop is not null)
+        {
+            CompositionVisual? backdropVisual = ElementComposition.GetElementVisual(_backdrop);
+            backdropVisual?.StopAnimation("Opacity");
+            if (backdropVisual is not null)
+            {
+                backdropVisual.Opacity = 1.0f;
+            }
+        }
+
+        if (_presenter is not null)
+        {
+            CompositionVisual? presenterVisual = ElementComposition.GetElementVisual(_presenter);
+            presenterVisual?.StopAnimation("Opacity");
+            if (presenterVisual is not null)
+            {
+                presenterVisual.Opacity = 1.0f;
+            }
+        }
     }
 
     private void RequestNextFrame()
