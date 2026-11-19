@@ -5,6 +5,23 @@ namespace Aviora.Controls;
 
 internal static class RingDrawing
 {
+    internal static StreamGeometry CreateArcStreamGeometry(Point center, double radius, double startAngle, double sweep)
+    {
+        StreamGeometry geometry = new();
+        using (StreamGeometryContext context = geometry.Open())
+        {
+            context.BeginFigure(PointOnCircle(center, radius, startAngle), false);
+            context.ArcTo(
+                PointOnCircle(center, radius, startAngle + sweep),
+                new Size(radius, radius),
+                0,
+                sweep > 180,
+                SweepDirection.Clockwise);
+        }
+
+        return geometry;
+    }
+
     internal static PathGeometry CreateArcGeometry(Point center, double radius, double startAngle, double sweep)
     {
         var figure = new PathFigure

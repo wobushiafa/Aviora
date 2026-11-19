@@ -86,7 +86,7 @@
     <Setter Property="VerticalContentAlignment" Value="Stretch" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Grid>
+        <Panel>
           <ContentPresenter Content="{TemplateBinding Content}"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
@@ -103,6 +103,7 @@
                                 AnimationDuration="{TemplateBinding IndicatorAnimationDuration}"
                                 IndicatorBrush="{TemplateBinding IndicatorBrush}"
                                 IndicatorStyle="{TemplateBinding IndicatorStyle}"
+                                IsActive="{TemplateBinding IsOpen}"
                                 StrokeThickness="{TemplateBinding StrokeThickness}"
                                 TrackBrush="{TemplateBinding TrackBrush}" />
               <ContentControl Content="{TemplateBinding LoadingContent}"
@@ -111,7 +112,7 @@
                               VerticalContentAlignment="Center" />
             </StackPanel>
           </Border>
-        </Grid>
+        </Panel>
       </ControlTemplate>
     </Setter>
   </ControlTheme>
@@ -300,7 +301,7 @@
     <Setter Property="Focusable" Value="True" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Grid ClipToBounds="True">
+        <Panel ClipToBounds="True">
           <ContentPresenter Name="PART_ContentPresenter"
                             Content="{TemplateBinding Content}"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
@@ -343,8 +344,8 @@
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
           </Border>
 
-          <Grid Name="PART_DialogLayerHost" />
-        </Grid>
+          <Panel Name="PART_DialogLayerHost" />
+        </Panel>
       </ControlTemplate>
     </Setter>
   </ControlTheme>
@@ -442,7 +443,7 @@
     <Setter Property="VerticalContentAlignment" Value="Stretch" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Grid ClipToBounds="False">
+        <Panel ClipToBounds="False">
           <ContentPresenter Content="{TemplateBinding Content}"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
@@ -472,7 +473,7 @@
                       Margin="{TemplateBinding ToastMargin}"
                       HorizontalAlignment="Right"
                       VerticalAlignment="Bottom" />
-        </Grid>
+        </Panel>
       </ControlTemplate>
     </Setter>
   </ControlTheme>
@@ -505,7 +506,7 @@
     <Setter Property="VerticalContentAlignment" Value="Stretch" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Grid ClipToBounds="True">
+        <Panel ClipToBounds="True">
           <ContentPresenter Name="PART_ContentPresenter"
                             Content="{TemplateBinding Content}"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
@@ -514,7 +515,7 @@
           <Canvas Name="PART_HeroOverlayLayer"
                   ClipToBounds="True"
                   IsHitTestVisible="False" />
-        </Grid>
+        </Panel>
       </ControlTemplate>
     </Setter>
   </ControlTheme>
@@ -525,7 +526,7 @@
     <Setter Property="VerticalContentAlignment" Value="Stretch" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Grid ClipToBounds="True">
+        <Panel ClipToBounds="True">
           <Canvas IsHitTestVisible="False">
             <Image Name="PART_OutgoingSnapshot"
                    IsHitTestVisible="False"
@@ -538,7 +539,7 @@
                           HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                           VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                           RenderTransformOrigin="0.5,0.5" />
-        </Grid>
+        </Panel>
       </ControlTemplate>
     </Setter>
   </ControlTheme>
@@ -550,7 +551,7 @@
     <Setter Property="IsVisible" Value="False" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Grid ClipToBounds="True">
+        <Panel ClipToBounds="True">
           <Border Name="PART_Backdrop"
                   Background="{TemplateBinding BackdropBrush}" />
           <ContentControl Name="PART_OverlayPresenter"
@@ -559,7 +560,7 @@
                           HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                           VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                           RenderTransformOrigin="0.5,0.5" />
-        </Grid>
+        </Panel>
       </ControlTemplate>
     </Setter>
   </ControlTheme>

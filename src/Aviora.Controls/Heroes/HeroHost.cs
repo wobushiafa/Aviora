@@ -172,7 +172,7 @@ public class HeroHost : ContentControl
         _animationFrameRequested = false;
         CancelAllFlights();
         ClearDepartures();
-        _pendingArrivals.Clear();
+        ReleasePendingArrivals();
         _activeHeroes.Clear();
         base.OnDetachedFromVisualTree(e);
     }
@@ -184,8 +184,34 @@ public class HeroHost : ContentControl
             _activeHeroes.Add(hero);
         }
 
-        _pendingArrivals.Add(new PendingArrival(hero, tag, 0));
+        bool hasPendingHide = false;
+        if (IsAnimationEnabled &&
+            (hero.Duration ?? Duration) > TimeSpan.Zero &&
+            (_departures.ContainsKey(tag) || FindVisiblePeer(hero, tag) is not null))
+        {
+            hero.BeginFlightPlaceholderHide();
+            hasPendingHide = true;
+        }
+
+        _pendingArrivals.Add(new PendingArrival(hero, tag, 0, hasPendingHide));
         ScheduleArrivalProcessing(DispatcherPriority.Render);
+    }
+
+    internal void NotifyHeroLaidOut(Hero hero)
+    {
+        if (_pendingArrivals.Count == 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < _pendingArrivals.Count; i++)
+        {
+            if (ReferenceEquals(_pendingArrivals[i].Hero, hero))
+            {
+                ProcessPendingArrivals();
+                return;
+            }
+        }
     }
 
     internal bool NotifyHeroDeparting(
@@ -299,6 +325,11 @@ public class HeroHost : ContentControl
 
             if (!hero.IsHeroEnabled || !hero.IsEffectivelyVisible || !Equals(hero.Tag, tag))
             {
+                if (arrival.HasPendingHide)
+                {
+                    hero.EndFlightPlaceholderHide();
+                }
+
                 continue;
             }
 
@@ -308,8 +339,17 @@ public class HeroHost : ContentControl
                 {
                     retryLater.Add(arrival with { RetryCount = arrival.RetryCount + 1 });
                 }
+                else if (arrival.HasPendingHide)
+                {
+                    hero.EndFlightPlaceholderHide();
+                }
 
                 continue;
+            }
+
+            if (arrival.HasPendingHide)
+            {
+                hero.EndFlightPlaceholderHide();
             }
 
             if (_departures.Remove(tag, out DepartureRecord? departure))
@@ -340,6 +380,19 @@ public class HeroHost : ContentControl
             _pendingArrivals.AddRange(retryLater);
             ScheduleArrivalProcessing(DispatcherPriority.Loaded);
         }
+    }
+
+    private void ReleasePendingArrivals()
+    {
+        foreach (PendingArrival arrival in _pendingArrivals)
+        {
+            if (arrival.HasPendingHide)
+            {
+                arrival.Hero.EndFlightPlaceholderHide();
+            }
+        }
+
+        _pendingArrivals.Clear();
     }
 
     private Hero? FindVisiblePeer(Hero exclude, object tag)
@@ -810,7 +863,7 @@ public class HeroHost : ContentControl
             return (shuttle, null, null);
         }
 
-        Grid grid = new();
+        Panel container = new();
         Image? sourceImage = null;
         Image? destImage = null;
 
@@ -822,7 +875,7 @@ public class HeroHost : ContentControl
                 Stretch = Stretch.Fill,
             };
             RenderOptions.SetBitmapInterpolationMode(sourceImage, BitmapInterpolationMode.MediumQuality);
-            grid.Children.Add(sourceImage);
+            container.Children.Add(sourceImage);
         }
 
         if (destSnapshot is not null)
@@ -833,10 +886,10 @@ public class HeroHost : ContentControl
                 Stretch = Stretch.Fill,
             };
             RenderOptions.SetBitmapInterpolationMode(destImage, BitmapInterpolationMode.MediumQuality);
-            grid.Children.Add(destImage);
+            container.Children.Add(destImage);
         }
 
-        shuttle.Child = grid;
+        shuttle.Child = container;
         return (shuttle, sourceImage, destImage);
     }
 
@@ -1076,7 +1129,7 @@ public class HeroHost : ContentControl
         }
     }
 
-    private sealed record PendingArrival(Hero Hero, object Tag, int RetryCount);
+    private sealed record PendingArrival(Hero Hero, object Tag, int RetryCount, bool HasPendingHide);
 
     private sealed class DepartureRecord : IDisposable
     {

@@ -38,6 +38,13 @@ public class Loading : ContentControl
         AvaloniaProperty.Register<Loading, bool>(nameof(IsActive), true);
 
     private bool _animationFrameRequested;
+    private Pen? _cachedTrackPen;
+    private IBrush? _cachedTrackPenBrush;
+    private double _cachedTrackPenThickness;
+    private Pen? _cachedIndicatorPen;
+    private IBrush? _cachedIndicatorPenBrush;
+    private double _cachedIndicatorPenThickness;
+    private PenLineCap _cachedIndicatorPenLineCap;
 
     static Loading()
     {
@@ -50,6 +57,7 @@ public class Loading : ContentControl
             IsActiveProperty,
             ContentProperty);
         IsActiveProperty.Changed.AddClassHandler<Loading>((loading, _) => loading.OnAnimationStateChanged());
+        IsVisibleProperty.Changed.AddClassHandler<Loading>((loading, _) => loading.RequestAnimationFrame());
         AnimationDurationProperty.Changed.AddClassHandler<Loading>((loading, _) => loading.RequestAnimationFrame());
         ContentProperty.Changed.AddClassHandler<Loading>((loading, _) => loading.OnAnimationStateChanged());
     }
@@ -120,6 +128,11 @@ public class Loading : ContentControl
             return;
         }
 
+        if (IsActive && Content is null && !_animationFrameRequested)
+        {
+            RequestAnimationFrame();
+        }
+
         double progress = GetAnimationProgress();
         switch (IndicatorStyle)
         {
@@ -181,13 +194,13 @@ public class Loading : ContentControl
         {
             using (context.PushOpacity(0.45))
             {
-                context.DrawEllipse(null, new Pen(TrackBrush, thickness), center, radius, radius);
+                context.DrawEllipse(null, GetTrackPen(TrackBrush, thickness), center, radius, radius);
             }
         }
 
         (double startAngle, double sweep) = CalculateRingArc(progress);
-        PathGeometry geometry = CreateRingArcGeometry(center, radius, startAngle, sweep);
-        context.DrawGeometry(null, new Pen(IndicatorBrush, thickness, lineCap: PenLineCap.Round), geometry);
+        StreamGeometry geometry = RingDrawing.CreateArcStreamGeometry(center, radius, startAngle, sweep);
+        context.DrawGeometry(null, GetIndicatorPen(IndicatorBrush, thickness, PenLineCap.Round), geometry);
     }
 
     internal static PathGeometry CreateRingArcGeometry(Point center, double radius, double startAngle, double sweep) =>
@@ -231,13 +244,14 @@ public class Loading : ContentControl
             return;
         }
 
+        Pen pulsePen = GetIndicatorPen(IndicatorBrush, thickness, PenLineCap.Flat);
         for (int index = 0; index < 2; index++)
         {
             double phase = (progress + (index * 0.5)) % 1;
             double radius = maximumRadius * (0.25 + (phase * 0.75));
             using (context.PushOpacity(1 - phase))
             {
-                context.DrawEllipse(null, new Pen(IndicatorBrush, thickness), center, radius, radius);
+                context.DrawEllipse(null, pulsePen, center, radius, radius);
             }
         }
 
@@ -251,6 +265,7 @@ public class Loading : ContentControl
         double spacing = thickness * 1.65;
         Point center = GetCenter();
 
+        Pen barPen = GetIndicatorPen(IndicatorBrush, thickness, PenLineCap.Round);
         for (int index = 0; index < 5; index++)
         {
             double phase = (progress - (index * 0.1) + 1) % 1;
@@ -258,7 +273,7 @@ public class Loading : ContentControl
             double halfHeight = Math.Max(thickness, width * (0.16 + (wave * 0.24)));
             double x = center.X + ((index - 2) * spacing);
             context.DrawLine(
-                new Pen(IndicatorBrush, thickness, lineCap: PenLineCap.Round),
+                barPen,
                 new Point(x, center.Y - halfHeight),
                 new Point(x, center.Y + halfHeight));
         }
@@ -323,14 +338,44 @@ public class Loading : ContentControl
             return;
         }
 
-        PathGeometry outer = RingDrawing.CreateArcGeometry(center, outerRadius, (progress * 360) - 90, 135);
-        PathGeometry inner = RingDrawing.CreateArcGeometry(center, innerRadius, (-progress * 360) - 90, 110);
-        var pen = new Pen(IndicatorBrush, thickness, lineCap: PenLineCap.Round);
+        StreamGeometry outer = RingDrawing.CreateArcStreamGeometry(center, outerRadius, (progress * 360) - 90, 135);
+        StreamGeometry inner = RingDrawing.CreateArcStreamGeometry(center, innerRadius, (-progress * 360) - 90, 110);
+        Pen pen = GetIndicatorPen(IndicatorBrush, thickness, PenLineCap.Round);
         context.DrawGeometry(null, pen, outer);
         using (context.PushOpacity(0.65))
         {
             context.DrawGeometry(null, pen, inner);
         }
+    }
+
+    private Pen GetTrackPen(IBrush? brush, double thickness)
+    {
+        if (_cachedTrackPen is null ||
+            !ReferenceEquals(_cachedTrackPenBrush, brush) ||
+            _cachedTrackPenThickness != thickness)
+        {
+            _cachedTrackPenBrush = brush;
+            _cachedTrackPenThickness = thickness;
+            _cachedTrackPen = new Pen(brush, thickness);
+        }
+
+        return _cachedTrackPen;
+    }
+
+    private Pen GetIndicatorPen(IBrush? brush, double thickness, PenLineCap lineCap)
+    {
+        if (_cachedIndicatorPen is null ||
+            !ReferenceEquals(_cachedIndicatorPenBrush, brush) ||
+            _cachedIndicatorPenThickness != thickness ||
+            _cachedIndicatorPenLineCap != lineCap)
+        {
+            _cachedIndicatorPenBrush = brush;
+            _cachedIndicatorPenThickness = thickness;
+            _cachedIndicatorPenLineCap = lineCap;
+            _cachedIndicatorPen = new Pen(brush, thickness, lineCap: lineCap);
+        }
+
+        return _cachedIndicatorPen;
     }
 
     private void OnAnimationStateChanged()
@@ -342,7 +387,7 @@ public class Loading : ContentControl
     private void RequestAnimationFrame()
     {
         TopLevel? topLevel = TopLevel.GetTopLevel(this);
-        if (!IsActive || Content is not null || _animationFrameRequested || topLevel is null)
+        if (!IsActive || !IsEffectivelyVisible || Content is not null || _animationFrameRequested || topLevel is null)
         {
             return;
         }
@@ -354,7 +399,7 @@ public class Loading : ContentControl
     private void OnAnimationFrame(TimeSpan _)
     {
         _animationFrameRequested = false;
-        if (!IsActive || Content is not null)
+        if (!IsActive || !IsEffectivelyVisible || Content is not null)
         {
             return;
         }

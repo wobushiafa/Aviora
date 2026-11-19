@@ -270,9 +270,9 @@ public class Hero : ContentControl
             return;
         }
 
-        if (IsEffectivelyVisible)
+        if (IsEffectivelyVisible && TryGetCurrentBoundsInHost(_host, out _))
         {
-            TryGetCurrentBoundsInHost(_host, out _);
+            _host.NotifyHeroLaidOut(this);
         }
 
         SyncVisibilityState();

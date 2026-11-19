@@ -42,6 +42,13 @@ public class ProgressRing : RangeBase
             validate: value => value > TimeSpan.Zero);
 
     private bool _animationFrameRequested;
+    private Pen? _cachedTrackPen;
+    private IBrush? _cachedTrackPenBrush;
+    private double _cachedTrackPenThickness;
+    private Pen? _cachedIndicatorPen;
+    private IBrush? _cachedIndicatorPenBrush;
+    private double _cachedIndicatorPenThickness;
+    private PenLineCap _cachedIndicatorPenLineCap;
 
     static ProgressRing()
     {
@@ -56,6 +63,7 @@ public class ProgressRing : RangeBase
             IsIndeterminateProperty,
             AnimationDurationProperty);
         IsIndeterminateProperty.Changed.AddClassHandler<ProgressRing>((progress, _) => progress.OnAnimationStateChanged());
+        IsVisibleProperty.Changed.AddClassHandler<ProgressRing>((progress, _) => progress.RequestAnimationFrame());
         AnimationDurationProperty.Changed.AddClassHandler<ProgressRing>((progress, _) => progress.RequestAnimationFrame());
     }
 
@@ -128,7 +136,7 @@ public class ProgressRing : RangeBase
         Point center = new(Bounds.Width / 2, Bounds.Height / 2);
         if (TrackBrush is not null)
         {
-            context.DrawEllipse(null, new Pen(TrackBrush, thickness), center, radius, radius);
+            context.DrawEllipse(null, GetTrackPen(TrackBrush, thickness), center, radius, radius);
         }
 
         if (IndicatorBrush is null)
@@ -138,6 +146,11 @@ public class ProgressRing : RangeBase
 
         if (IsIndeterminate)
         {
+            if (!_animationFrameRequested)
+            {
+                RequestAnimationFrame();
+            }
+
             (double start, double sweep) = RingDrawing.CalculateIndeterminateArc(GetAnimationProgress());
             DrawArc(context, center, radius, thickness, start + StartAngle + 90, sweep);
             return;
@@ -147,7 +160,7 @@ public class ProgressRing : RangeBase
         double progress = range <= 0 ? 0 : Math.Clamp((Value - Minimum) / range, 0, 1);
         if (progress >= 1)
         {
-            context.DrawEllipse(null, new Pen(IndicatorBrush, thickness), center, radius, radius);
+            context.DrawEllipse(null, GetIndicatorPen(IndicatorBrush, thickness, PenLineCap.Flat), center, radius, radius);
         }
         else if (progress > 0)
         {
@@ -171,8 +184,38 @@ public class ProgressRing : RangeBase
 
     private void DrawArc(DrawingContext context, Point center, double radius, double thickness, double start, double sweep)
     {
-        PathGeometry geometry = RingDrawing.CreateArcGeometry(center, radius, start, sweep);
-        context.DrawGeometry(null, new Pen(IndicatorBrush, thickness, lineCap: PenLineCap.Round), geometry);
+        StreamGeometry geometry = RingDrawing.CreateArcStreamGeometry(center, radius, start, sweep);
+        context.DrawGeometry(null, GetIndicatorPen(IndicatorBrush, thickness, PenLineCap.Round), geometry);
+    }
+
+    private Pen GetTrackPen(IBrush? brush, double thickness)
+    {
+        if (_cachedTrackPen is null ||
+            !ReferenceEquals(_cachedTrackPenBrush, brush) ||
+            _cachedTrackPenThickness != thickness)
+        {
+            _cachedTrackPenBrush = brush;
+            _cachedTrackPenThickness = thickness;
+            _cachedTrackPen = new Pen(brush, thickness);
+        }
+
+        return _cachedTrackPen;
+    }
+
+    private Pen GetIndicatorPen(IBrush? brush, double thickness, PenLineCap lineCap)
+    {
+        if (_cachedIndicatorPen is null ||
+            !ReferenceEquals(_cachedIndicatorPenBrush, brush) ||
+            _cachedIndicatorPenThickness != thickness ||
+            _cachedIndicatorPenLineCap != lineCap)
+        {
+            _cachedIndicatorPenBrush = brush;
+            _cachedIndicatorPenThickness = thickness;
+            _cachedIndicatorPenLineCap = lineCap;
+            _cachedIndicatorPen = new Pen(brush, thickness, lineCap: lineCap);
+        }
+
+        return _cachedIndicatorPen;
     }
 
     private double GetAnimationProgress()
@@ -190,7 +233,7 @@ public class ProgressRing : RangeBase
     private void RequestAnimationFrame()
     {
         TopLevel? topLevel = TopLevel.GetTopLevel(this);
-        if (!IsIndeterminate || _animationFrameRequested || topLevel is null)
+        if (!IsIndeterminate || !IsEffectivelyVisible || _animationFrameRequested || topLevel is null)
         {
             return;
         }
@@ -202,7 +245,7 @@ public class ProgressRing : RangeBase
     private void OnAnimationFrame(TimeSpan _)
     {
         _animationFrameRequested = false;
-        if (!IsIndeterminate)
+        if (!IsIndeterminate || !IsEffectivelyVisible)
         {
             return;
         }

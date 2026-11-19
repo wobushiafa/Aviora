@@ -124,7 +124,7 @@
                     <aviora:HeroHost Duration="{Binding HeroPage.FlightDuration}"
                                      FlightMode="{Binding HeroPage.SelectedFlightMode}"
                                      IsAnimationEnabled="{Binding HeroPage.IsAnimationEnabled}">
-                        <Grid>
+                        <Panel>
                             <Grid ColumnDefinitions="216,*">
                                 <Border Padding="20,24"
                                         Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
@@ -168,15 +168,15 @@
                                     </Grid>
                                 </Border>
 
-                                <Grid Grid.Column="1" Margin="28,24,28,0">
+                                <Panel Grid.Column="1" Margin="28,24,28,0">
                                     <ContentControl Content="{Binding SelectedPage}" />
-                                </Grid>
+                                </Panel>
                             </Grid>
 
                             <aviora:HeroOverlay IsOpen="{Binding HeroPage.IsFullscreenOpen, Mode=TwoWay}"
                                                 IsAnimationEnabled="{Binding HeroPage.IsAnimationEnabled}"
                                                 TransitionDuration="{Binding HeroPage.FlightDuration}">
-                                <Grid Margin="40">
+                                <Panel Margin="40">
                                     <aviora:Hero Tag="{Binding HeroPage.FullscreenItem.Id}"
                                                  CornerRadius="20">
                                         <Border Padding="36"
@@ -252,9 +252,9 @@
                                             </Grid>
                                         </Border>
                                     </aviora:Hero>
-                                </Grid>
+                                </Panel>
                             </aviora:HeroOverlay>
-                        </Grid>
+                        </Panel>
                     </aviora:HeroHost>
                 </aviora:Drawer>
             </aviora:Dialog>

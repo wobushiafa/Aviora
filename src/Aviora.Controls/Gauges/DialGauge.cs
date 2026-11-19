@@ -133,6 +133,11 @@ public class DialGauge : GaugeBase
 
         context.DrawGeometry(null, new Pen(TickBrush, 1), arcGeometry);
 
+        Pen? majorTickPen = null;
+        IBrush? majorTickPenBrush = null;
+        Pen? minorTickPen = null;
+        IBrush? minorTickPenBrush = null;
+
         double labelRadius = radius - Math.Max(15, TickLabelFontSize + 7);
         for (int index = 0; index <= tickCount; index++)
         {
@@ -140,7 +145,28 @@ public class DialGauge : GaugeBase
             double angle = StartAngle + (progress * SweepAngle);
             bool isMajor = ShouldDrawTickLabel(index, tickCount, TickLabelInterval);
             double tickLength = isMajor ? 9 : 5;
-            var pen = new Pen(ResolveTickBrush(progress), isMajor ? 2 : 1, lineCap: PenLineCap.Round);
+            IBrush? brush = ResolveTickBrush(progress);
+            Pen pen;
+            if (isMajor)
+            {
+                if (majorTickPen is null || !ReferenceEquals(majorTickPenBrush, brush))
+                {
+                    majorTickPenBrush = brush;
+                    majorTickPen = new Pen(brush, 2, lineCap: PenLineCap.Round);
+                }
+
+                pen = majorTickPen;
+            }
+            else
+            {
+                if (minorTickPen is null || !ReferenceEquals(minorTickPenBrush, brush))
+                {
+                    minorTickPenBrush = brush;
+                    minorTickPen = new Pen(brush, 1, lineCap: PenLineCap.Round);
+                }
+
+                pen = minorTickPen;
+            }
             context.DrawLine(
                 pen,
                 PointOnCircle(centerX, centerY, radius, angle),
