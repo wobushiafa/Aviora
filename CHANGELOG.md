@@ -6,6 +6,18 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-11-19
+
+### Fixed
+
+- Fixed a one-frame flash before `Hero` flights by pre-hiding arriving matched heroes and launching flights synchronously upon first layout pass before rendering.
+- Fixed hidden `Loading` inside closed `LoadingOverlay` (and hidden `ProgressRing`) running background `RequestAnimationFrame` loops while invisible.
+
+### Changed
+
+- Replaced single-cell overlay `Grid` containers in control templates (`LoadingOverlay`, `Dialog`, `ToastHost`, `HeroHost`, `HeroTransitionControl`, `HeroOverlay`) with lightweight `Panel`.
+- Reduced per-frame rendering allocations in `Loading`, `ProgressRing`, and `DialGauge` by using `StreamGeometry` arcs and reusing cached `Pen` instances.
+
 ## [0.6.2] - 2026-11-19
 
 ### Added
