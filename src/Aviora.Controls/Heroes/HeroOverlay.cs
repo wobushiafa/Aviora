@@ -200,6 +200,7 @@ public class HeroOverlay : ContentControl
 
         StopCompletionTimer();
 
+        bool hasDirectExitHero = false;
         if (open)
         {
             EndOverlayCloseForHeroes();
@@ -209,7 +210,7 @@ public class HeroOverlay : ContentControl
         else
         {
             IsHitTestVisible = false;
-            BeginOverlayCloseForHeroes();
+            hasDirectExitHero = BeginOverlayCloseForHeroes();
         }
 
         _animatingOpen = open;
@@ -222,7 +223,7 @@ public class HeroOverlay : ContentControl
 
         if (backdropVisual is not null && presenterVisual is not null)
         {
-            StartCompositionFade(backdropVisual, presenterVisual, open);
+            StartCompositionFade(backdropVisual, presenterVisual, open, keepPresenterOpaque: hasDirectExitHero);
             return;
         }
 
@@ -230,7 +231,11 @@ public class HeroOverlay : ContentControl
         RequestNextFrame();
     }
 
-    private void StartCompositionFade(CompositionVisual backdropVisual, CompositionVisual presenterVisual, bool open)
+    private void StartCompositionFade(
+        CompositionVisual backdropVisual,
+        CompositionVisual presenterVisual,
+        bool open,
+        bool keepPresenterOpaque)
     {
         float from = (float)_fromProgress;
         float to = open ? 1.0f : 0.0f;
@@ -241,22 +246,28 @@ public class HeroOverlay : ContentControl
         backdropVisual.StopAnimation("Opacity");
         presenterVisual.StopAnimation("Opacity");
         backdropVisual.Opacity = from;
-        presenterVisual.Opacity = from;
 
         ScalarKeyFrameAnimation backdropAnim = compositor.CreateScalarKeyFrameAnimation();
         backdropAnim.Duration = duration;
         backdropAnim.StopBehavior = AnimationStopBehavior.SetToFinalValue;
         backdropAnim.InsertKeyFrame(0.0f, from);
         backdropAnim.InsertKeyFrame(1.0f, to, easing);
-
-        ScalarKeyFrameAnimation presenterAnim = compositor.CreateScalarKeyFrameAnimation();
-        presenterAnim.Duration = duration;
-        presenterAnim.StopBehavior = AnimationStopBehavior.SetToFinalValue;
-        presenterAnim.InsertKeyFrame(0.0f, from);
-        presenterAnim.InsertKeyFrame(1.0f, to, easing);
-
         backdropVisual.StartAnimation("Opacity", backdropAnim);
-        presenterVisual.StartAnimation("Opacity", presenterAnim);
+
+        if (keepPresenterOpaque)
+        {
+            presenterVisual.Opacity = 1.0f;
+        }
+        else
+        {
+            presenterVisual.Opacity = from;
+            ScalarKeyFrameAnimation presenterAnim = compositor.CreateScalarKeyFrameAnimation();
+            presenterAnim.Duration = duration;
+            presenterAnim.StopBehavior = AnimationStopBehavior.SetToFinalValue;
+            presenterAnim.InsertKeyFrame(0.0f, from);
+            presenterAnim.InsertKeyFrame(1.0f, to, easing);
+            presenterVisual.StartAnimation("Opacity", presenterAnim);
+        }
 
         DispatcherTimer timer = new() { Interval = duration };
         timer.Tick += (_, _) =>
@@ -401,17 +412,23 @@ public class HeroOverlay : ContentControl
         }
     }
 
-    private void BeginOverlayCloseForHeroes()
+    private bool BeginOverlayCloseForHeroes()
     {
         if (_presenter is null)
         {
-            return;
+            return false;
         }
 
+        bool anyDirectExit = false;
         foreach (Hero hero in _presenter.GetVisualDescendants().OfType<Hero>())
         {
-            hero.BeginOverlayCloseDeparture();
+            if (hero.BeginOverlayCloseDeparture())
+            {
+                anyDirectExit = true;
+            }
         }
+
+        return anyDirectExit;
     }
 
     private void EndOverlayCloseForHeroes()

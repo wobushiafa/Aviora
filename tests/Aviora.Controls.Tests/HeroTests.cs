@@ -179,6 +179,7 @@ public class HeroTests
         Border shuttle = Assert.IsType<Border>(Assert.Single(overlay!.Children));
         TextBlock text = Assert.IsType<TextBlock>(shuttle.Child);
         Assert.Equal("CustomShuttleText", text.Name);
+        Assert.Equal(0, host.SnapshotCaptureCount);
 
         host.CancelAllFlights();
         window.Close();
@@ -293,6 +294,69 @@ public class HeroTests
         Assert.NotNull(ElementComposition.GetElementVisual(shuttle));
 
         host.CancelAllFlights();
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void Direct_shuttle_mode_runs_fullscreen_enter_and_exit_with_zero_snapshots()
+    {
+        Hero sourceHero = CreateSizedHero("video-1", 20, 20, 200, 120, Brushes.Teal);
+        Hero overlayHero = CreateSizedHero("video-1", 40, 40, 520, 320, Brushes.Teal);
+        sourceHero.ShuttleMode = HeroShuttleMode.Direct;
+        overlayHero.ShuttleMode = HeroShuttleMode.Direct;
+
+        HeroOverlay overlay = new()
+        {
+            TransitionDuration = TimeSpan.FromMilliseconds(220),
+            Content = CreateCanvasWithChild(overlayHero),
+        };
+
+        Grid root = new();
+        root.Children.Add(CreateCanvasWithChild(sourceHero));
+        root.Children.Add(overlay);
+
+        HeroHost host = new() { Content = root };
+        Window window = new() { Width = 600, Height = 400, Content = host };
+
+        List<HeroFlightEventArgs> flights = [];
+        host.HeroFlightStarted += (_, args) => flights.Add(args);
+
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        // Enter fullscreen: animates overlayHero directly, zero snapshots, zero overlay shuttles.
+        overlay.IsOpen = true;
+        Dispatcher.UIThread.RunJobs();
+
+        Canvas? overlayLayer = host.GetTemplateDescendants().OfType<Canvas>().FirstOrDefault(c => c.Name == HeroHost.OverlayLayerPartName);
+        Assert.NotNull(overlayLayer);
+        Assert.Single(flights);
+        Assert.Equal(1, host.ActiveFlightCount);
+        Assert.Equal(0, host.SnapshotCaptureCount);
+        Assert.Empty(overlayLayer!.Children);
+        Assert.True(overlayHero.IsDirectFlightActive);
+        Assert.Equal(1, overlayHero.Opacity);
+        Assert.Equal(0, sourceHero.Opacity);
+
+        host.CancelAllFlights();
+        Assert.False(overlayHero.IsDirectFlightActive);
+        Assert.Equal(1, sourceHero.Opacity);
+
+        // Exit fullscreen: animates overlayHero directly back to sourceHero, zero snapshots.
+        overlay.IsOpen = false;
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(2, flights.Count);
+        Assert.Equal(1, host.ActiveFlightCount);
+        Assert.Equal(0, host.SnapshotCaptureCount);
+        Assert.Empty(overlayLayer.Children);
+        Assert.True(overlayHero.IsDirectFlightActive);
+        Assert.Equal(1, overlayHero.Opacity);
+        Assert.Equal(0, sourceHero.Opacity);
+
+        host.CancelAllFlights();
+        Assert.False(overlayHero.IsDirectFlightActive);
+        Assert.Equal(1, sourceHero.Opacity);
         window.Close();
     }
 

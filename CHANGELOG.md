@@ -6,6 +6,17 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-11-19
+
+### Added
+
+- Added `HeroShuttleMode` (`Snapshot` and `Direct`) on `HeroHost` and `Hero` to support zero-snapshot, pure `CompositionVisual` (`Translation` + `Scale`) transitions for live video and fullscreen surfaces.
+- Added `HeroHost.MaxSnapshotSize` (default `1280` px) to cap longest-edge snapshot rasterization dimensions on high-DPI and fullscreen views.
+
+### Fixed
+
+- Fixed `HeroHost.StartFlight` and `HeroHost.NotifyHeroDeparting` unconditionally calling `CaptureSnapshot` (`RenderTargetBitmap.Render`) before checking `ShuttleTemplate` or `ShuttleMode`.
+
 ## [0.6.1] - 2026-11-18
 
 ### Changed

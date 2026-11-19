@@ -40,6 +40,17 @@ public class HeroHost : ContentControl
     public static readonly StyledProperty<HeroFlightMode> FlightModeProperty =
         AvaloniaProperty.Register<HeroHost, HeroFlightMode>(nameof(FlightMode), HeroFlightMode.Arc);
 
+    /// <summary>Defines the <see cref="ShuttleMode"/> property.</summary>
+    public static readonly StyledProperty<HeroShuttleMode> ShuttleModeProperty =
+        AvaloniaProperty.Register<HeroHost, HeroShuttleMode>(nameof(ShuttleMode), HeroShuttleMode.Snapshot);
+
+    /// <summary>Defines the <see cref="MaxSnapshotSize"/> property.</summary>
+    public static readonly StyledProperty<double> MaxSnapshotSizeProperty =
+        AvaloniaProperty.Register<HeroHost, double>(
+            nameof(MaxSnapshotSize),
+            1280.0,
+            validate: value => double.IsFinite(value) && value >= 0);
+
     /// <summary>Defines the <see cref="CaptureTimeout"/> property.</summary>
     public static readonly StyledProperty<TimeSpan> CaptureTimeoutProperty =
         AvaloniaProperty.Register<HeroHost, TimeSpan>(
@@ -94,6 +105,23 @@ public class HeroHost : ContentControl
         set => SetValue(FlightModeProperty, value);
     }
 
+    /// <summary>Gets or sets the default shuttle rendering mode.</summary>
+    public HeroShuttleMode ShuttleMode
+    {
+        get => GetValue(ShuttleModeProperty);
+        set => SetValue(ShuttleModeProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the maximum pixel dimension (width or height) for captured shuttle snapshots.
+    /// Set to <c>0</c> to disable dimension capping.
+    /// </summary>
+    public double MaxSnapshotSize
+    {
+        get => GetValue(MaxSnapshotSizeProperty);
+        set => SetValue(MaxSnapshotSizeProperty, value);
+    }
+
     /// <summary>Gets or sets how long a departing hero remains eligible to match an arriving hero.</summary>
     public TimeSpan CaptureTimeout
     {
@@ -110,6 +138,8 @@ public class HeroHost : ContentControl
 
     /// <summary>Gets the number of hero shuttles currently in flight.</summary>
     public int ActiveFlightCount => _activeFlights.Count;
+
+    internal int SnapshotCaptureCount { get; private set; }
 
     /// <summary>
     /// Cancels all active hero flights and restores placeholder visibility.
@@ -158,15 +188,26 @@ public class HeroHost : ContentControl
         ScheduleArrivalProcessing(DispatcherPriority.Render);
     }
 
-    internal void NotifyHeroDeparting(Hero hero, object tag, Rect? lastBoundsInHost, double scaling)
+    internal bool NotifyHeroDeparting(
+        Hero hero,
+        object tag,
+        Rect? lastBoundsInHost,
+        double scaling,
+        bool allowDirectSourceFlight = false)
     {
         // If this hero was the destination of an active flight, interrupt from mid-air bounds.
         if (_activeFlights.TryGetValue(tag, out ActiveFlight? inFlight) && ReferenceEquals(inFlight.DestinationHero, hero))
         {
             (Rect currentBounds, CornerRadius currentCornerRadius) = inFlight.EvaluateCurrentState(Stopwatch.GetTimestamp());
-            RenderTargetBitmap? midAirSnapshot = CaptureSnapshot(inFlight.ShuttleBorder, currentBounds.Size, scaling);
             object? dataContext = hero.DataContext ?? hero.Content;
             IDataTemplate? shuttleTemplate = hero.ShuttleTemplate;
+            HeroShuttleMode effectiveMode = hero.ShuttleMode ?? ShuttleMode;
+            bool skipSnapshot = effectiveMode == HeroShuttleMode.Direct ||
+                (shuttleTemplate ?? DefaultShuttleTemplate) is not null;
+
+            RenderTargetBitmap? midAirSnapshot = skipSnapshot || inFlight.ShuttleBorder is null
+                ? null
+                : CaptureSnapshot(inFlight.ShuttleBorder, currentBounds.Size, scaling);
 
             CompleteFlight(inFlight);
 
@@ -179,12 +220,12 @@ public class HeroHost : ContentControl
                 dataContext,
                 shuttleTemplate,
                 midAirSnapshot));
-            return;
+            return false;
         }
 
         if (lastBoundsInHost is not { Width: > 0, Height: > 0 } bounds)
         {
-            return;
+            return false;
         }
 
         // If a settled visible peer with the same tag is already in the tree (e.g. closing an overlay),
@@ -192,7 +233,12 @@ public class HeroHost : ContentControl
         Hero? settledPeer = FindVisiblePeer(hero, tag);
         if (settledPeer is not null && settledPeer.TryGetCurrentBoundsInHost(this, out Rect peerBounds))
         {
-            RenderTargetBitmap? sourceSnapshot = CaptureSnapshot(hero, bounds.Size, scaling);
+            HeroShuttleMode effectiveMode = settledPeer.ShuttleMode ?? hero.ShuttleMode ?? ShuttleMode;
+            bool hasTemplate = (settledPeer.ShuttleTemplate ?? hero.ShuttleTemplate ?? DefaultShuttleTemplate) is not null;
+            RenderTargetBitmap? sourceSnapshot = effectiveMode == HeroShuttleMode.Direct || hasTemplate
+                ? null
+                : CaptureSnapshot(hero, bounds.Size, scaling);
+
             DepartureRecord directDeparture = new(
                 tag,
                 bounds,
@@ -202,8 +248,7 @@ public class HeroHost : ContentControl
                 hero.DataContext ?? hero.Content,
                 hero.ShuttleTemplate,
                 sourceSnapshot);
-            StartFlight(directDeparture, settledPeer, peerBounds);
-            return;
+            return StartFlight(directDeparture, settledPeer, peerBounds, allowDirectSourceFlight: allowDirectSourceFlight);
         }
 
         RecordDeparture(new DepartureRecord(
@@ -215,6 +260,7 @@ public class HeroHost : ContentControl
             hero.DataContext ?? hero.Content,
             hero.ShuttleTemplate,
             null));
+        return false;
     }
 
     internal void UnregisterHero(Hero hero)
@@ -361,7 +407,12 @@ public class HeroHost : ContentControl
         _departures.Clear();
     }
 
-    private void StartFlight(DepartureRecord departure, Hero destination, Rect destBounds, Hero? sourcePeer = null)
+    private bool StartFlight(
+        DepartureRecord departure,
+        Hero destination,
+        Rect destBounds,
+        Hero? sourcePeer = null,
+        bool allowDirectSourceFlight = false)
     {
         object tag = departure.Tag;
         TimeSpan duration = destination.Duration ?? Duration;
@@ -371,7 +422,7 @@ public class HeroHost : ContentControl
         if (!IsAnimationEnabled || duration <= TimeSpan.Zero || _overlayLayer is null)
         {
             departure.Dispose();
-            return;
+            return false;
         }
 
         if (_activeFlights.TryGetValue(tag, out ActiveFlight? existingFlight))
@@ -379,22 +430,42 @@ public class HeroHost : ContentControl
             CompleteFlight(existingFlight);
         }
 
-        double hostScaling = TopLevel.GetTopLevel(this)?.RenderScaling ?? departure.RenderScaling;
-        double destArea = destBounds.Width * destBounds.Height;
-        double destScaling = destArea > 250_000 ? 1.0 : Math.Min(hostScaling, 1.5);
-        double sourceArea = departure.BoundsInHost.Width * departure.BoundsInHost.Height;
-        double sourceScaling = sourceArea > 250_000 ? 1.0 : Math.Min(departure.RenderScaling, 1.5);
-
-        RenderTargetBitmap? sourceSnapshot = departure.Snapshot ??
-            CaptureSnapshot(departure.SourceHero, departure.BoundsInHost.Size, sourceScaling);
-        RenderTargetBitmap? destSnapshot = CaptureSnapshot(destination, destBounds.Size, destScaling);
-
         IDataTemplate? shuttleTemplate = destination.ShuttleTemplate ?? departure.ShuttleTemplate ?? DefaultShuttleTemplate;
+        HeroShuttleMode shuttleMode = destination.ShuttleMode ?? departure.SourceHero?.ShuttleMode ?? ShuttleMode;
+
+        // Zero-snapshot Direct CompositionVisual mode (ideal for live video & fullscreen views).
+        if (shuttleMode == HeroShuttleMode.Direct && shuttleTemplate is null)
+        {
+            if (TryStartDirectFlight(departure, destination, destBounds, sourcePeer, duration, flightMode, easing, allowDirectSourceFlight, out bool animatedSource))
+            {
+                return animatedSource;
+            }
+        }
+
         object? shuttleData = destination.DataContext ?? destination.Content ?? departure.DataContext;
+        Control? customShuttleContent = shuttleTemplate?.Build(shuttleData);
+        if (customShuttleContent is not null)
+        {
+            customShuttleContent.DataContext ??= shuttleData;
+        }
+
+        RenderTargetBitmap? sourceSnapshot = null;
+        RenderTargetBitmap? destSnapshot = null;
+        if (customShuttleContent is null)
+        {
+            double hostScaling = TopLevel.GetTopLevel(this)?.RenderScaling ?? departure.RenderScaling;
+            double destArea = destBounds.Width * destBounds.Height;
+            double destScaling = destArea > 250_000 ? 1.0 : Math.Min(hostScaling, 1.5);
+            double sourceArea = departure.BoundsInHost.Width * departure.BoundsInHost.Height;
+            double sourceScaling = sourceArea > 250_000 ? 1.0 : Math.Min(departure.RenderScaling, 1.5);
+
+            sourceSnapshot = departure.Snapshot ??
+                CaptureSnapshot(departure.SourceHero, departure.BoundsInHost.Size, sourceScaling);
+            destSnapshot = CaptureSnapshot(destination, destBounds.Size, destScaling);
+        }
 
         (Border shuttleBorder, Image? sourceImage, Image? destImage) = BuildShuttleVisual(
-            shuttleTemplate,
-            shuttleData,
+            customShuttleContent,
             sourceSnapshot,
             destSnapshot,
             destBounds,
@@ -476,9 +547,113 @@ public class HeroHost : ContentControl
             destSnapshot,
             destination,
             sourcePeer,
+            directAnimatedHero: null,
             needsUiFrameLoop);
 
-        DispatcherTimer completionTimer = new() { Interval = duration };
+        RegisterAndScheduleFlight(flight, departure);
+        if (needsUiFrameLoop)
+        {
+            RequestNextFrame();
+        }
+
+        return false;
+    }
+
+    private bool TryStartDirectFlight(
+        DepartureRecord departure,
+        Hero destination,
+        Rect destBounds,
+        Hero? sourcePeer,
+        TimeSpan duration,
+        HeroFlightMode flightMode,
+        Easing easing,
+        bool allowDirectSourceFlight,
+        out bool animatedSource)
+    {
+        animatedSource = false;
+
+        Hero? animatedHero = null;
+        Rect anchorBounds = default;
+        bool hideDestination = false;
+
+        if (allowDirectSourceFlight &&
+            departure.SourceHero is { } sourceHero &&
+            ElementComposition.GetElementVisual(sourceHero) is not null)
+        {
+            animatedHero = sourceHero;
+            anchorBounds = departure.BoundsInHost;
+            hideDestination = true;
+            animatedSource = true;
+        }
+        else if (ElementComposition.GetElementVisual(destination) is not null)
+        {
+            animatedHero = destination;
+            anchorBounds = destBounds;
+        }
+
+        if (animatedHero is null)
+        {
+            return false;
+        }
+
+        CompositionVisual? targetVisual = ElementComposition.GetElementVisual(animatedHero);
+        if (targetVisual is null)
+        {
+            return false;
+        }
+
+        if (hideDestination)
+        {
+            destination.BeginFlightPlaceholderHide();
+        }
+        else
+        {
+            sourcePeer?.BeginFlightPlaceholderHide();
+        }
+
+        animatedHero.IsDirectFlightActive = true;
+        StartDirectCompositionAnimations(
+            targetVisual,
+            departure.BoundsInHost,
+            destBounds,
+            anchorBounds,
+            duration,
+            flightMode,
+            easing);
+
+        ActiveFlight flight = new(
+            departure.Tag,
+            departure.BoundsInHost,
+            destBounds,
+            departure.CornerRadius,
+            destination.CornerRadius,
+            duration,
+            flightMode,
+            easing,
+            Stopwatch.GetTimestamp(),
+            shuttleBorder: null,
+            shuttleVisual: targetVisual,
+            sourceVisual: null,
+            destVisual: null,
+            fallbackScale: null,
+            fallbackTranslate: null,
+            sourceImage: null,
+            destImage: null,
+            sourceSnapshot: null,
+            destSnapshot: null,
+            destination,
+            sourcePeer,
+            directAnimatedHero: animatedHero,
+            needsUiFrameLoop: false);
+
+        RegisterAndScheduleFlight(flight, departure);
+        return true;
+    }
+
+    private void RegisterAndScheduleFlight(ActiveFlight flight, DepartureRecord departure)
+    {
+        object tag = flight.Tag;
+        DispatcherTimer completionTimer = new() { Interval = flight.Duration };
         completionTimer.Tick += (_, _) =>
         {
             completionTimer.Stop();
@@ -493,11 +668,49 @@ public class HeroHost : ContentControl
         departure.OwnershipTransferred();
         _activeFlights[tag] = flight;
 
-        HeroFlightStarted?.Invoke(this, new HeroFlightEventArgs(tag, departure.BoundsInHost, destBounds, duration, flightMode));
-        if (needsUiFrameLoop)
+        HeroFlightStarted?.Invoke(
+            this,
+            new HeroFlightEventArgs(tag, flight.SourceBounds, flight.DestinationBounds, flight.Duration, flight.FlightMode));
+    }
+
+    private static void StartDirectCompositionAnimations(
+        CompositionVisual targetVisual,
+        Rect from,
+        Rect to,
+        Rect anchorBounds,
+        TimeSpan duration,
+        HeroFlightMode mode,
+        Easing easing)
+    {
+        Compositor compositor = targetVisual.Compositor;
+        double baseWidth = Math.Max(1.0, anchorBounds.Width);
+        double baseHeight = Math.Max(1.0, anchorBounds.Height);
+
+        Vector3DKeyFrameAnimation translationAnim = compositor.CreateVector3DKeyFrameAnimation();
+        translationAnim.Duration = duration;
+        translationAnim.StopBehavior = AnimationStopBehavior.SetToFinalValue;
+
+        Vector3DKeyFrameAnimation scaleAnim = compositor.CreateVector3DKeyFrameAnimation();
+        scaleAnim.Duration = duration;
+        scaleAnim.StopBehavior = AnimationStopBehavior.SetToFinalValue;
+
+        const int steps = 20;
+        for (int i = 0; i <= steps; i++)
         {
-            RequestNextFrame();
+            float key = i / (float)steps;
+            double easedT = Math.Clamp(easing.Ease(key), 0.0, 1.0);
+            Rect rect = InterpolateRect(from, to, easedT, mode);
+            translationAnim.InsertKeyFrame(key, new Vector3D(rect.X - anchorBounds.X, rect.Y - anchorBounds.Y, 0));
+            scaleAnim.InsertKeyFrame(key, new Vector3D(rect.Width / baseWidth, rect.Height / baseHeight, 1));
         }
+
+        targetVisual.StopAnimation("Translation");
+        targetVisual.StopAnimation("Scale");
+        targetVisual.CenterPoint = new Vector3D(0, 0, 0);
+        targetVisual.Translation = new Vector3D(from.X - anchorBounds.X, from.Y - anchorBounds.Y, 0);
+        targetVisual.Scale = new Vector3D(from.Width / baseWidth, from.Height / baseHeight, 1);
+        targetVisual.StartAnimation("Translation", translationAnim);
+        targetVisual.StartAnimation("Scale", scaleAnim);
     }
 
     private static bool ShouldAnimateCornerRadius(CornerRadius from, CornerRadius to, Rect destBounds)
@@ -571,8 +784,7 @@ public class HeroHost : ContentControl
     }
 
     private static (Border Shuttle, Image? SourceImage, Image? DestImage) BuildShuttleVisual(
-        IDataTemplate? shuttleTemplate,
-        object? shuttleData,
+        Control? customShuttleContent,
         RenderTargetBitmap? sourceSnapshot,
         RenderTargetBitmap? destSnapshot,
         Rect destinationBounds,
@@ -592,10 +804,9 @@ public class HeroHost : ContentControl
         Canvas.SetLeft(shuttle, 0);
         Canvas.SetTop(shuttle, 0);
 
-        if (shuttleTemplate is not null && shuttleTemplate.Build(shuttleData) is Control customContent)
+        if (customShuttleContent is not null)
         {
-            customContent.DataContext ??= shuttleData;
-            shuttle.Child = customContent;
+            shuttle.Child = customShuttleContent;
             return (shuttle, null, null);
         }
 
@@ -714,7 +925,10 @@ public class HeroHost : ContentControl
                 }
             }
 
-            flight.ShuttleBorder.CornerRadius = ScaleCornerRadiusForShuttle(cornerRadius, scaleX, scaleY);
+            if (flight.ShuttleBorder is not null)
+            {
+                flight.ShuttleBorder.CornerRadius = ScaleCornerRadiusForShuttle(cornerRadius, scaleX, scaleY);
+            }
 
             if (rawT >= 1.0)
             {
@@ -742,7 +956,11 @@ public class HeroHost : ContentControl
         }
 
         flight.StopAnimations();
-        _overlayLayer?.Children.Remove(flight.ShuttleBorder);
+        if (flight.ShuttleBorder is not null)
+        {
+            _overlayLayer?.Children.Remove(flight.ShuttleBorder);
+        }
+
         flight.DestinationHero.EndFlightPlaceholderHide();
         flight.SourcePeer?.EndFlightPlaceholderHide();
         flight.DisposeSnapshots();
@@ -824,7 +1042,7 @@ public class HeroHost : ContentControl
 
     private static double Lerp(double a, double b, double t) => a + ((b - a) * t);
 
-    private static RenderTargetBitmap? CaptureSnapshot(Control? visual, Size size, double renderScaling)
+    private RenderTargetBitmap? CaptureSnapshot(Control? visual, Size size, double renderScaling)
     {
         if (visual is null || size.Width < 1 || size.Height < 1 || !visual.IsVisible)
         {
@@ -832,11 +1050,22 @@ public class HeroHost : ContentControl
         }
 
         double scale = double.IsFinite(renderScaling) && renderScaling > 0 ? renderScaling : 1.0;
+        double maxDimension = MaxSnapshotSize;
+        if (maxDimension > 0)
+        {
+            double longestEdge = Math.Max(size.Width, size.Height) * scale;
+            if (longestEdge > maxDimension)
+            {
+                scale *= maxDimension / longestEdge;
+            }
+        }
+
         int pixelWidth = Math.Max(1, (int)Math.Ceiling(size.Width * scale));
         int pixelHeight = Math.Max(1, (int)Math.Ceiling(size.Height * scale));
 
         try
         {
+            SnapshotCaptureCount++;
             RenderTargetBitmap bitmap = new(new PixelSize(pixelWidth, pixelHeight), new Vector(96 * scale, 96 * scale));
             bitmap.Render(visual);
             return bitmap;
@@ -929,7 +1158,7 @@ public class HeroHost : ContentControl
             HeroFlightMode flightMode,
             Easing easing,
             long startTimestamp,
-            Border shuttleBorder,
+            Border? shuttleBorder,
             CompositionVisual? shuttleVisual,
             CompositionVisual? sourceVisual,
             CompositionVisual? destVisual,
@@ -941,6 +1170,7 @@ public class HeroHost : ContentControl
             RenderTargetBitmap? destSnapshot,
             Hero destinationHero,
             Hero? sourcePeer,
+            Hero? directAnimatedHero,
             bool needsUiFrameLoop)
         {
             Tag = tag;
@@ -965,6 +1195,7 @@ public class HeroHost : ContentControl
             _destSnapshot = destSnapshot;
             DestinationHero = destinationHero;
             SourcePeer = sourcePeer;
+            DirectAnimatedHero = directAnimatedHero;
             NeedsUiFrameLoop = needsUiFrameLoop;
         }
 
@@ -988,7 +1219,7 @@ public class HeroHost : ContentControl
 
         public long StartTimestamp { get; }
 
-        public Border ShuttleBorder { get; }
+        public Border? ShuttleBorder { get; }
 
         public CompositionVisual? ShuttleVisual { get; }
 
@@ -1007,6 +1238,8 @@ public class HeroHost : ContentControl
         public Hero DestinationHero { get; }
 
         public Hero? SourcePeer { get; }
+
+        public Hero? DirectAnimatedHero { get; }
 
         public bool NeedsUiFrameLoop { get; }
 
@@ -1031,6 +1264,16 @@ public class HeroHost : ContentControl
             ShuttleVisual?.StopAnimation("Scale");
             SourceVisual?.StopAnimation("Opacity");
             DestVisual?.StopAnimation("Opacity");
+
+            if (DirectAnimatedHero is not null)
+            {
+                DirectAnimatedHero.IsDirectFlightActive = false;
+                if (ShuttleVisual is not null)
+                {
+                    ShuttleVisual.Translation = new Vector3D(0, 0, 0);
+                    ShuttleVisual.Scale = new Vector3D(1, 1, 1);
+                }
+            }
         }
 
         public void DisposeSnapshots()

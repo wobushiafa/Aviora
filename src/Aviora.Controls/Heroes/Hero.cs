@@ -34,6 +34,10 @@ public class Hero : ContentControl
     public static readonly StyledProperty<HeroFlightMode?> FlightModeProperty =
         AvaloniaProperty.Register<Hero, HeroFlightMode?>(nameof(FlightMode));
 
+    /// <summary>Defines the <see cref="ShuttleMode"/> property.</summary>
+    public static readonly StyledProperty<HeroShuttleMode?> ShuttleModeProperty =
+        AvaloniaProperty.Register<Hero, HeroShuttleMode?>(nameof(ShuttleMode));
+
     /// <summary>Defines the <see cref="ShuttleTemplate"/> property.</summary>
     public static readonly StyledProperty<IDataTemplate?> ShuttleTemplateProperty =
         AvaloniaProperty.Register<Hero, IDataTemplate?>(nameof(ShuttleTemplate));
@@ -85,6 +89,13 @@ public class Hero : ContentControl
     {
         get => GetValue(FlightModeProperty);
         set => SetValue(FlightModeProperty, value);
+    }
+
+    /// <summary>Gets or sets an optional shuttle rendering mode override for this hero.</summary>
+    public HeroShuttleMode? ShuttleMode
+    {
+        get => GetValue(ShuttleModeProperty);
+        set => SetValue(ShuttleModeProperty, value);
     }
 
     /// <summary>Gets or sets an optional template used to render the flying shuttle.</summary>
@@ -165,25 +176,38 @@ public class Hero : ContentControl
         }
     }
 
-    internal void BeginOverlayCloseDeparture()
+    internal bool IsDirectFlightActive { get; set; }
+
+    internal bool BeginOverlayCloseDeparture()
     {
         if (_isHiddenByClosingOverlay)
         {
-            return;
+            return IsDirectFlightActive;
         }
 
         _isHiddenByClosingOverlay = true;
+        bool directExitStarted = false;
 
         if (_host is not null && _isRegisteredAsVisible && _registeredTag is not null)
         {
             TryGetCurrentBoundsInHost(_host, out _);
-            _host.NotifyHeroDeparting(this, _registeredTag, _lastBoundsInHost, _lastRenderScaling);
+            directExitStarted = _host.NotifyHeroDeparting(
+                this,
+                _registeredTag,
+                _lastBoundsInHost,
+                _lastRenderScaling,
+                allowDirectSourceFlight: true);
             _host.UnregisterHero(this);
             _isRegisteredAsVisible = false;
             _registeredTag = null;
         }
 
-        BeginFlightPlaceholderHide();
+        if (!directExitStarted)
+        {
+            BeginFlightPlaceholderHide();
+        }
+
+        return directExitStarted;
     }
 
     internal void EndOverlayCloseDeparture()
