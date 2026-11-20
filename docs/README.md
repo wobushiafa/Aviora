@@ -11,4 +11,5 @@ accessibility behavior, and a minimal XAML example.
 - [ColumnChart](column-chart.md)
 - [LineChart](line-chart.md)
 - [Chart tooltips](chart-tooltips.md)
+- [SmoothScrollAssist](smooth-scroll.md)
 - [Project architecture](architecture.md)

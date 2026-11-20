@@ -17,24 +17,45 @@ Aviora.Core        Aviora.Presentation.Abstractions
 ## Repository structure
 
 ```text
+assets/                     Shared brand and NuGet package assets
+docs/                       Architecture notes, control docs, and performance reports
+samples/
+`-- Aviora.Demo/            Avalonia demo application showcasing controls and services
 src/
 |-- Aviora.Core/
-|   `-- Charts/             Framework-independent data contracts and algorithms
+|   |-- Charts/             Framework-independent data contracts and algorithms
+|   `-- Compatibility/      Compiler compatibility polyfills for netstandard2.0
 |-- Aviora.Presentation.Abstractions/
+|   |-- Compatibility/      Compiler compatibility polyfills for netstandard2.0
+|   |-- Dialogs/            UI-framework-independent dialog contracts
 |   |-- Drawers/            UI-framework-independent drawer contracts
 |   |-- Loadings/           UI-framework-independent loading scopes
-|   `-- Dialogs/            UI-framework-independent dialog contracts
+|   `-- Toasts/             UI-framework-independent toast notification contracts
 `-- Aviora.Controls/
+    |-- Assists/            Attached-property helpers for native controls (SmoothScrollAssist)
     |-- Charts/             Public Avalonia chart API and compatibility models
-    |   `-- Internal/      observation, throttling, animation, layout, and rendering
+    |   `-- Internal/       Observation, throttling, animation, layout, and rendering
+    |-- Dialogs/            Dialog control and Avalonia event contracts
+    |   `-- Services/       Queued dialog service and host coordination
     |-- Drawers/            Drawer control and Avalonia event contracts
+    |   `-- Services/       Drawer service and host coordination
+    |-- Extensions/         XAML markup extensions (Aviora.Controls.Extensions)
+    |-- Gauges/             Gauge controls (DialGauge, AngleGauge, GaugeBase)
+    |-- Heroes/             Shared-element transition host, overlay, and controls
+    |-- Internal/           Shared internal helpers and palette resources
     |-- Loadings/           Loading indicators, overlays, and host services
     |   `-- Services/       Avalonia service implementation and host coordination
-    |-- Dialogs/            Dialog control and Avalonia event contracts
-    |   `-- Services/       queued dialog service and host coordination
-    |-- Thermometers/       Thermometer control and related public types
+    |-- Progress/           Progress indicator controls (ProgressRing)
+    |-- Surfaces/           General-purpose surface controls (AvioraCard, BackdropBlur)
     |-- Themes/             Shared Avalonia resources and control themes
-    `-- AvioraCard.cs      General-purpose Avalonia controls
+    |-- Thermometers/       Thermometer control and related public types
+    `-- Toasts/             Toast notification controls and host
+        `-- Services/       Toast service and host coordination
+tests/
+|-- Aviora.Core.Tests/      Unit tests aligned with Aviora.Core modules
+`-- Aviora.Controls.Tests/  Headless Avalonia tests aligned with Aviora.Controls modules
+tools/
+`-- BackdropBlur.Perf/      Standalone GPU render probe and report generator
 ```
 
 ## Aviora.Core boundary
@@ -108,9 +129,12 @@ layer. Their default services implement both the framework-independent client
 contract and the Avalonia host contract, while ViewModels depend only on
 `IDrawerService` or `IDialogService`.
 
-Control families live in focused plural folders (`Charts`, `Drawers`, and
-`Thermometers`). Folder placement does not force a public namespace change;
-existing public namespaces remain stable when files are reorganized.
+Control families and attached-property helpers live in focused plural folders (`Assists`,
+`Charts`, `Dialogs`, `Drawers`, `Gauges`, `Heroes`, `Loadings`, `Progress`,
+`Surfaces`, `Thermometers`, `Toasts`, etc.). Folder placement does not force a
+public namespace change; public controls and attached helpers share the unified
+`Aviora.Controls` namespace so existing XAML and C# callers remain stable (only
+XAML markup extensions use `Aviora.Controls.Extensions`).
 
 `CartesianChart` is the shared Avalonia base for single-series Cartesian charts.
 It owns the common StyledProperties and coordinates data observation, update

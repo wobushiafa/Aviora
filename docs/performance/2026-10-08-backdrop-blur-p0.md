@@ -68,7 +68,7 @@
 
 ## 文件与复跑
 
-- [控件](../../src/Aviora.Controls/BackdropBlur.cs)
+- [控件](../../src/Aviora.Controls/Surfaces/BackdropBlur.cs)
 - [探针说明及复跑命令](../../tools/BackdropBlur.Perf/README.md)
 - [正式结果](../../artifacts/backdrop-blur-p0/interleaved-results/results.json)、[逐帧数据](../../artifacts/backdrop-blur-p0/interleaved-results/frames.csv)
 - [GPU 对照数据](../../artifacts/backdrop-blur-p0/verified/verification.json)

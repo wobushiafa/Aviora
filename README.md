@@ -25,6 +25,7 @@ Aviora 是一个面向 [Avalonia](https://avaloniaui.net/) 的现代化、跨平
 - `Dialog`：支持异步结果、会话关闭、请求排队、多宿主路由和自定义内容的模态对话框。
 - `ToastHost`：支持并发堆叠、六方位显示、超时/动作/取消关闭、动画和外部模板的全局通知宿主。
 - `HeroHost` / `Hero` / `HeroOverlay` / `HeroTransitionControl`：支持共享元素跨视图飞行过渡（直线与弧线轨迹、圆角插值、自定义穿梭模板）及全屏进退场遮罩动画。
+- [`SmoothScrollAssist`](docs/smooth-scroll.md)：通用平滑滚动附加属性，支持 `ScrollViewer` 与 `ListBox` 等复合控件、指数阻尼与 `Easing` 双曲线模式、内置手感预设、纵/横双轴、触控板直通及全参数调节。
 
 ## 安装
 

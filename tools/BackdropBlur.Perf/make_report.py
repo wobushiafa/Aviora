@@ -34,7 +34,7 @@ nine = rows["nine-panels"]
 dpi = rows["dpi-200-percent"]
 fourk = rows["same-panel-4k-surface"]
 churn = rows["changing-radius"]
-fingerprint = hashlib.sha256((root / "src/Aviora.Controls/BackdropBlur.cs").read_bytes()).hexdigest()
+fingerprint = hashlib.sha256((root / "src/Aviora.Controls/Surfaces/BackdropBlur.cs").read_bytes()).hexdigest()
 measured_local = datetime.fromisoformat(main["measuredAtUtc"]).astimezone(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S UTC+8")
 
 lines = [

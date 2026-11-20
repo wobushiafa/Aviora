@@ -24,6 +24,7 @@ public partial class MainWindowViewModel : ViewModelBase
             new DialGaugePageViewModel(),
             new ThermometerPageViewModel(),
             new BackdropBlurPageViewModel(),
+            new SmoothScrollPageViewModel(),
             new LoadingPageViewModel(loadingService),
             new ProgressPageViewModel(),
             HeroPage,
