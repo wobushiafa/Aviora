@@ -6,6 +6,22 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-20
+
+### Added
+
+- Added `SmoothScrollAssist` universal attached properties (`Default`, `Snappy`, and `Silky` presets, `Exponential` and `Easing` curve modes, vertical/horizontal/auto-2D wheel handling, `Shift` horizontal scrolling, composite `Control` host resolution, Demo showcase page, unit tests, and documentation).
+- Added `ChartDownsampler` (`Lttb` and `MinMax` modes) and single-pass zero-allocation `ChartAxisCalculator` (`includeZero` overload) in `Aviora.Core`.
+- Added `ColumnChart` multi-series support (`ColumnChartSeries` with `Grouped`, `Stacked`, and `Stacked100` layouts), asymmetric `BarCornerRadius`, `MinBarWidth`/`MaxBarWidth`, `HoverSlotBrush`, and `ShowDataLabels` (`OutsideTop`, `InsideTop`, `Center`).
+- Added `LineChart` `MonotoneSmooth`, `StepBefore`, `StepAfter`, and `StepMiddle` interpolation modes, configurable `LineTension`, `LineDashArray`, `PointShape` (`Circle`, `Square`, `Diamond`, `Triangle`), `HoverPointRadius`/`HoverHaloBrush`, and reactive `AvaloniaObject`-based per-series style overrides on `LineChartSeries`.
+- Added shared `CartesianChart` customization and interactions: POCO `DataSource` (`CategoryMemberSelector`, `ValueMemberSelector`, `PointBrushSelector`), `AutoRangeIncludeZero`, `PlotPadding`, plot/axis/zero-line/vertical-grid brushes, threshold bands (`BandEndValue`, `BandBrush`), `CrosshairMode`, clickable interactive `ShowLegend` (`Top`, `Bottom`, `Right`), `SharedCategory` tooltip mode, wheel zoom & drag pan (`IsZoomEnabled`, `IsPanEnabled`, `MinZoomCategorySpan`, `ResetZoom()`), and `PlotBackgroundRenderer`/`PlotOverlayRenderer` custom drawing hooks.
+
+### Changed
+
+- Replaced coarse full-state chart cache resets with fine-grained `ChartInvalidationFlags` dirty tracking so hover, focus, and selection updates reuse cached axis layouts, `TextLayout` instances, pens, and geometries without allocations.
+- Added throttled deferred item materialization, incremental `INotifyPropertyChanged` point observation, and reusable `double[]` animation buffers across chart controls.
+- Reorganized repository structure: moved surface controls into `src/Aviora.Controls/Surfaces/`, assists into `src/Aviora.Controls/Assists/`, shared package icon to `assets/aviora.png`, and grouped unit tests into module subdirectories.
+
 ## [0.6.3] - 2026-11-19
 
 ### Fixed
