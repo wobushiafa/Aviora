@@ -14,8 +14,8 @@ Aviora 是一个面向 [Avalonia](https://avaloniaui.net/) 的现代化、跨平
 
 - `AvioraCard`：用于组织相关内容的主题化容器。
 - [`BackdropBlur`](docs/backdrop-blur.md)：支持可调模糊半径、采样分辨率、圆角和边框的背景模糊表面。
-- `ColumnChart`：支持阈值、坐标轴、选择、动画和 Tooltip 的柱状图。
-- `LineChart`：支持平滑曲线、区域填充、数据点和交互的折线图。
+- `ColumnChart`：支持单/多序列（分组/堆叠/百分比堆叠）、圆角柱、数据标签、阈值色带、坐标轴定制、选择、动画、十字准星、缩放平移与降采样的柱状图。
+- `LineChart`：支持单/多序列、单调保形平滑/Catmull-Rom/阶梯折线、虚线与多点形状、交互图例、十字准星、缩放平移、LTTB/MinMax 大数据降采样与聚合 Tooltip 的折线图。
 - `Thermometer`：支持范围、刻度、标签、渐变映射和过渡动画的温度计。
 - `DialGauge`：支持分段刻度、标签、指针和过渡动画的圆形仪表。
 - `ProgressRing`：支持确定进度和不确定动画的环形进度条。

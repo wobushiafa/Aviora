@@ -1,8 +1,9 @@
 # LineChart
 
 `LineChart` renders one or more trends with shared axes, animation, selection,
-keyboard, and tooltip infrastructure. Existing `ItemsSource` and `Values`
-bindings remain available for a single series.
+keyboard, interactive legends, crosshairs, zoom & pan, downsampling, and tooltip
+infrastructure. Existing `ItemsSource` and `Values` bindings remain available for
+a single series, alongside POCO `DataSource` selectors.
 
 ## Multiple series
 
@@ -56,17 +57,27 @@ empty it takes precedence over `ItemsSource` and `Values`.
 ```
 
 `InterpolationMode="Linear"` draws straight segments. `Smooth` uses a
-Catmull-Rom-derived cubic curve while preserving the original data points for
-hit testing and selection.
+Catmull-Rom-derived cubic curve with configurable `LineTension`, `MonotoneSmooth`
+uses Fritsch-Carlson monotone splines to eliminate overshoot on step transitions,
+and `StepBefore` / `StepAfter` / `StepMiddle` draw step charts.
+
+Each `LineChartSeries` inherits `AvaloniaObject` and supports per-series runtime
+toggling (`IsVisible`), `LineThickness`, `StrokeDashArray`, `InterpolationMode`,
+`ShowPoints`, `PointRadius`, and `PointShape` (`Circle`, `Square`, `Diamond`,
+`Triangle`).
 
 `PointBrush` controls the default point color. A data point's `Brush` takes
 precedence, and threshold colors are used for points when `ShowThresholds` is
 enabled. `SelectedPointBrush` and `SelectedPointRadius` are optional; selection
-is visually unchanged by default, matching `ColumnChart`.
+is visually unchanged by default, matching `ColumnChart`. Hover emphasis can be
+configured via `HoverPointRadius` and `HoverHaloBrush`.
 
 Set `AreaFillBrush` to fill the region between the line and the zero baseline.
-Leave it unset to draw only the line and points. All shared axis and update
-properties are inherited from `CartesianChart`.
+Shared axes (`AutoRangeIncludeZero`, `ShowAxisLines`, `ShowZeroBaseline`,
+`ShowVerticalGridLines`, `PlotPadding`, `PlotBackground`), crosshairs
+(`CrosshairMode`), interactive legends (`ShowLegend`), zoom & pan (`IsZoomEnabled`,
+`IsPanEnabled`, `ResetZoom()`), and large-dataset downsampling (`DownsampleMode`,
+`DownsampleThreshold`) are inherited from `CartesianChart`.
 
-See [Chart tooltips](chart-tooltips.md) for styling properties and custom
-`DataTemplate` content.
+See [Chart tooltips](chart-tooltips.md) for styling properties, `SharedCategory`
+aggregation, and custom `DataTemplate` content.

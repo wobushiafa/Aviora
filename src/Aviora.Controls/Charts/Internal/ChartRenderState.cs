@@ -1,6 +1,19 @@
+using Avalonia;
+using Avalonia.Media;
+using Aviora.Core.Charts;
+
 namespace Aviora.Controls;
 
-using Aviora.Core.Charts;
+internal sealed record LegendHitItem(
+    int SeriesIndex,
+    string Title,
+    IBrush Brush,
+    bool IsVisible,
+    AvaloniaObject? SeriesObject,
+    Rect Bounds,
+    FormattedText Text,
+    Point TextPosition,
+    Rect SwatchRect);
 
 internal sealed class ChartRenderState
 {
@@ -17,6 +30,10 @@ internal sealed class ChartRenderState
     public required IReadOnlyList<string> YAxisLabels { get; init; }
 
     public required IReadOnlyList<string> XAxisLabels { get; init; }
+
+    public IReadOnlyList<ChartDataPipeline.ChartSeriesMeta> SeriesMeta { get; init; } = [];
+
+    public IReadOnlyList<LegendHitItem> LegendItems { get; init; } = [];
 
     public int GridLineCount => Math.Max(2, YAxisLabels.Count);
 }

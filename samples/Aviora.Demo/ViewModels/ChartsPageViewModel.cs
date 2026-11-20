@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using Avalonia.Media;
 using Aviora.Controls;
+using Aviora.Core.Charts;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -37,11 +38,39 @@ public partial class ChartsPageViewModel : DemoPageViewModel
     [ObservableProperty]
     private string _interactionStatus = "Select a column or point";
 
+    [ObservableProperty]
+    private ColumnSeriesLayoutMode _selectedColumnLayoutMode = ColumnSeriesLayoutMode.Grouped;
+
+    [ObservableProperty]
+    private LineInterpolationMode _selectedLineInterpolation = LineInterpolationMode.MonotoneSmooth;
+
+    [ObservableProperty]
+    private double _lineTension = 1.0;
+
+    [ObservableProperty]
+    private ChartDownsampleMode _selectedDownsampleMode = ChartDownsampleMode.Lttb;
+
+    [ObservableProperty]
+    private IReadOnlyList<double> _largeDataset;
+
+    [ObservableProperty]
+    private double _zoomStartRatio;
+
+    [ObservableProperty]
+    private double _zoomEndRatio = 1.0;
+
     public ChartsPageViewModel()
         : base("Charts")
     {
         _animatedTrend = [];
+        _largeDataset = GenerateLargeDataset(5000);
     }
+
+    public ColumnSeriesLayoutMode[] ColumnLayoutModes { get; } = Enum.GetValues<ColumnSeriesLayoutMode>();
+
+    public LineInterpolationMode[] InterpolationModes { get; } = Enum.GetValues<LineInterpolationMode>();
+
+    public ChartDownsampleMode[] DownsampleModes { get; } = Enum.GetValues<ChartDownsampleMode>();
 
     public IReadOnlyList<IChartDataPoint> MonthlySales { get; } =
     [
@@ -89,6 +118,7 @@ public partial class ChartsPageViewModel : DemoPageViewModel
             LineBrush = new SolidColorBrush(Color.Parse("#2563EB")),
             AreaFillBrush = new SolidColorBrush(Color.Parse("#302563EB")),
             PointBrush = new SolidColorBrush(Color.Parse("#1D4ED8")),
+            PointShape = ChartPointShape.Circle,
         },
         new LineChartSeries
         {
@@ -97,16 +127,45 @@ public partial class ChartsPageViewModel : DemoPageViewModel
             LineBrush = new SolidColorBrush(Color.Parse("#0F766E")),
             AreaFillBrush = new SolidColorBrush(Color.Parse("#300F766E")),
             PointBrush = new SolidColorBrush(Color.Parse("#0D9488")),
+            PointShape = ChartPointShape.Square,
         },
         new LineChartSeries
         {
             Title = "Forecast",
             Values = [42, 44, 49, 56, 64, 72],
             LineBrush = new SolidColorBrush(Color.Parse("#D97706")),
-            AreaFillBrush = new SolidColorBrush(Color.Parse("#30D97706")),
+            AreaFillBrush = new SolidColorBrush(Color.Parse("#20D97706")),
             PointBrush = new SolidColorBrush(Color.Parse("#F59E0B")),
+            PointShape = ChartPointShape.Diamond,
+            StrokeDashArray = [5.0, 4.0],
         },
     ];
+
+    public IReadOnlyList<string> QuarterLabels { get; } = ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6"];
+
+    public IReadOnlyList<ColumnChartSeries> MultiColumnSeries { get; } =
+    [
+        new ColumnChartSeries
+        {
+            Title = "Cloud",
+            Values = [34, 48, 41, 59, 64, 72],
+            Brush = new SolidColorBrush(Color.Parse("#0F766E")),
+        },
+        new ColumnChartSeries
+        {
+            Title = "Desktop",
+            Values = [28, 32, 37, 42, 39, 45],
+            Brush = new SolidColorBrush(Color.Parse("#2563EB")),
+        },
+        new ColumnChartSeries
+        {
+            Title = "Services",
+            Values = [15, 19, 24, 22, 29, 34],
+            Brush = new SolidColorBrush(Color.Parse("#D97706")),
+        },
+    ];
+
+    public IReadOnlyList<double> StepAndOvershootValues { get; } = [0, 0, 100, 100, 35, 35, 90, 20];
 
     public IReadOnlyList<ChartThreshold> WeeklyScoreThresholds { get; } =
     [
@@ -153,6 +212,20 @@ public partial class ChartsPageViewModel : DemoPageViewModel
     }
 
     [RelayCommand]
+    private void RegenerateLargeDataset()
+    {
+        LargeDataset = GenerateLargeDataset(5000);
+        ResetLargeChartZoom();
+    }
+
+    [RelayCommand]
+    private void ResetLargeChartZoom()
+    {
+        ZoomStartRatio = 0.0;
+        ZoomEndRatio = 1.0;
+    }
+
+    [RelayCommand]
     private void ChartItemClicked(IChartDataPoint? item)
     {
         if (item != null)
@@ -181,5 +254,20 @@ public partial class ChartsPageViewModel : DemoPageViewModel
             new ChartDataPoint { Key = "Q5", Label = "Q5", Value = 59 + offset },
             new ChartDataPoint { Key = "Q6", Label = "Q6", Value = 82 - (offset / 2) },
         ];
+    }
+
+    private static double[] GenerateLargeDataset(int count)
+    {
+        var values = new double[count];
+        double level = 50.0;
+        for (int index = 0; index < count; index++)
+        {
+            double wave = Math.Sin(index * 0.025) * 18.0 + Math.Cos(index * 0.11) * 7.5;
+            double noise = (Random.Shared.NextDouble() - 0.5) * 6.0;
+            double spike = index % 617 == 150 ? 28.0 : index % 733 == 400 ? -24.0 : 0.0;
+            values[index] = Math.Round(level + wave + noise + spike, 2);
+        }
+
+        return values;
     }
 }

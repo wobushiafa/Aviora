@@ -47,3 +47,14 @@ data context is the hovered `IChartDataPoint`:
 
 Without a template, content is resolved from `ToolTipFormatter`, then the data
 point's `ToolTip`, and finally the default `Label: Value` text.
+
+## Shared category aggregation
+
+For multi-series charts, set `ToolTipMode="SharedCategory"` to aggregate all
+visible series sharing the hovered category index into a single unified tooltip:
+
+```xml
+<controls:LineChart Series="{Binding ComparisonSeries}"
+                    CrosshairMode="Vertical"
+                    ToolTipMode="SharedCategory" />
+```

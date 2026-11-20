@@ -1,8 +1,9 @@
 # ColumnChart
 
-`ColumnChart` renders an interactive, single-series column chart. It supports
-automatic or fixed ranges, positive and negative values, category labels,
-threshold colors, selection, commands, tooltips, and animated updates.
+`ColumnChart` renders an interactive, single-series or multi-series column chart. It supports
+automatic or fixed ranges (with optional zero inclusion), positive and negative values, category labels,
+threshold colors and background bands, rounded bar corners, data labels, grouped/stacked layouts,
+interactive legends, crosshairs, zoom & pan, downsampling, selection, commands, tooltips, and animated updates.
 
 ## Rich data points
 
@@ -136,3 +137,28 @@ selection effect can be configured independently:
 
 Leave `SelectedBarBrush` and `SelectionOverlayBrush` unset and keep
 `SelectionStrokeThickness` at `0` to retain the default invisible selection.
+
+## Multi-series, rounded bars, and data labels
+
+Bind `Series` to `ColumnChartSeries` items and choose `SeriesLayoutMode`
+(`Grouped`, `Stacked`, or `Stacked100`). Set `BarCornerRadius` (automatically
+mirrored for negative bars), `MinBarWidth`/`MaxBarWidth`, `HoverSlotBrush`,
+and `ShowDataLabels` (`Outside`, `InsideTop`, `Center`):
+
+```xml
+<controls:ColumnChart Series="{Binding QuarterlySeries}"
+                      SeriesLayoutMode="Stacked"
+                      BarCornerRadius="6,6,0,0"
+                      ShowDataLabels="True"
+                      ShowLegend="True"
+                      IsLegendInteractive="True"
+                      CrosshairMode="Vertical"
+                      ToolTipMode="SharedCategory" />
+```
+
+## Generic POCO data binding and performance
+
+Use `DataSource` with `ValueSelector` and `LabelSelector` to bind domain collections
+directly without mapping into `ChartDataPoint`. For large datasets, `DownsampleMode`
+(`Lttb` or `MinMax`) and `DownsampleThreshold` (default `500`) keep rendering fast;
+enable `IsZoomEnabled` and `IsPanEnabled` for wheel zooming and drag panning.

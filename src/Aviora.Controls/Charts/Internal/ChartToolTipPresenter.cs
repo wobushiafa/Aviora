@@ -1,3 +1,4 @@
+using System.Text;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
@@ -45,7 +46,8 @@ internal sealed class ChartToolTipPresenter
         property == CartesianChart.ToolTipHorizontalOffsetProperty ||
         property == CartesianChart.ToolTipVerticalOffsetProperty ||
         property == CartesianChart.ToolTipHideDelayProperty ||
-        property == CartesianChart.ToolTipFormatterProperty;
+        property == CartesianChart.ToolTipFormatterProperty ||
+        property == CartesianChart.ToolTipModeProperty;
 
     public bool Update(int index, Point pointerPosition)
     {
@@ -101,6 +103,7 @@ internal sealed class ChartToolTipPresenter
             {
                 RequestHide(reevaluatePointer: true);
             }
+
             return;
         }
 
@@ -111,6 +114,18 @@ internal sealed class ChartToolTipPresenter
         {
             content = item;
             template = _owner.ToolTipTemplate;
+        }
+        else if (_owner.ToolTipMode == ChartToolTipMode.SharedCategory)
+        {
+            string text = BuildSharedCategoryContent(items, index, item);
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                Hide();
+                return;
+            }
+
+            content = text;
+            template = null;
         }
         else
         {
@@ -147,6 +162,52 @@ internal sealed class ChartToolTipPresenter
         {
             MeasureAndArrange();
         }
+    }
+
+    private string BuildSharedCategoryContent(
+        IReadOnlyList<IChartDataPoint> items,
+        int hoveredIndex,
+        IChartDataPoint hoveredItem)
+    {
+        if (hoveredItem is not ChartDataPipeline.SeriesDataPoint seriesPoint)
+        {
+            return _owner.ToolTipFormatter?.Invoke(hoveredItem) ??
+                   hoveredItem.ToolTip ??
+                   BuildDefaultContent(hoveredItem);
+        }
+
+        int targetCategory = seriesPoint.PointIndex;
+        IReadOnlyList<ChartDataPipeline.ChartSeriesMeta> metas = _owner.GetSeriesMetadata();
+        var sb = new StringBuilder();
+        string? categoryLabel = _owner.ResolveCategoryLabel(targetCategory, hoveredItem.Label);
+        if (!string.IsNullOrWhiteSpace(categoryLabel))
+        {
+            sb.AppendLine(categoryLabel);
+        }
+
+        bool hasLine = false;
+        for (int index = 0; index < items.Count; index++)
+        {
+            if (items[index] is not ChartDataPipeline.SeriesDataPoint entry || entry.PointIndex != targetCategory)
+            {
+                continue;
+            }
+
+            string seriesTitle = entry.SeriesIndex >= 0 && entry.SeriesIndex < metas.Count
+                ? metas[entry.SeriesIndex].Title
+                : $"Series {entry.SeriesIndex + 1}";
+            string valueText = _owner.ToolTipFormatter?.Invoke(entry) ??
+                               ChartValueFormatter.Format(entry.Value);
+            if (hasLine)
+            {
+                sb.AppendLine();
+            }
+
+            sb.Append(seriesTitle).Append(": ").Append(valueText);
+            hasLine = true;
+        }
+
+        return sb.ToString();
     }
 
     public void Hide()

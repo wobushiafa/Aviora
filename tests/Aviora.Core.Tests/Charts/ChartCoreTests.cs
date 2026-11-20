@@ -105,4 +105,48 @@ public class ChartCoreTests
         Assert.Equal(11, scale.Maximum);
         Assert.Equal([11, 10.5, 10], scale.Ticks);
     }
+
+    [Fact]
+    public void Automatic_axis_without_zero_fits_narrow_positive_range_tightly()
+    {
+        ChartAxisScale scale = ChartAxisCalculator.Calculate(
+            [98.2, 99.1, 100.4],
+            autoRange: true,
+            minimum: 0,
+            maximum: 100,
+            desiredTickCount: 5,
+            paddingRatio: 0.08,
+            includeZero: false);
+
+        Assert.True(scale.Minimum >= 95);
+        Assert.True(scale.Minimum <= 98.2);
+        Assert.True(scale.Maximum >= 100.4);
+        Assert.True(scale.Maximum <= 105);
+    }
+
+    [Fact]
+    public void Downsampler_Lttb_and_MinMax_preserve_endpoints_and_spikes()
+    {
+        var values = Enumerable.Range(0, 200)
+            .Select(i => i == 77 ? 500.0 : i == 133 ? -250.0 : Math.Sin(i * 0.1) * 10.0)
+            .ToArray();
+
+        int[] lttb = ChartDownsampler.SelectIndices(values, 40, ChartDownsampleMode.Lttb);
+        int[] minMax = ChartDownsampler.SelectIndices(values, 40, ChartDownsampleMode.MinMax);
+
+        Assert.Equal(0, lttb[0]);
+        Assert.Equal(values.Length - 1, lttb[^1]);
+        Assert.True(lttb.Length <= 40);
+        Assert.Contains(77, lttb);
+        Assert.Contains(133, lttb);
+
+        Assert.Equal(0, minMax[0]);
+        Assert.Equal(values.Length - 1, minMax[^1]);
+        Assert.Contains(77, minMax);
+        Assert.Contains(133, minMax);
+        for (int i = 1; i < minMax.Length; i++)
+        {
+            Assert.True(minMax[i] > minMax[i - 1]);
+        }
+    }
 }

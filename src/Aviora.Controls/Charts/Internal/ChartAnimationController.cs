@@ -1,21 +1,53 @@
+using System.Collections;
+using Avalonia.Animation.Easings;
+
 namespace Aviora.Controls;
 
 internal sealed class ChartAnimationController
 {
-    private List<double> _currentValues = [];
-    private List<double> _startValues = [];
-    private List<double> _targetValues = [];
+    private readonly BufferView _valuesView;
+    private double[] _currentValues = [];
+    private double[] _startValues = [];
+    private double[] _targetValues = [];
+    private int _count;
 
-    public IReadOnlyList<double> Values => _currentValues;
+    public ChartAnimationController()
+    {
+        _valuesView = new BufferView(this);
+    }
+
+    public IReadOnlyList<double> Values => _valuesView;
 
     public bool IsAnimating { get; private set; }
 
     public bool SetTargets(IEnumerable<double> targets, bool animate)
     {
-        _targetValues = targets.ToList();
-        AlignCurrentValues();
-        _startValues = _currentValues.ToList();
-        IsAnimating = animate && _targetValues.Count > 0;
+        int newCount = 0;
+        if (targets is ICollection<double> collection)
+        {
+            EnsureCapacity(collection.Count);
+            foreach (double value in collection)
+            {
+                _targetValues[newCount++] = value;
+            }
+        }
+        else
+        {
+            foreach (double value in targets)
+            {
+                EnsureCapacity(newCount + 1);
+                _targetValues[newCount++] = value;
+            }
+        }
+
+        if (newCount > _count)
+        {
+            Array.Clear(_currentValues, _count, newCount - _count);
+        }
+
+        _count = newCount;
+        Array.Copy(_currentValues, _startValues, _count);
+        IsAnimating = animate && _count > 0;
         if (!IsAnimating)
         {
             Complete();
@@ -24,7 +56,7 @@ internal sealed class ChartAnimationController
         return IsAnimating;
     }
 
-    public bool Advance(double progress)
+    public bool Advance(double progress, Easing? easing = null)
     {
         if (!IsAnimating)
         {
@@ -32,8 +64,10 @@ internal sealed class ChartAnimationController
         }
 
         progress = Math.Clamp(progress, 0, 1);
-        double easedProgress = 1 - Math.Pow(1 - progress, 3);
-        for (int index = 0; index < _targetValues.Count; index++)
+        double easedProgress = easing != null
+            ? easing.Ease(progress)
+            : 1 - Math.Pow(1 - progress, 3);
+        for (int index = 0; index < _count; index++)
         {
             _currentValues[index] = _startValues[index] +
                                     ((_targetValues[index] - _startValues[index]) * easedProgress);
@@ -49,23 +83,55 @@ internal sealed class ChartAnimationController
 
     public void Complete()
     {
-        _currentValues = _targetValues.ToList();
-        _startValues = _targetValues.ToList();
+        if (_count > 0)
+        {
+            Array.Copy(_targetValues, _currentValues, _count);
+            Array.Copy(_targetValues, _startValues, _count);
+        }
+
         IsAnimating = false;
     }
 
     public void Stop() => IsAnimating = false;
 
-    private void AlignCurrentValues()
+    private void EnsureCapacity(int required)
     {
-        while (_currentValues.Count < _targetValues.Count)
+        if (required <= _targetValues.Length)
         {
-            _currentValues.Add(0);
+            return;
         }
 
-        if (_currentValues.Count > _targetValues.Count)
+        int newCapacity = Math.Max(required, _targetValues.Length == 0 ? 16 : _targetValues.Length * 2);
+        Array.Resize(ref _currentValues, newCapacity);
+        Array.Resize(ref _startValues, newCapacity);
+        Array.Resize(ref _targetValues, newCapacity);
+    }
+
+    private sealed class BufferView(ChartAnimationController owner) : IReadOnlyList<double>
+    {
+        public int Count => owner._count;
+
+        public double this[int index]
         {
-            _currentValues.RemoveRange(_targetValues.Count, _currentValues.Count - _targetValues.Count);
+            get
+            {
+                if ((uint)index >= (uint)owner._count)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                }
+
+                return owner._currentValues[index];
+            }
         }
+
+        public IEnumerator<double> GetEnumerator()
+        {
+            for (int index = 0; index < owner._count; index++)
+            {
+                yield return owner._currentValues[index];
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

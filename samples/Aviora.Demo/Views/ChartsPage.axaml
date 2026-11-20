@@ -67,7 +67,11 @@
                                                       UpdateThrottleInterval="0:0:0.25"
                                                       IsToolTipEnabled="{Binding IsToolTipEnabled}"
                                                       ColumnBackgroundBrush="#E2E8F0"
+                                                      HoverSlotBrush="#100F766E"
                                                       BarWidthRatio="0.55"
+                                                      BarCornerRadius="6,6,0,0"
+                                                      ShowDataLabels="True"
+                                                      DataLabelFontSize="10"
                                                       XAxisTextBrush="#64748B"
                                                       YAxisTextBrush="#475569"
                                                       XAxisFontSize="10"
@@ -181,25 +185,9 @@
                             <StackPanel Spacing="10">
                                 <TextBlock FontSize="18" FontWeight="SemiBold" Text="Multi-series comparison" />
                                 <TextBlock Opacity="0.65"
-                                           Text="Three independently styled curves sharing category positions and the Y-axis range"
+                                           Text="Built-in interactive legend (click to toggle), dashed series, vertical crosshair, and shared tooltip"
                                            TextWrapping="Wrap" />
-                                <StackPanel HorizontalAlignment="Center"
-                                            Orientation="Horizontal"
-                                            Spacing="22">
-                                    <StackPanel Orientation="Horizontal" Spacing="7">
-                                        <Ellipse Width="10" Height="10" VerticalAlignment="Center" Fill="#2563EB" />
-                                        <TextBlock Text="Revenue" />
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Spacing="7">
-                                        <Ellipse Width="10" Height="10" VerticalAlignment="Center" Fill="#0F766E" />
-                                        <TextBlock Text="Orders" />
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Spacing="7">
-                                        <Ellipse Width="10" Height="10" VerticalAlignment="Center" Fill="#D97706" />
-                                        <TextBlock Text="Forecast" />
-                                    </StackPanel>
-                                </StackPanel>
-                                <controls:LineChart Height="280"
+                                <controls:LineChart Height="290"
                                                     Series="{Binding ComparisonSeries}"
                                                     XAxisLabelsSource="{Binding ComparisonLabels}"
                                                     XAxisLabelMode="All"
@@ -207,12 +195,18 @@
                                                     MinValue="0"
                                                     MaxValue="100"
                                                     YAxisLabelsSource="{Binding PerformanceAxisLabels}"
-                                                    InterpolationMode="Smooth"
+                                                    InterpolationMode="MonotoneSmooth"
                                                     LineThickness="2.5"
                                                     ShowPoints="True"
-                                                    PointRadius="3.5"
+                                                    PointRadius="4"
                                                     PointStrokeBrush="White"
                                                     PointStrokeThickness="1.5"
+                                                    ShowLegend="True"
+                                                    IsLegendInteractive="True"
+                                                    CrosshairMode="Vertical"
+                                                    ToolTipMode="SharedCategory"
+                                                    HoverPointRadius="6"
+                                                    HoverHaloBrush="#282563EB"
                                                     ShowGridLines="{Binding ShowGridLines}"
                                                     IsAnimationEnabled="{Binding IsAnimationEnabled}"
                                                     AnimationDuration="0:0:0.55"
@@ -362,6 +356,132 @@
                                 </StackPanel>
                             </controls:AvioraCard>
                         </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Customization &amp; Perf">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="4,18,4,24" Spacing="18">
+                        <controls:AvioraCard HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                    <StackPanel Spacing="3">
+                                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Multi-series columns (Grouped / Stacked / 100%)" />
+                                        <TextBlock Opacity="0.65" Text="Click legend items to toggle series visibility; switch layout modes dynamically." TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ComboBox Grid.Column="1"
+                                              VerticalAlignment="Center"
+                                              ItemsSource="{Binding ColumnLayoutModes}"
+                                              SelectedItem="{Binding SelectedColumnLayoutMode}" />
+                                </Grid>
+
+                                <controls:ColumnChart Height="270"
+                                                      Series="{Binding MultiColumnSeries}"
+                                                      SeriesLayoutMode="{Binding SelectedColumnLayoutMode}"
+                                                      XAxisLabelsSource="{Binding QuarterLabels}"
+                                                      XAxisLabelMode="All"
+                                                      AutoRange="True"
+                                                      BarWidthRatio="0.68"
+                                                      BarCornerRadius="5,5,0,0"
+                                                      ShowLegend="True"
+                                                      IsLegendInteractive="True"
+                                                      CrosshairMode="Vertical"
+                                                      ToolTipMode="SharedCategory"
+                                                      HoverSlotBrush="#100F766E"
+                                                      ShowAxisLines="True"
+                                                      ShowGridLines="{Binding ShowGridLines}"
+                                                      IsAnimationEnabled="{Binding IsAnimationEnabled}"
+                                                      IsToolTipEnabled="{Binding IsToolTipEnabled}"
+                                                      UpdateThrottleInterval="0" />
+                            </StackPanel>
+                        </controls:AvioraCard>
+
+                        <controls:AvioraCard HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                    <StackPanel Spacing="3">
+                                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Interpolation &amp; overshoot control" />
+                                        <TextBlock Opacity="0.65" Text="Compare MonotoneSmooth (zero overshoot) against Catmull-Rom Smooth and Step modes." TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ComboBox Grid.Column="1"
+                                              VerticalAlignment="Center"
+                                              ItemsSource="{Binding InterpolationModes}"
+                                              SelectedItem="{Binding SelectedLineInterpolation}" />
+                                </Grid>
+
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                    <TextBlock VerticalAlignment="Center" Text="Smooth tension" />
+                                    <Slider Grid.Column="1" Minimum="0" Maximum="1.8" Value="{Binding LineTension}" />
+                                    <TextBlock Grid.Column="2" MinWidth="36" VerticalAlignment="Center"
+                                               Text="{Binding LineTension, StringFormat={}{0:0.00}}" />
+                                </Grid>
+
+                                <controls:LineChart Height="240"
+                                                    Values="{Binding StepAndOvershootValues}"
+                                                    InterpolationMode="{Binding SelectedLineInterpolation}"
+                                                    LineTension="{Binding LineTension}"
+                                                    AutoRange="False"
+                                                    MinValue="-15"
+                                                    MaxValue="115"
+                                                    ShowZeroBaseline="True"
+                                                    ShowAxisLines="True"
+                                                    PointShape="Diamond"
+                                                    PointRadius="4.5"
+                                                    HoverPointRadius="7"
+                                                    HoverHaloBrush="#302563EB"
+                                                    LineBrush="#2563EB"
+                                                    AreaFillBrush="#1C2563EB"
+                                                    CrosshairMode="Both"
+                                                    ShowGridLines="{Binding ShowGridLines}"
+                                                    IsAnimationEnabled="{Binding IsAnimationEnabled}"
+                                                    IsToolTipEnabled="{Binding IsToolTipEnabled}"
+                                                    UpdateThrottleInterval="0" />
+                            </StackPanel>
+                        </controls:AvioraCard>
+
+                        <controls:AvioraCard HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+                                    <StackPanel Spacing="3">
+                                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="5,000-point telemetry (Downsampling + Zoom &amp; Pan)" />
+                                        <TextBlock Opacity="0.65" Text="Mouse wheel to zoom at cursor, drag to pan, double-click plot or click Reset zoom." TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ComboBox Grid.Column="1"
+                                              VerticalAlignment="Center"
+                                              ItemsSource="{Binding DownsampleModes}"
+                                              SelectedItem="{Binding SelectedDownsampleMode}" />
+                                    <Button Grid.Column="2"
+                                            VerticalAlignment="Center"
+                                            Command="{Binding RegenerateLargeDatasetCommand}"
+                                            Content="New 5,000 pts" />
+                                    <Button Grid.Column="3"
+                                            VerticalAlignment="Center"
+                                            Command="{Binding ResetLargeChartZoomCommand}"
+                                            Content="Reset zoom" />
+                                </Grid>
+
+                                <controls:LineChart Height="260"
+                                                    Values="{Binding LargeDataset}"
+                                                    DownsampleMode="{Binding SelectedDownsampleMode}"
+                                                    DownsampleThreshold="500"
+                                                    AutoRange="True"
+                                                    AutoRangeIncludeZero="False"
+                                                    IsZoomEnabled="True"
+                                                    IsPanEnabled="True"
+                                                    ZoomStartRatio="{Binding ZoomStartRatio, Mode=TwoWay}"
+                                                    ZoomEndRatio="{Binding ZoomEndRatio, Mode=TwoWay}"
+                                                    CrosshairMode="Both"
+                                                    ShowPoints="False"
+                                                    LineBrush="#0F766E"
+                                                    LineThickness="1.75"
+                                                    AreaFillBrush="#1A0F766E"
+                                                    ShowGridLines="{Binding ShowGridLines}"
+                                                    IsAnimationEnabled="False"
+                                                    IsToolTipEnabled="{Binding IsToolTipEnabled}"
+                                                    UpdateThrottleInterval="0" />
+                            </StackPanel>
+                        </controls:AvioraCard>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

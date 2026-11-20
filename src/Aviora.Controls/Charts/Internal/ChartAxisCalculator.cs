@@ -10,14 +10,16 @@ internal static class ChartAxisCalculator
         double minimum,
         double maximum,
         int desiredTickCount,
-        double paddingRatio = 0.08) =>
+        double paddingRatio = 0.08,
+        bool includeZero = true) =>
         CoreCharts.ChartAxisCalculator.Calculate(
             values,
             autoRange,
             minimum,
             maximum,
             desiredTickCount,
-            paddingRatio);
+            paddingRatio,
+            includeZero);
 
     public static IReadOnlyList<int> SelectLabelIndices(
         IReadOnlyList<double> leftEdges,

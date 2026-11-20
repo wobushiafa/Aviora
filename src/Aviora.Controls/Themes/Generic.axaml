@@ -131,9 +131,12 @@
     <Setter Property="DefaultBrush" Value="{DynamicResource AvioraAccentBrush}" />
     <Setter Property="SelectionStrokeBrush" Value="{DynamicResource AvioraAccentStrongBrush}" />
     <Setter Property="GridLineBrush" Value="{DynamicResource AvioraBorderBrush}" />
+    <Setter Property="AxisLineBrush" Value="{DynamicResource AvioraBorderBrush}" />
     <Setter Property="XAxisTextBrush" Value="{DynamicResource AvioraTextMutedBrush}" />
     <Setter Property="YAxisTextBrush" Value="{DynamicResource AvioraTextMutedBrush}" />
     <Setter Property="EmptyTextBrush" Value="{DynamicResource AvioraTextMutedBrush}" />
+    <Setter Property="LegendTextBrush" Value="{DynamicResource AvioraTextBrush}" />
+    <Setter Property="CrosshairBrush" Value="{DynamicResource AvioraMutedBrush}" />
     <Setter Property="ToolTipBackground" Value="{DynamicResource AvioraSurfaceRaisedBrush}" />
     <Setter Property="ToolTipTextBrush" Value="{DynamicResource AvioraTextBrush}" />
     <Setter Property="ToolTipBorderBrush" Value="{DynamicResource AvioraBorderBrush}" />
@@ -146,9 +149,12 @@
     <Setter Property="PointBrush" Value="{DynamicResource AvioraAccentStrongBrush}" />
     <Setter Property="AreaFillBrush" Value="{DynamicResource AvioraSubtleBrush}" />
     <Setter Property="GridLineBrush" Value="{DynamicResource AvioraBorderBrush}" />
+    <Setter Property="AxisLineBrush" Value="{DynamicResource AvioraBorderBrush}" />
     <Setter Property="XAxisTextBrush" Value="{DynamicResource AvioraTextMutedBrush}" />
     <Setter Property="YAxisTextBrush" Value="{DynamicResource AvioraTextMutedBrush}" />
     <Setter Property="EmptyTextBrush" Value="{DynamicResource AvioraTextMutedBrush}" />
+    <Setter Property="LegendTextBrush" Value="{DynamicResource AvioraTextBrush}" />
+    <Setter Property="CrosshairBrush" Value="{DynamicResource AvioraMutedBrush}" />
     <Setter Property="ToolTipBackground" Value="{DynamicResource AvioraSurfaceRaisedBrush}" />
     <Setter Property="ToolTipTextBrush" Value="{DynamicResource AvioraTextBrush}" />
     <Setter Property="ToolTipBorderBrush" Value="{DynamicResource AvioraBorderBrush}" />

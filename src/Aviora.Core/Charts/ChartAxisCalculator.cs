@@ -5,14 +5,25 @@ namespace Aviora.Core.Charts;
 /// </summary>
 public static class ChartAxisCalculator
 {
-    /// <summary>Calculates an automatic or fixed axis scale.</summary>
+    /// <summary>Calculates an automatic or fixed axis scale that includes zero when auto-ranging.</summary>
     public static ChartAxisScale Calculate(
         IEnumerable<double> values,
         bool autoRange,
         double minimum,
         double maximum,
         int desiredTickCount,
-        double paddingRatio = 0.08)
+        double paddingRatio = 0.08) =>
+        Calculate(values, autoRange, minimum, maximum, desiredTickCount, paddingRatio, includeZero: true);
+
+    /// <summary>Calculates an automatic or fixed axis scale with configurable zero inclusion.</summary>
+    public static ChartAxisScale Calculate(
+        IEnumerable<double> values,
+        bool autoRange,
+        double minimum,
+        double maximum,
+        int desiredTickCount,
+        double paddingRatio,
+        bool includeZero)
     {
         if (values is null)
         {
@@ -30,27 +41,65 @@ public static class ChartAxisCalculator
                 BuildUniformTicks(minimum, maximum, desiredTickCount));
         }
 
-        var finiteValues = values.Where(IsFinite).ToList();
-        if (finiteValues.Count == 0)
+        int finiteCount = 0;
+        double minVal = double.PositiveInfinity;
+        double maxVal = double.NegativeInfinity;
+        foreach (double value in values)
+        {
+            if (!IsFinite(value))
+            {
+                continue;
+            }
+
+            finiteCount++;
+            if (value < minVal)
+            {
+                minVal = value;
+            }
+
+            if (value > maxVal)
+            {
+                maxVal = value;
+            }
+        }
+
+        if (finiteCount == 0)
         {
             return new ChartAxisScale(0, 1, BuildUniformTicks(0, 1, desiredTickCount));
         }
 
-        double dataMinimum = Math.Min(0, finiteValues.Min());
-        double dataMaximum = Math.Max(0, finiteValues.Max());
+        double dataMinimum = includeZero ? Math.Min(0, minVal) : minVal;
+        double dataMaximum = includeZero ? Math.Max(0, maxVal) : maxVal;
         if (dataMaximum - dataMinimum < double.Epsilon)
         {
-            dataMaximum += Math.Max(Math.Abs(dataMaximum) * 0.1, 1);
+            if (includeZero)
+            {
+                dataMaximum += Math.Max(Math.Abs(dataMaximum) * 0.1, 1);
+            }
+            else
+            {
+                double halfSpan = Math.Max(Math.Abs(dataMaximum) * 0.05, 0.5);
+                dataMinimum -= halfSpan;
+                dataMaximum += halfSpan;
+            }
         }
 
         double padding = (dataMaximum - dataMinimum) * Clamp(paddingRatio, 0, 1);
-        if (dataMinimum < 0)
+        if (includeZero)
+        {
+            if (dataMinimum < 0)
+            {
+                dataMinimum -= padding;
+            }
+
+            if (dataMaximum > 0)
+            {
+                dataMaximum += padding;
+            }
+        }
+        else
         {
             dataMinimum -= padding;
-        }
-
-        if (dataMaximum > 0)
-        {
             dataMaximum += padding;
         }
 

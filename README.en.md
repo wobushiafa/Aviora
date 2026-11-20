@@ -14,8 +14,8 @@ Aviora is a modern, cross-platform open-source control library for [Avalonia](ht
 
 - `AvioraCard`: a themed surface for grouping related content.
 - [`BackdropBlur`](docs/backdrop-blur.md): a backdrop blur surface with adjustable blur radius, sampling resolution, corners, and borders.
-- `ColumnChart`: columns with thresholds, axes, selection, animation, and tooltips.
-- `LineChart`: lines with smooth interpolation, area fills, points, and interaction.
+- `ColumnChart`: single/multi-series (grouped, stacked, 100% stacked) columns with rounded corners, data labels, threshold bands, interactive legends, crosshairs, zoom/pan, downsampling, selection, and tooltips.
+- `LineChart`: single/multi-series lines with monotone-smooth, Catmull-Rom, and step interpolation, dash patterns, marker shapes, interactive legends, crosshairs, zoom/pan, LTTB/MinMax downsampling, and shared tooltips.
 - `Thermometer`: ranges, ticks, labels, gradient mapping, and transitions.
 - `DialGauge`: range-colored ticks, labels, needles, and transitions.
 - `ProgressRing`: circular determinate progress and an animated indeterminate state.
